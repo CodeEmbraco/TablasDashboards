@@ -4,12 +4,41 @@ import { Routes, Route } from "react-router-dom";
 import React from "react";
 import './TablaProd.css'
 import logoNidec  from '../assets/nidec-logo.png'
+import axios from 'axios';
 
 const TablaProd = () => {
 
   useEffect(()=>{
-      document.title="Tabla de Producción";
+    //Esta linea de aqui abajo es solo para cambiar el titulo de la pagina
+    document.title="Tabla de Producción";
+
+    //Variables de estado q voy a usar
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    //Aqui ya empezare a poner las llamadas a la API del back que se conecta al MySQL
+    const consultarDatos = async () => {
+      try{
+        const respuesta = await axios.get("http://localhost:3001/api/productividad");
+        setData(respuesta.data);
+        setLoading(false);
+      }catch (err){
+        console.error("No se pudieron cargar los datos correctamente:", err);
+        setError("Los datos del API no se cargaron correctamente");
+        setLoading(false);
+      }
+    }
+
+    consultarDatos();
   },[]);
+
+  //Mientras esta cargando se mostrara este mensaje. Esto es opcional pero conviene dejarlo pq asi
+  //si por x razon tarda mucho entraer los datos de la bd el usuario puede saber que esta cargando
+  if (loading) return <p>Cargando datos...</p>;
+
+  //Muestra el msj de error en caso de que falle algo. Se puede quitar pero es mejor dejarlo
+  if (error) return <p style={{ color: 'red' }}>Error: {error}</p>;
 
   return (
     <div className="bodyTablaProd">

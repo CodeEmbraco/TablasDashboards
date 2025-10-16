@@ -5,6 +5,7 @@ import logoNidec  from './assets/nidec-logo.png'
 import TablaProd from './pages/TablaProd';
 import SelectIdioma from './pages/SelectLanguage';
 import Login from './pages/Login';
+import Menu from './pages/Menu';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -15,7 +16,7 @@ function App() {
       <Route path="/Tabla" element={<TablaProd />} />
       <Route path="/ElegirIdioma" element={<SelectIdioma />} />
       <Route path="/Login" element={<Login />} />
-      <Route path="/Menu" element={<SelectIdioma />} />
+      <Route path="/Menu" element={<Menu />} />
       <Route path="/Dashboard" element={<SelectIdioma />} />
       <Route path="*" element={<SelectIdioma />} />
     </Routes>

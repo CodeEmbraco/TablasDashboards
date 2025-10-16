@@ -1,0 +1,8 @@
+*Instalar CORS, no recuerdo si era en el back o en el front pero creo q en el back (npm install cors)
+
+FRONT-END
+*Instalar axios (npm install axios)
+
+
+BACK-END
+*Instalar dependencias para conectar con MySQL (npm install mysql2)

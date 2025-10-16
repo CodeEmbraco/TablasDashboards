@@ -1,0 +1,74 @@
+.buttonMenu {
+    background-color: #030503;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    margin: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 5px;
+    text-align: center;
+    text-decoration: none;
+}
+
+.buttonMenu:hover {
+    background-color: #111a11cf;
+}
+
+.logoMenu {
+    position: absolute;
+    top: 40px;
+    left: 60px;
+}
+
+.logoMenu img {
+    max-height: 60px;
+}
+
+.contenedorMenu {
+    display: flex;
+    justify-content: center;
+    gap: 100px;
+    margin-top: 40px;
+}
+
+.columnaMenu {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.h2Menu {
+    margin-top: 40px;
+    font-size: 22px;
+    font-weight: bold;
+    color: #000;
+    text-align: center;
+}
+
+/* 
+Get back, get back, get back to where you once belong
+sweet loretta mother thought she was a woman but she was another man
+jojo was a man who thought he was a loner
+but he knew it couldnt last
+jojo left his home in tucon arizona for calirfornian grass
+Get back, get back, get back to where you once belong
+Get back, get back, get back to where you once belong
+Get back jojo
+
+Go home
+
+Get back, get back, get back to where you once belong
+Get back, get back, get back to where you once belong
+Get back Jo
+
+sweet loretta mother thought she was a woman but she was another man
+All the girls around her say shes got it coming but she gets it while she can
+Get back, get back, get back to where you once belong
+Get back, get back, get back to where you once belong
+
+Get back Loretta
+Go home
+Get back, get back, get back to where you once belong
+Get back, get back, get back to where you once belong
+*/
