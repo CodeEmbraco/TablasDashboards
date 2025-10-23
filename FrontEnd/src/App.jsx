@@ -1,3 +1,4 @@
+// FrontEnd desarrollado por Alondra Romero y Jorge Barrón
 import { useState } from 'react'
 import { Routes, Route } from "react-router-dom";
 import React from "react";
@@ -6,6 +7,7 @@ import TablaProd from './pages/TablaProd';
 import SelectIdioma from './pages/SelectLanguage';
 import Login from './pages/Login';
 import Menu from './pages/Menu';
+import Footer from './components/footer';
 
 function App() {
   const [count, setCount] = useState(0)
