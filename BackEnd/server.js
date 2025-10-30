@@ -52,11 +52,12 @@ app.get("/api/productividad", async (req, res) => {
 
 //Aqui se obtiene el ultimo modelo que se escanea, es decir con el que se esta trabajando
 app.get("/api/getModeloElectronics", async (req, res) => {
+    let connection; // <-- Añadimos let connection para asegurar el finally
     try{
         connection = await mysql.createConnection(dbConfig);
         const [rows] = await connection.execute("select Model from tinyfct order by TestTime desc limit 1");
         res.json(rows);
-    }catch{
+    }catch(err){
         console.error("Error al conectar con MySQL Server:", err);
         res.status(500).json({ error: "Error al conectar con MySQL Server. Por favor, verifica la conexión y credenciales." });
     }finally{
@@ -86,6 +87,61 @@ app.get("/api/produccion-real", async (req, res) => {
     } catch (err) {
         console.error("Error al ejecutar Stored Procedure:", err);
         res.status(500).json({ error: "Error interno del servidor al obtener producción real." });
+    } finally {
+        if (connection) {
+            await connection.end();
+        }
+    }
+});
+
+//Endpoint que recibe los datos de pulsar el boton guardar y llama al stored procedure que hace el upsert
+app.post("/api/guardar-reporte", async (req, res) => {
+    let connection;
+    try {
+        //recibimos los datos mandados desde el front en un arreglo
+        const reportData = req.body;
+
+        if (!Array.isArray(reportData) || reportData.length === 0) {
+            return res.status(400).json({ error: "Datos de reporte inválidos o vacíos." });
+        }
+
+        //la conexión
+        connection = await mysql.createConnection(dbConfig);
+        
+        // las filas con los datos y la llamada al sp
+        for (const row of reportData) {
+            const { 
+                Fecha, 
+                Turno, 
+                Hora_Slot, 
+                Supervisor, 
+                Lider, 
+                Batch, 
+                Modelo, 
+                Perdidas, 
+                Observaciones 
+            } = row;
+            
+            const query = "CALL GuardarReporteTablaProd(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            
+            await connection.execute(query, [
+                Fecha, 
+                Turno, 
+                Hora_Slot, 
+                Supervisor, 
+                Lider, 
+                Batch, 
+                Modelo, 
+                Perdidas || 0,
+                Observaciones || '' 
+            ]);
+        }
+
+        res.status(200).json({ message: "Datos de reporte guardados exitosamente." });
+
+    } catch (err) {
+        console.error("Error al guardar el reporte:", err);
+        res.status(500).json({ error: "Error interno del servidor al guardar el reporte." });
     } finally {
         if (connection) {
             await connection.end();
