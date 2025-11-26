@@ -1,0 +1,107 @@
+create table tbl_Empresa(
+    idEmpresa int primary key IDENTITY(1,1), 
+    NombreEmpresa varchar(50),
+    Pais varchar(25),
+    Direccion varchar(255)
+);
+
+create table tbl_Usuario(
+    idUser int primary key IDENTITY(1,1), 
+    Nombre varchar (50),
+    Apellidos varchar (50),
+    UsuarioNidec varchar (25),
+    Pass varchar (25),
+    Correo varchar (50),
+    idDpto int,
+    idEmpresa int,
+    tipoUsuarioCOMAT varchar (25),
+    StatusUser int,
+    createDate datetime DEFAULT GETDATE()
+);
+
+create table tbl_Linea(
+    idLinea int primary key IDENTITY(1,1),
+    idEmpresa int,
+    Nombre varchar(50),
+    Foreign key (idEmpresa) References Empresa(idEmpresa)
+);
+
+create table tbl_subEstacion(
+    idSubEstacion int primary key IDENTITY(1,1),
+    idLinea int,
+    nombreSubEstacion varchar (15),
+    Foreign key (idLinea) References tbl_Linea(idLinea)
+)
+
+create table Departamento(
+    idDpto int primary key IDENTITY(1,1), 
+    NombreDpto varchar(50),
+    idEmpresa int,
+    Foreign key (idEmpresa) References Empresa(idEmpresa)
+);
+-- IT, Legal, Calidad, Produccion, Logistica, Embarques, RH, Mtto, EHS, Finanzas
+
+create table CTQs(
+    idCTQ int primary key IDENTITY(1,1),
+    idSubEstacion int,
+    nombreCTQ varchar(20),
+    controlParameter varchar(255),
+    Spec varchar(255),
+    MeasuringDevice (255),
+    Document (255),
+    tipo int, /*1 proceso, 2 producto*/
+    Foreign key (idSubEstacion) References tbl_subEstacion(idSubEstacion)
+)
+
+Create Table tbl_Enlace(
+    idEnlace int primary key IDENTITY(1,1),
+    Descripcion varchar(50),
+    Link varchar(250),
+    idDpto int,
+    EnlaceGenerico int,
+    Foreign key (idDpto) References Departamento(idDpto) 
+)
+
+Create Table tbl_AccesoEspecial(
+    idTabla int primary key IDENTITY(1,1),
+    idUser int, 
+    idEnlace int,
+    Foreign key (idUser) References Usuario(idUser)
+    Foreign key (idEnlace) References tbl_Enlace(idEnlace)
+)
+
+/*
+===========================================
+INSERTS
+===========================================
+*/
+insert into Empresa
+Values ('Nidec Embraco', 'Mexico','Av. Industrias 501 Parque Industrial PIMSA Oriente (Parque Kronos) C.P, 66603 Cdad. Apodaca, N.L')
+
+insert into Departamento
+Values ('IT',1)
+
+insert into Usuario (Nombre, Apellidos,UsuarioNidec,Pass,Correo,idDpto,idEmpresa,tipoUsuarioCOMAT,EsSupervisor,EsTeamLider,StatusUser)
+Values (
+'Jorge Saúl',
+'Barrón Medina',
+'jorgeb03',
+'11321',
+'jorge.m.barron@nidec-ga.com',
+1,
+1,
+'Generico',
+1,
+1,
+1)
+
+insert into Departamento
+Values ('Legal',1),
+('Calidad',1),
+('Produccion',1),
+('Logistica',1),
+('Embarques',1),
+('RH',1),
+('Mantenimiento',1),
+('EHS',1),
+('Finanzas',1)

@@ -1,0 +1,3 @@
+PENDIENTES
+*Boton de cambiar meta
+*Diferentes modelos por hora

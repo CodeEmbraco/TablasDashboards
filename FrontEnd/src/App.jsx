@@ -8,6 +8,8 @@ import SelectIdioma from './pages/SelectLanguage';
 import Login from './pages/Login';
 import Menu from './pages/Menu';
 import Footer from './components/footer';
+import Zero from './assets/zeroproductividad.png';
+import Dashboard from './pages/Dashboard';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -19,8 +21,8 @@ function App() {
       <Route path="/ElegirIdioma" element={<SelectIdioma />} />
       <Route path="/Login" element={<Login />} />
       <Route path="/Menu" element={<Menu />} />
-      <Route path="/Dashboard" element={<SelectIdioma />} />
-      <Route path="*" element={<SelectIdioma />} />
+      <Route path="/Dashboard" element={<Dashboard />} />
+      <Route path="*" element={<Dashboard />} />
     </Routes>
     </>
   )

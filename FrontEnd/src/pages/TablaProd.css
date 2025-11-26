@@ -1,93 +1,246 @@
-.bodyTablaProd{
-    background-color: rgb(255, 255, 255) ;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    min-height: 110vh;
-    /* margin-bottom: 70px; */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+/* Contenedor principal para simular el body del HTML original sin afectar tu app global */
+.bodyTablaProd {
+    font-family: 'Poppins', sans-serif;
+    background-color: #ffffff;
+    color: #222;
+    min-height: 100vh;
     width: 100%;
-    margin-left: 0;
-    margin-right: 0;
-    margin-bottom: 0;
-    margin: 0;
 }
 
-.divTituloTablaProd{
+/* HEADER */
+.header {
+    display: flex;
     align-items: center;
     justify-content: center;
-    display: flex;
-    flex-direction: column;
-}
-
-.divTablaProduccion{
-    align-items: center;
-    justify-content: center;
-    display: flex;
-    flex-direction: column;
-}
-
-.tablaProduccion {
-    border-collapse: collapse;
-    width: 500px;
-    margin: 20px auto;
-    text-align: center;
-}
-
-.tablaProduccion caption {
-    background-color: #2f5e0e;
-    color: white;
-    font-weight: bold;
-    font-size: 18px;
-    padding: 10px;
-}
-
-.tablaProduccion th {
-    background-color: #5b9a76;
-    color: black;
-    font-weight: bold;
-    padding: 8px;
-    border: 1px solid #ddd;
-}
-
-.tablaProduccion td {
-    padding: 8px;
-    border: 1px solid #ddd;
-}
-
-.tablaProduccion td:first-child {
-    text-align: left;
-    padding-left: 15px;
+    padding: 15px 0;
+    border-bottom: 3px solid #0b6b3a;
+    background-color: #f7f7f7;
+    position: relative; /* Necesario para el logo absoluto */
 }
 
 .logoTablaProd {
     position: absolute;
-    top: 40px;
-}
-
-.logoTablaProd img {
+    left: 30px;
     max-height: 60px;
+    width: auto;
 }
 
+.logoZero {
+    position: absolute;
+    right: 30px;
+    max-height: 120px;
+    width: auto;
+}
+
+.tituloPrincipal {
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: #000000;
+    letter-spacing: 2px;
+    text-align: center;
+    border-bottom: 3px solid #0b6b3a;
+    display: inline-block;
+    padding-bottom: 6px;
+    margin: 0;
+}
+
+/* INFORMACIÓN SUPERIOR */
+.infoGeneral {
+    text-align: center;
+    margin-top: 25px;
+}
+
+.tituloArea {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 10px;
+    margin-top: 0;
+}
+
+.camposLinea {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.camposLinea label {
+    font-weight: 600;
+    color: #0b6b3a;
+    display: flex;
+    align-items: center;
+}
+
+.camposLinea input,
+.camposLinea select {
+    margin-left: 8px;
+    padding: 6px 12px;
+    border: 1.5px solid #ccc;
+    border-radius: 6px;
+    background: #f9f9f9;
+    font-size: 0.95rem;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* === Medidores (Estructura Visual) === */
+.medidores-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 60px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.medidor {
+    text-align: center;
+}
+
+.medidor h3 {
+    color: #1b3b17;
+    margin-bottom: 10px;
+    margin-top: 0;
+}
+
+.gauge {
+    width: 150px;
+    height: 75px;
+    background: #ccc;
+    border-radius: 150px 150px 0 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 -5px 10px rgba(0,0,0,0.3);
+}
+
+.gauge-fill {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to top, #1b3b17, #4b704a);
+    transform-origin: center top;
+    transition: transform 1s ease-in-out;
+}
+
+.gauge-cover {
+    width: 100px;
+    height: 50px;
+    background: white;
+    border-radius: 100px 100px 0 0;
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    color: #000;
+    box-shadow: 0 -3px 5px rgba(0,0,0,0.3);
+}
+
+/* DATOS GENERALES */
+.datosGenerales {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+}
+
+.datosGenerales table {
+    border-collapse: separate;
+    border-spacing: 10px 5px;
+}
+
+.datosGenerales td {
+    padding: 5px;
+    font-weight: 600;
+    color: #222;
+}
+
+.datosGenerales input, 
+.datosGenerales select {
+    padding: 6px 10px;
+    border-radius: 5px;
+    border: 1.5px solid #ccc;
+    background-color: #fff;
+    width: 200px; /* Ajuste para alineación */
+}
+
+/* TABLA PRINCIPAL */
+.contenedorTabla {
+    display: flex;
+    justify-content: center;
+}
+
+.tablaProduccion {
+    margin: 0 auto 30px auto;
+    border-collapse: collapse;
+    width: 80%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.tablaProduccion caption {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #0b6b3a;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+    caption-side: top;
+}
+
+.tablaProduccion th {
+    background-color: #0b6b3a;
+    color: white;
+    padding: 12px;
+    font-weight: 600;
+    border: 1px solid #0b6b3a;
+}
+
+.tablaProduccion td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.tablaProduccion tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.tablaProduccion tr:hover {
+    background-color: #e9f5ec;
+    transition: 0.3s;
+}
+
+/* BOTÓN GUARDAR */
 .div-btn-guardar {
     text-align: center;
-    margin: 20px 0;
+    margin: 20px 0 50px 0;
 }
 
 .btnGuardarTablaProd {
     background-color: #66BB6A;
     color: white;
     border: none; 
-    padding: 10px 25px;
-    border-radius: 20px;
+    padding: 12px 40px;
+    border-radius: 30px;
     cursor: pointer;
     font-size: 16px;
     font-weight: bold;
     text-align: center;
     transition: background-color 0.3s ease, transform 0.1s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
 .btnGuardarTablaProd:hover {
     background-color: #4CAF50;
-    transform: translateY(-1px); 
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px); 
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
 }
 
 .btnGuardarTablaProd:active {
