@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
-/* Contenedor principal para simular el body del HTML original sin afectar tu app global */
 .bodyTablaProd {
     font-family: 'Poppins', sans-serif;
     background-color: #ffffff;
@@ -9,15 +8,14 @@
     width: 100%;
 }
 
-/* HEADER */
-.header {
+.header-prod {
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 15px 0;
     border-bottom: 3px solid #0b6b3a;
     background-color: #f7f7f7;
-    position: relative; /* Necesario para el logo absoluto */
+    position: relative;
 }
 
 .logoTablaProd {
@@ -27,14 +25,14 @@
     width: auto;
 }
 
-.logoZero {
+.logoZero-prod {
     position: absolute;
     right: 30px;
     max-height: 120px;
     width: auto;
 }
 
-.tituloPrincipal {
+.tituloPrincipal-prod {
     font-size: 2.4rem;
     font-weight: 700;
     color: #000000;
@@ -46,205 +44,272 @@
     margin: 0;
 }
 
-/* INFORMACIÓN SUPERIOR */
-.infoGeneral {
-    text-align: center;
-    margin-top: 25px;
-}
-
-.tituloArea {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #000;
-    margin-bottom: 10px;
-    margin-top: 0;
-}
-
-.camposLinea {
+/* LAYOUT SUPERIOR */
+.top-panel-container-prod {
     display: flex;
-    justify-content: center;
-    gap: 25px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
+    justify-content: flex-start; 
+    align-items: center; 
+    width: 98%;
+    margin: 20px auto 30px auto; 
+    margin-left: 20px; 
+    flex-wrap: nowrap;
+    gap: 30px; 
 }
 
-.camposLinea label {
-    font-weight: 600;
-    color: #0b6b3a;
+.panel-left-prod {
+    flex: 0 0 auto;
+    margin-right: 10px;
+}
+
+.panel-right-prod {
+    flex: 0 0 auto;
     display: flex;
-    align-items: center;
+    justify-content: flex-start; 
 }
 
-.camposLinea input,
-.camposLinea select {
-    margin-left: 8px;
-    padding: 6px 12px;
-    border: 1.5px solid #ccc;
-    border-radius: 6px;
-    background: #f9f9f9;
-    font-size: 0.95rem;
-    font-family: 'Poppins', sans-serif;
-}
-
-/* === Medidores (Estructura Visual) === */
-.medidores-container {
+/* FORMULARIO */
+.datosGenerales-prod {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 60px;
-    margin-top: 20px;
-    margin-bottom: 20px;
+    justify-content: flex-start;
+    margin-bottom: 0;
 }
 
-.medidor {
-    text-align: center;
-}
-
-.medidor h3 {
-    color: #1b3b17;
-    margin-bottom: 10px;
-    margin-top: 0;
-}
-
-.gauge {
-    width: 150px;
-    height: 75px;
-    background: #ccc;
-    border-radius: 150px 150px 0 0;
-    position: relative;
-    overflow: hidden;
-    box-shadow: inset 0 -5px 10px rgba(0,0,0,0.3);
-}
-
-.gauge-fill {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to top, #1b3b17, #4b704a);
-    transform-origin: center top;
-    transition: transform 1s ease-in-out;
-}
-
-.gauge-cover {
-    width: 100px;
-    height: 50px;
-    background: white;
-    border-radius: 100px 100px 0 0;
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 18px;
-    color: #000;
-    box-shadow: 0 -3px 5px rgba(0,0,0,0.3);
-}
-
-/* DATOS GENERALES */
-.datosGenerales {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 40px;
-}
-
-.datosGenerales table {
+.datosGenerales-prod table {
     border-collapse: separate;
-    border-spacing: 10px 5px;
+    border-spacing: 5px 12px; 
 }
 
-.datosGenerales td {
-    padding: 5px;
-    font-weight: 600;
+.datosGenerales-prod td {
+    padding: 3px 5px;
+    font-weight: 700;
+    font-size: 1rem;
     color: #222;
+    text-align: right;
 }
 
-.datosGenerales input, 
-.datosGenerales select {
-    padding: 6px 10px;
+.datosGenerales-prod input, 
+.datosGenerales-prod select {
+    padding: 6px 8px;
     border-radius: 5px;
     border: 1.5px solid #ccc;
     background-color: #fff;
-    width: 200px; /* Ajuste para alineación */
+    width: 180px; 
+    font-size: 0.95rem;
 }
 
-/* TABLA PRINCIPAL */
-.contenedorTabla {
+/* INDICADORES */
+.medidores-container-prod {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
+    align-items: flex-end; 
+    gap: 20px; /* Igual que en CDU */
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
-.tablaProduccion {
-    margin: 0 auto 30px auto;
-    border-collapse: collapse;
-    width: 80%;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+.medidor-prod {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 250px; 
+    position: relative;
 }
 
-.tablaProduccion caption {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #0b6b3a;
+.medidor-prod-card {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 350px; 
+    position: relative;
+}
+
+.medidor-prod-image {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 250px; 
+    position: relative;
+}
+
+.medidor-prod h3, .medidor-prod-card h3, .medidor-prod-image h3 {
+    color: #1b3b17;
     margin-bottom: 10px;
-    letter-spacing: 1px;
-    caption-side: top;
+    margin-top: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
 }
 
-.tablaProduccion th {
-    background-color: #0b6b3a;
-    color: white;
-    padding: 12px;
-    font-weight: 600;
-    border: 1px solid #0b6b3a;
+/* GAUGE & NÚMEROS */
+.gauge-wrapper-prod {
+    width: 100%; 
+    display: flex;
+    flex-direction: column; 
+    align-items: center;    
+    justify-content: center;
+    position: relative;
+    margin-bottom: -15px; 
 }
 
-.tablaProduccion td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: center;
+.gauge-value-text-prod {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-top: -10px; 
+    z-index: 10;
 }
 
-.tablaProduccion tr:nth-child(even) {
-    background-color: #f2f2f2;
-}
-
-.tablaProduccion tr:hover {
-    background-color: #e9f5ec;
-    transition: 0.3s;
-}
-
-/* BOTÓN GUARDAR */
-.div-btn-guardar {
-    text-align: center;
-    margin: 20px 0 50px 0;
-}
-
-.btnGuardarTablaProd {
-    background-color: #66BB6A;
-    color: white;
-    border: none; 
-    padding: 12px 40px;
-    border-radius: 30px;
-    cursor: pointer;
-    font-size: 16px;
+.donut-wrapper-prod {
+    width: 140px;
+    height: 140px;
     font-weight: bold;
-    text-align: center;
-    transition: background-color 0.3s ease, transform 0.1s ease;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-bottom: 15px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-.btnGuardarTablaProd:hover {
-    background-color: #4CAF50;
-    transform: translateY(-2px); 
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+/* TARJETA TOTAL DÍA */
+.card-total-dia-prod {
+    background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    border-radius: 16px;
+    box-shadow: 5px 5px 10px #d1d1d1, -5px -5px 10px #ffffff;
+    padding: 10px 15px;
+    width: 340px; 
+    height: 130px; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    border-left: 8px solid #ccc;
+    margin-bottom: 15px;
+    transition: border-color 0.3s ease;
 }
 
-.btnGuardarTablaProd:active {
-    background-color: #388E3C;
-    transform: translateY(0);
-    box-shadow: none;
+.total-dia-content-wrapper {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
 }
+
+.total-dia-left {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.card-total-dia-prod h4 {
+    margin: 0 0 5px 0;
+    color: #555;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.total-dia-number-prod {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #333;
+    margin: 0;
+    line-height: 1.1;
+}
+
+.total-dia-right-breakdown {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.85rem;
+    color: #555;
+    background-color: rgba(0,0,0,0.03);
+    padding: 5px 10px;
+    border-radius: 6px;
+    min-width: 80px;
+}
+
+.breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2px;
+}
+
+.breakdown-item span {
+    margin-right: 8px;
+    color: #777;
+}
+
+.progress-bar-container-prod {
+    width: 100%;
+    background-color: #e0e0e0;
+    height: 8px;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.progress-bar-fill-prod {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 1s ease-in-out, background-color 0.3s ease;
+}
+
+/* IMAGEN DINÁMICA */
+.indicador-imagen-prod {
+    width: 100%;           
+    height: 250px;         
+    object-fit: contain;   
+    margin-bottom: 15px;   
+}
+
+/* ESTADOS SEMÁFORO TARJETA */
+.card-total-dia-prod.status-bad { border-left-color: #D32F2F; }
+.card-total-dia-prod.status-bad .total-dia-number-prod { color: #D32F2F; }
+.card-total-dia-prod.status-bad .progress-bar-fill-prod { background: #D32F2F; }
+
+.card-total-dia-prod.status-good { border-left-color: #388E3C; }
+.card-total-dia-prod.status-good .total-dia-number-prod { color: #388E3C; }
+.card-total-dia-prod.status-good .progress-bar-fill-prod { background: #388E3C; }
+
+/* TABLA */
+.contenedorTabla-prod { display: flex; justify-content: center; }
+.tablaProduccion-prod { margin: 0 auto 30px auto; border-collapse: collapse; width: 90%; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.tablaProduccion-prod caption { font-size: 1.3rem; font-weight: 700; color: #0b6b3a; margin-bottom: 10px; letter-spacing: 1px; caption-side: top; text-align: center; }
+.tablaProduccion-prod th { background-color: #0b6b3a; color: white; padding: 12px; font-weight: 600; border: 1px solid #0b6b3a; font-size: 1rem; }
+.tablaProduccion-prod td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 0.95rem; }
+.tablaProduccion-prod tr:nth-child(even) { background-color: #f2f2f2; }
+.tablaProduccion-prod tr:hover { background-color: #e9f5ec; transition: 0.3s; }
+.celda-cumplida-prod { background-color: #d1e7dd !important; color: #0f5132; transition: background-color 0.3s; }
+.celda-no-cumplida-prod { background-color: #f8d7da !important; color: #842029; transition: background-color 0.3s; }
+.input-loss-clickable-prod { cursor: pointer; background-color: #fff3e0 !important; color: #e65100; font-weight: bold; }
+.input-loss-clickable-prod:hover { background-color: #ffe0b2 !important; }
+
+/* BOTONES */
+.div-btn-guardar-prod { text-align: center; margin: 10px 0 40px 0; }
+.btnGuardarTablaProd { background-color: #66BB6A; color: white; border: none; padding: 10px 35px; border-radius: 30px; cursor: pointer; font-size: 15px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.btnGuardarTablaProd:hover { background-color: #4CAF50; transform: translateY(-2px); box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); }
+.btnCambiarMeta-prod { background-color: #1976D2; color: white; border: none; padding: 10px 20px; border-radius: 30px; cursor: pointer; font-size: 15px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-right: 15px; }
+.btnCambiarMeta-prod:hover { background-color: #1565C0; transform: translateY(-2px); }
+
+/* MODALES */
+.modal-overlay-prod { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+.modal-content-prod { background-color: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center; width: 300px; animation: fadeIn 0.2s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+.modal-content-prod h3 { color: #333; margin-top: 0; margin-bottom: 20px; }
+.input-meta-modal-prod { width: 80%; padding: 10px; font-size: 1.5rem; text-align: center; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 20px; outline: none; font-weight: bold; color: #0b6b3a; }
+.input-meta-modal-prod:focus { border-color: #0b6b3a; }
+.modal-actions-prod { display: flex; justify-content: space-around; gap: 10px; }
+.btn-modal-cancel-prod { background-color: #ef5350; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; }
+.btn-modal-confirm-prod { background-color: #66BB6A; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; }
+.modal-content-large-prod { background-color: white; padding: 30px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.25); width: 700px; max-width: 95%; text-align: left; animation: fadeIn 0.2s ease-out; display: flex; flex-direction: column; gap: 15px; }
+.modal-content-large-prod h3 { margin-top: 0; color: #0b6b3a; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+.add-loss-form-prod { display: flex; gap: 10px; padding: 15px; background-color: #f9f9f9; border-radius: 8px; align-items: flex-end; flex-wrap: wrap; }
+.form-group-prod { display: flex; flex-direction: column; gap: 5px; }
+.form-group-prod label { font-size: 0.85rem; font-weight: bold; color: #555; }
+.form-group-prod input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+.btn-add-loss-prod { background-color: #1976D2; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; height: 36px; font-weight: bold; }
+.btn-add-loss-prod:hover { background-color: #1565C0; }
+.loss-list-table-prod { width: 100%; border-collapse: collapse; margin-top: 10px; }
+.loss-list-table-prod th { background-color: #eee; padding: 8px; text-align: left; font-size: 0.9rem; color: #333; }
+.loss-list-table-prod td { border-bottom: 1px solid #eee; padding: 8px; font-size: 0.9rem; }
+.btn-delete-loss-prod { background-color: transparent; color: #D32F2F; border: 1px solid #D32F2F; border-radius: 4px; cursor: pointer; padding: 2px 8px; font-size: 0.8rem; }
+.btn-delete-loss-prod:hover { background-color: #ffebee; }
+.total-display-prod { text-align: right; font-size: 1.2rem; font-weight: bold; color: #0b6b3a; margin-top: 10px; }

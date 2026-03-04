@@ -30,9 +30,9 @@ const dbConfig = {
 
 let connection;
 
-// ==========================================
-// RUTAS DE LA API
-// ==========================================
+// ===========================================================
+// RUTAS DE LA API PARA LA TABLA DE PRODUCCION DE ELECTRONICS
+// ===========================================================
 
 app.get("/api/productividad", async (req, res) => {
     try {

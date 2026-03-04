@@ -17,3 +17,138 @@
     width: 100%;
     
 }
+
+.divPrincipalDashboard{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto auto;
+    gap: 20px;
+}
+
+.cardDashboard{
+    background: #f9f9f9;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+}
+
+.tituloDashboard{
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.dashboardOEE{
+    width: 750px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 10px;
+    text-align: center;
+    font-weight: bold;
+    margin: auto;
+    position: relative;
+    transition: background-color 0.5s ease;
+}
+
+.dashboardOEE-Header{
+    grid-column: 1 / 4; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+/* */
+.right-headerDash{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+ 
+.right-headerDash img {
+    height: 100px;
+}
+
+.modelBoxDash{
+    background: #000;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.box {
+    padding: 20px;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: background-color 0.5s ease;
+}
+
+.highlight {
+    font-size: 22px;
+}
+.large {
+    font-size: 24px;
+}
+
+.actualDash{
+    grid-column: 2 / 3;
+}
+
+.rejection {
+    grid-column: 1 / 4;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    transition: background-color 0.5s ease;
+}
+
+.reloj {
+    font-family: "Courier New", monospace;
+    font-size: 28px;
+}
+
+
+.dashboardOEE.theme-green .highlight {
+    background: #00b050;
+    color: white;
+}
+
+.dashboardOEE.theme-green .target,
+.dashboardOEE.theme-green .actualDash,
+.dashboardOEE.theme-green .rejection {
+    background: #d9fcd9;
+    color: #222;
+}
+
+
+.dashboardOEE.theme-yellow .highlight {
+    background: #ffc107;
+    color: #212529;
+}
+.dashboardOEE.theme-yellow .target,
+.dashboardOEE.theme-yellow .actualDash,
+.dashboardOEE.theme-yellow .rejection {
+    background: #fff3cd;
+    color: #212529;
+}
+
+
+.dashboardOEE.theme-red .highlight {
+    background: #dc3545;
+    color: white;
+}
+
+.dashboardOEE.theme-red .target,
+.dashboardOEE.theme-red .actualDash,
+.dashboardOEE.theme-red .rejection {
+    background: #f8d7da;
+    color: #212529;
+}

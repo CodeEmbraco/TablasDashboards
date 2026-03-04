@@ -335,3 +335,32 @@ END$$
 DELIMITER ;
 
 */
+
+
+
+INSERT INTO `tiny_sql`.`tinyfct` 
+(
+    `Station`, 
+    `CH`, 
+    `Model`, 
+    `Lot`, 
+    `TestTime`, 
+    `SN`, 
+    `OP`, 
+    `TestResult`, 
+    `FailItem`, 
+    `Firmware_Download`
+) 
+VALUES 
+(
+    'HVAC FVT1',           -- Station
+    'CH1',                 -- CH
+    '51M328145',           -- Model
+    '711789',              -- Lot
+    '2025/11/14 09:30:00', -- TestTime (Fecha clave para tus pruebas)
+    '51M32814571178911XQ', -- SN
+    'OP10',                -- OP
+    'PASS',                -- TestResult
+    'N/A',                 -- FailItem
+    'PASS'                 -- Firmware_Download
+);

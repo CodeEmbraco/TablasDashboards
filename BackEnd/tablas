@@ -15,9 +15,10 @@ create table tbl_Usuario(
     idDpto int,
     idEmpresa int,
     tipoUsuarioCOMAT varchar (25),
+    administrativo int, /* cambiar a tipoUser */
     StatusUser int,
     createDate datetime DEFAULT GETDATE()
-);
+);/* los tipos de usuario -1 SuperAdmin, 1 administrativo, 2 auditor/supervisor/etc, 3 operador*/
 
 create table tbl_Linea(
     idLinea int primary key IDENTITY(1,1),
@@ -31,34 +32,78 @@ create table tbl_subEstacion(
     idLinea int,
     nombreSubEstacion varchar (15),
     Foreign key (idLinea) References tbl_Linea(idLinea)
-)
+);
 
-create table Departamento(
+create table tbl_Departamento(
     idDpto int primary key IDENTITY(1,1), 
     NombreDpto varchar(50),
     idEmpresa int,
     Foreign key (idEmpresa) References Empresa(idEmpresa)
 );
--- IT, Legal, Calidad, Produccion, Logistica, Embarques, RH, Mtto, EHS, Finanzas
+-- IT, Legal, Calidad, Produccion, Logistica, Embarques, RH, Mtto, EHS, Finanzas, Administrativo
 
-create table CTQs(
+create table tbl_CTQs(
     idCTQ int primary key IDENTITY(1,1),
     idSubEstacion int,
     nombreCTQ varchar(20),
-    controlParameter varchar(255),
-    Spec varchar(255),
-    MeasuringDevice (255),
-    Document (255),
-    tipo int, /*1 proceso, 2 producto*/
+    limiteXhora int,
+    createDate datetime DEFAULT GETDATE(),
+    lastUpdateBy int,
+    lastUpdate datetime,
+    Activo INT DEFAULT 1,
     Foreign key (idSubEstacion) References tbl_subEstacion(idSubEstacion)
 )
+
+CREATE TABLE tbl_Checklist_Template (
+    idTemplate INT PRIMARY KEY IDENTITY(1,1),
+    idCTQ INT NOT NULL,                    
+    Activo INT DEFAULT 1,                
+    CreatedDate DATETIME DEFAULT GETDATE(),
+    LastUpdate DATETIME,
+    LastUpdateBy INT,                         
+    FOREIGN KEY (idCTQ) REFERENCES CTQs(idCTQ)
+);
+
+CREATE TABLE tbl_Checklist_Items (
+    idItem INT PRIMARY KEY IDENTITY(1,1),
+    idTemplate INT NOT NULL,               
+    ChkType int,  -- 1 Proceso, 2 Producto              
+    ControlParameter VARCHAR(255),         
+    Spec VARCHAR(100),                    
+    MeasuringDevice VARCHAR(100),          
+    DocumentRef VARCHAR(50),
+    OrderIndex INT,               
+    FOREIGN KEY (idTemplate) REFERENCES tbl_Checklist_Template(idTemplate)
+);
+
+CREATE TABLE tbl_Checklist_Execution (
+    idExecution INT PRIMARY KEY IDENTITY(1,1),
+    idTemplate INT NOT NULL,               
+    idUser INT NOT NULL,                   
+    ExecutionDate DATETIME DEFAULT GETDATE(),
+    ImmediateAction NVARCHAR(MAX),
+    Why1 NVARCHAR(500),
+    Why2 NVARCHAR(500),
+    Why3 NVARCHAR(500),
+    CorrectiveAction NVARCHAR(MAX),
+    
+    FOREIGN KEY (idTemplate) REFERENCES tbl_Checklist_Template(idTemplate)
+);
+
+CREATE TABLE tbl_Checklist_Answers (
+    idAnswer INT PRIMARY KEY IDENTITY(1,1),
+    idExecution INT NOT NULL,              
+    idItem INT NOT NULL,                   
+    IsChecked BIT NOT NULL,                 
+    FOREIGN KEY (idExecution) REFERENCES tbl_Checklist_Execution(idExecution),
+    FOREIGN KEY (idItem) REFERENCES tbl_Checklist_Items(idItem)
+);
 
 Create Table tbl_Enlace(
     idEnlace int primary key IDENTITY(1,1),
     Descripcion varchar(50),
     Link varchar(250),
     idDpto int,
-    EnlaceGenerico int,
     Foreign key (idDpto) References Departamento(idDpto) 
 )
 
@@ -66,22 +111,33 @@ Create Table tbl_AccesoEspecial(
     idTabla int primary key IDENTITY(1,1),
     idUser int, 
     idEnlace int,
-    Foreign key (idUser) References Usuario(idUser)
+    Foreign key (idUser) References Usuario(idUser),
     Foreign key (idEnlace) References tbl_Enlace(idEnlace)
-)
+);  
+
+CREATE TABLE tbl_CTQ_Clic(
+    idClic INT PRIMARY KEY IDENTITY(1,1),
+    idCTQ INT NOT NULL,
+    fechaHora DATETIME DEFAULT GETDATE(),
+    idUser INT NOT NULL,
+    excedioLimite BIT DEFAULT 0,  
+    checkListLlenado BIT DEFAULT 0, 
+    idExecution INT NULL,     
+    FOREIGN KEY (idCTQ) REFERENCES tbl_CTQs(idCTQ)
+);
 
 /*
 ===========================================
 INSERTS
 ===========================================
 */
-insert into Empresa
+insert into tbl_Empresa
 Values ('Nidec Embraco', 'Mexico','Av. Industrias 501 Parque Industrial PIMSA Oriente (Parque Kronos) C.P, 66603 Cdad. Apodaca, N.L')
 
 insert into Departamento
 Values ('IT',1)
 
-insert into Usuario (Nombre, Apellidos,UsuarioNidec,Pass,Correo,idDpto,idEmpresa,tipoUsuarioCOMAT,EsSupervisor,EsTeamLider,StatusUser)
+insert into tbl_Usuario (Nombre, Apellidos,UsuarioNidec,Pass,Correo,idDpto,idEmpresa,tipoUsuarioCOMAT,tipoUser,StatusUser)
 Values (
 'Jorge Saúl',
 'Barrón Medina',
@@ -91,7 +147,6 @@ Values (
 1,
 1,
 'Generico',
-1,
 1,
 1)
 
@@ -104,4 +159,17 @@ Values ('Legal',1),
 ('RH',1),
 ('Mantenimiento',1),
 ('EHS',1),
-('Finanzas',1)
+('Finanzas',1),
+('Administrativos',1)
+
+insert into tbl_Linea
+Values(1,'Electronics'),
+(1,'FAN'),
+(1,'CDU'),
+(1,'Termofisher'),
+(1,'Rotor Wet')
+
+insert into tbl_subEstacion
+VALUES(1,'SMT'),
+(1,'PTH'),
+(1,'Potting')
