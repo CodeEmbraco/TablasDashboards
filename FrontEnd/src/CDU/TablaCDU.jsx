@@ -15,6 +15,9 @@ import 'react-circular-progressbar/dist/styles.css';
 
 // Diseño por Alondra Romero 
 // Desarrollado por Jorge Barrón
+// Editado por Sean Garcia
+
+let isFormNotNull = true;
 
 const getFormattedDate = () => {
     const date = new Date();
@@ -128,10 +131,14 @@ const TablaProdCdu = () => {
         if (!isPoll) setLoading(true);
         
         try {
-            const urlReal = `http://10.13.225.156:3001/api/cdu/produccion-real?fecha=${fecha}&turno=${turno}`;
-            const urlGuardado = `http://10.13.225.156:3001/api/cdu/reporte-guardado?fecha=${fecha}&turno=${turno}`;
-            const urlDetalles = `http://10.13.225.156:3001/api/cdu/detalles-perdidas?fecha=${fecha}&turno=${turno}`;
-            const urlTotalDia = `http://10.13.225.156:3001/api/cdu/total-dia?fecha=${fecha}`;
+            // const urlReal =     `http://10.13.225.156:3001/api/cdu/produccion-real?fecha=${fecha}&turno=${turno}`;
+            // const urlGuardado = `http://10.13.225.156:3001/api/cdu/reporte-guardado?fecha=${fecha}&turno=${turno}`;
+            // const urlDetalles = `http://10.13.225.156:3001/api/cdu/detalles-perdidas?fecha=${fecha}&turno=${turno}`;
+            // const urlTotalDia = `http://10.13.225.156:3001/api/cdu/total-dia?fecha=${fecha}`;
+            const urlReal =     `http://localhost:3001/api/cdu/produccion-real?fecha=${fecha}&turno=${turno}`;
+            const urlGuardado = `http://localhost:3001/api/cdu/reporte-guardado?fecha=${fecha}&turno=${turno}`;
+            const urlDetalles = `http://localhost:3001/api/cdu/detalles-perdidas?fecha=${fecha}&turno=${turno}`;
+            const urlTotalDia = `http://localhost:3001/api/cdu/total-dia?fecha=${fecha}`;
             
             const [respuestaReal, respuestaGuardado, respuestaDetalles, respuestaTotalDia] = await Promise.all([
                 axios.get(urlReal),
@@ -230,8 +237,10 @@ const TablaProdCdu = () => {
         if (!isPollingActive) return;
 
         try {
-            const urlReal = `http://10.13.225.156:3001/api/cdu/produccion-real?fecha=${selectedDate}&turno=${selectedShift}`;
-            const urlTotalDia = `http://10.13.225.156:3001/api/cdu/total-dia?fecha=${selectedDate}`;
+            //const urlReal =     `http://10.13.225.156:3001/api/cdu/produccion-real?fecha=${selectedDate}&turno=${selectedShift}`;
+            //const urlTotalDia = `http://10.13.225.156:3001/api/cdu/total-dia?fecha=${selectedDate}`;
+            const urlReal =     `http://localhost:3001/api/cdu/produccion-real?fecha=${selectedDate}&turno=${selectedShift}`;
+            const urlTotalDia = `http://localhost:3001/api/cdu/total-dia?fecha=${selectedDate}`;
 
             const [respuestaReal, respuestaTotalDia] = await Promise.all([
                 axios.get(urlReal),
@@ -334,9 +343,10 @@ const TablaProdCdu = () => {
     };
 
     const addLossItem = () => {
-        if (!newLossMinutos) { alert("Debes ingresar los minutos"); return; }
+        if(newLossMotivo == "") {alert("Debes ingresar el motivo"); isFormNotNull = false; return;}
+        if (!newLossMinutos) { alert("Debes ingresar los minutos"); isFormNotNull = false; return; }
         const minutos = parseInt(newLossMinutos);
-        if (minutos < 0) { alert("Los minutos no pueden ser negativos"); return; }
+        if (minutos < 0) { alert("Los minutos no pueden ser negativos"); isFormNotNull = false; return; }
         
         const newItem = { 
             minutos: minutos, 
@@ -347,6 +357,7 @@ const TablaProdCdu = () => {
         setNewLossMinutos('');
         setNewLossObs('');
         setNewLossMotivo('');
+        isFormNotNull = true;
     };
 
     const removeLossItem = (index) => {
@@ -356,6 +367,7 @@ const TablaProdCdu = () => {
     };
 
     const saveLossesFromModal = () => {
+        if(!isFormNotNull) {alert("Favor de completar los campos"); return}
         const totalMinutos = tempLossList.reduce((sum, item) => sum + (parseInt(item.minutos) || 0), 0);
         setEditableData(prev => ({
             ...prev,
@@ -833,6 +845,7 @@ const TablaProdCdu = () => {
                                     style={{width: '150px', padding:'8px', borderRadius:'4px', border:'1px solid #ccc'}}
                                     value={newLossMotivo} 
                                     onChange={(e) => setNewLossMotivo(e.target.value)}
+                                    //required
                                 >
                                     <option value="" disabled>--Selecciona--</option>
                                     <option value="A1">A1 - Falla Mecánica</option>
