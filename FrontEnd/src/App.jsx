@@ -14,6 +14,7 @@ import TablaProdCdu from './CDU/TablaCDU';
 import TablaProdInsin from './Insinkerator/TablaInsinkerator';
 import TablaProdRotorWet from './RotorWet/TablaRotorWet';
 import TablaProdRotorIse from './RotorIse/TablaRotorISE';
+import TablaEnsamble from './Ensamble/TablaEnsamble';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -23,6 +24,7 @@ function App() {
     <Routes>
       <Route path="/Tabla" element={<TablaProd />} />
       <Route path="/TablaCDU" element={<TablaProdCdu />} />
+      <Route path="/TablaEnsamble" element={<TablaEnsamble />} />
       <Route path="/TablaInsin" element={<TablaProdInsin />} />
       <Route path="/TablaRotorWet" element={<TablaProdRotorWet />} />
       <Route path="/TablaRotorIse" element={<TablaProdRotorIse />} />

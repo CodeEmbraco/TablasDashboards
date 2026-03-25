@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'; 
+import Footer from '../components/footer';
 import React from "react";
 import { useNavigate } from 'react-router-dom';
 import './TablaProd.css'
@@ -116,6 +117,8 @@ const TablaProd = () => {
             navigate('/TablaInsin');
         }else if(val === "3"){//Rotor Wet
             navigate('/TablaRotorWet');
+        }else if(val === "5"){//Ensamble
+            navigate('/TablaEnsamble');
         }
     };
 
@@ -127,6 +130,10 @@ const TablaProd = () => {
             const p2 = axios.get(`http://10.13.225.156:3001/api/produccion-real?fecha=${fecha}&turno=1`);
             const p3 = axios.get(`http://10.13.225.156:3001/api/produccion-real?fecha=${fecha}&turno=2`);
             const pModelo = axios.get(`http://10.13.225.156:3001/api/getModeloElectronics`);
+            // const p1 = axios.get(`http://localhost:3001/api/produccion-real?fecha=${fecha}&turno=3`);
+            // const p2 = axios.get(`http://localhost:3001/api/produccion-real?fecha=${fecha}&turno=1`);
+            // const p3 = axios.get(   `http://localhost:3001/api/produccion-real?fecha=${fecha}&turno=2`);
+            // const pModelo = axios.get(`http://localhost:3001/api/getModeloElectronics`);
 
             const [resT3, resT1, resT2, resModelo] = await Promise.all([p1, p2, p3, pModelo]);
 
@@ -215,6 +222,10 @@ const TablaProd = () => {
             const p2 = axios.get(`http://10.13.225.156:3001/api/produccion-real?fecha=${selectedDate}&turno=1`);
             const p3 = axios.get(`http://10.13.225.156:3001/api/produccion-real?fecha=${selectedDate}&turno=2`);
             const pModelo = axios.get(`http://10.13.225.156:3001/api/getModeloElectronics`);
+            // const p1 = axios.get(`http://localhost:3001/api/produccion-real?fecha=${selectedDate}&turno=3`);
+            // const p2 = axios.get(`http://localhost:3001/api/produccion-real?fecha=${selectedDate}&turno=1`);
+            // const p3 = axios.get(`http://localhost:3001/api/produccion-real?fecha=${selectedDate}&turno=2`);
+            // const pModelo = axios.get(`http://localhost:3001/api/getModeloElectronics`);
 
             const [resT3, resT1, resT2, resModelo] = await Promise.all([p1, p2, p3, pModelo]);
 
@@ -386,6 +397,7 @@ const TablaProd = () => {
 
         try {
             await axios.post('http://10.13.225.156:3001/api/guardar-reporte', reportData);
+            // await axios.post('http://localhost:3001/api/guardar-reporte', reportData);
             alert('Guardado exitosamente!');
             consultarDatos(selectedDate, selectedShift); 
         } catch (err) {
@@ -557,7 +569,7 @@ const TablaProd = () => {
                                     <td>
                                         <select value={supervisor} onChange={(e) => setSupervisor(e.target.value)}>
                                             <option value="0" disabled>--Selecciona--</option>
-                                            <option value="Hugo Zapata">Hugo Zapata</option>
+                                            <option value="Alfredo Martinez">Alfredo Martinez</option>
                                         </select>
                                     </td>
                                 </tr>
@@ -581,6 +593,7 @@ const TablaProd = () => {
                                             <option value="2">Insinkerator</option>
                                             <option value="3">Rotor Wet</option>
                                             <option value="4">Rotor Ise</option>
+                                            <option value="5">Pre Ensamble</option>
                                         </select>
                                     </td>
                                 </tr>

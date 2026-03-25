@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'; 
+import Footer from '../components/footer';
 import React from "react";
 import { useNavigate } from 'react-router-dom';
 import './TablaRotorISE.css'
@@ -117,6 +118,8 @@ const TablaProdRotorIse = () => {
             navigate('/TablaRotorWet');
         }else if(val === "4"){//Rotor ISE
             navigate('/TablaRotorIse');
+        }else if(val === "5"){//Pre Ensamble
+            navigate('/TablaEnsamble');
         }
     };
 
@@ -562,6 +565,7 @@ const TablaProdRotorIse = () => {
                                             <option value="2">Insinkerator</option>
                                             <option value="3">Rotor Wet</option>
                                             <option value="4">Rotor Ise</option>
+                                            <option value="5">Pre Ensamble</option>
                                         </select>
                                     </td>
                                 </tr>
@@ -844,6 +848,7 @@ const TablaProdRotorIse = () => {
                     </div>
                 </div>
             )}
+            <Footer />
         </div>
     );
 }

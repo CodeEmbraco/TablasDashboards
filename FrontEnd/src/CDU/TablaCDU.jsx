@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'; 
+import Footer from '../components/footer';
 import React from "react";
 import { useNavigate } from 'react-router-dom';
 import './TablaCDU.css'
@@ -124,6 +125,8 @@ const TablaProdCdu = () => {
             navigate('/TablaRotorWet');
         }else if(val === "4"){//Rotor ISE
             navigate('/TablaRotorIse');
+        }else if(val === "5"){//Ensamble
+            navigate('/TablaEnsamble');
         }
     };
 
@@ -131,14 +134,14 @@ const TablaProdCdu = () => {
         if (!isPoll) setLoading(true);
         
         try {
-            // const urlReal =     `http://10.13.225.156:3001/api/cdu/produccion-real?fecha=${fecha}&turno=${turno}`;
-            // const urlGuardado = `http://10.13.225.156:3001/api/cdu/reporte-guardado?fecha=${fecha}&turno=${turno}`;
-            // const urlDetalles = `http://10.13.225.156:3001/api/cdu/detalles-perdidas?fecha=${fecha}&turno=${turno}`;
-            // const urlTotalDia = `http://10.13.225.156:3001/api/cdu/total-dia?fecha=${fecha}`;
-            const urlReal =     `http://localhost:3001/api/cdu/produccion-real?fecha=${fecha}&turno=${turno}`;
-            const urlGuardado = `http://localhost:3001/api/cdu/reporte-guardado?fecha=${fecha}&turno=${turno}`;
-            const urlDetalles = `http://localhost:3001/api/cdu/detalles-perdidas?fecha=${fecha}&turno=${turno}`;
-            const urlTotalDia = `http://localhost:3001/api/cdu/total-dia?fecha=${fecha}`;
+            const urlReal =     `http://10.13.225.156:3001/api/cdu/produccion-real?fecha=${fecha}&turno=${turno}`;
+            const urlGuardado = `http://10.13.225.156:3001/api/cdu/reporte-guardado?fecha=${fecha}&turno=${turno}`;
+            const urlDetalles = `http://10.13.225.156:3001/api/cdu/detalles-perdidas?fecha=${fecha}&turno=${turno}`;
+            const urlTotalDia = `http://10.13.225.156:3001/api/cdu/total-dia?fecha=${fecha}`;
+            // const urlReal =     `http://localhost:3001/api/cdu/produccion-real?fecha=${fecha}&turno=${turno}`;
+            // const urlGuardado = `http://localhost:3001/api/cdu/reporte-guardado?fecha=${fecha}&turno=${turno}`;
+            // const urlDetalles = `http://localhost:3001/api/cdu/detalles-perdidas?fecha=${fecha}&turno=${turno}`;
+            // const urlTotalDia = `http://localhost:3001/api/cdu/total-dia?fecha=${fecha}`;
             
             const [respuestaReal, respuestaGuardado, respuestaDetalles, respuestaTotalDia] = await Promise.all([
                 axios.get(urlReal),
@@ -237,10 +240,10 @@ const TablaProdCdu = () => {
         if (!isPollingActive) return;
 
         try {
-            //const urlReal =     `http://10.13.225.156:3001/api/cdu/produccion-real?fecha=${selectedDate}&turno=${selectedShift}`;
-            //const urlTotalDia = `http://10.13.225.156:3001/api/cdu/total-dia?fecha=${selectedDate}`;
-            const urlReal =     `http://localhost:3001/api/cdu/produccion-real?fecha=${selectedDate}&turno=${selectedShift}`;
-            const urlTotalDia = `http://localhost:3001/api/cdu/total-dia?fecha=${selectedDate}`;
+            const urlReal =     `http://10.13.225.156:3001/api/cdu/produccion-real?fecha=${selectedDate}&turno=${selectedShift}`;
+            const urlTotalDia = `http://10.13.225.156:3001/api/cdu/total-dia?fecha=${selectedDate}`;
+            // const urlReal =     `http://localhost:3001/api/cdu/produccion-real?fecha=${selectedDate}&turno=${selectedShift}`;
+            // const urlTotalDia = `http://localhost:3001/api/cdu/total-dia?fecha=${selectedDate}`;
 
             const [respuestaReal, respuestaTotalDia] = await Promise.all([
                 axios.get(urlReal),
@@ -611,6 +614,7 @@ const TablaProdCdu = () => {
                                             <option value="2">Insinkerator</option>
                                             <option value="3">Rotor Wet</option>
                                             <option value="4">Rotor Ise</option>
+                                            <option value="5">Pre Ensamble</option>
                                         </select>
                                     </td>
                                 </tr>
@@ -892,6 +896,7 @@ const TablaProdCdu = () => {
                     </div>
                 </div>
             )}
+            <Footer />
         </div>
     );
 }

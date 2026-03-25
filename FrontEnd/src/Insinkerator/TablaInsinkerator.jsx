@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'; 
+import Footer from '../components/footer';
 import React from "react";
 import { useNavigate } from 'react-router-dom';
 import './TablaInsinkerator.css'
@@ -115,6 +116,8 @@ const TablaProdInsin = () => {
             navigate('/TablaInsin');
         }else if(val === "3"){//Rotor Wet
             navigate('/TablaRotorWet');
+        }else if(val === "5"){//Rotor Wet
+            navigate('/TablaEnsamble');
         }
     };
 
@@ -537,7 +540,7 @@ const TablaProdInsin = () => {
                                     <td>
                                         <select value={supervisor} onChange={(e) => setSupervisor(e.target.value)}>
                                             <option value="0" disabled>--Selecciona--</option>
-                                            <option value="Rubén Núñez">Rubén Núñez</option>
+                                            <option value="Hugo Zapata">Hugo Zapata</option>
                                         </select>
                                     </td>
                                 </tr>
@@ -546,9 +549,10 @@ const TablaProdInsin = () => {
                                     <td>
                                         <select value={lider} onChange={(e) => setLider(e.target.value)}>
                                             <option value="0" disabled>--Selecciona--</option>
-                                            <option value="Alejandro Castillo">Alejandro Castillo</option>
-                                            <option value="Edgar Rodriguez">Edgar Rodriguez</option>
-                                            <option value="Jaime Jiménez">Jaime Jiménez</option>
+                                            <option value="Cesar Rangel">Cesar Rangel</option>
+                                            <option value="Jorge Carrizales">Jorge Carrizales</option>
+                                            <option value="Gerardo Sánchez">Gerardo Sánchez</option>
+                                            <option value="Rosa Navarro">Rosa Navarro</option>
                                         </select>
                                     </td>
                                 </tr>
@@ -560,6 +564,7 @@ const TablaProdInsin = () => {
                                             <option value="1">Electronics</option>
                                             <option value="2">Insinkerator</option>
                                             <option value="3">Rotor Wet</option>
+                                            <option value="5">Pre Ensamble</option>
                                         </select>
                                     </td>
                                 </tr>
@@ -842,6 +847,7 @@ const TablaProdInsin = () => {
                     </div>
                 </div>
             )}
+            <Footer />
         </div>
     );
 }

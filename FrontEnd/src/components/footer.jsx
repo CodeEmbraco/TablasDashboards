@@ -7,7 +7,7 @@ const Footer = () => {
     return (
         <footer className="app-footer">
             <p>&copy; {currentYear} Nidec ACIM Embraco Mty. Todos los derechos reservados.</p>
-            <p>Dashboard Electronics | Desarrollado por Jorge Barrón y Alondra Romero</p>
+            <p>Tablas de Productividad | Departamento TI</p>
         </footer>
     );
 };
