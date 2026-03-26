@@ -1,0 +1,5 @@
+dependencias a instalar
+
+npm install chart.js react-chartjs-2
+react-router-dom
+mssql
