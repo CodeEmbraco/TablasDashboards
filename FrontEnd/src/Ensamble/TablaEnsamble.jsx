@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'; 
 import Footer from '../components/footer';
+import Manual from '../components/Manual/manual';
 import React from "react";
 import { useNavigate } from 'react-router-dom';
 import './TablaEnsamble.css'
@@ -86,7 +87,8 @@ const TablaEnsamble = () => {
     const [error, setError] = useState(null);
     const [modeloActual, setModeloActual] = useState('');
     const [selectedDate, setSelectedDate] = useState(getFormattedDate());
-    const [selectedShift, setSelectedShift] = useState(getCurrentShift());   
+    const [selectedShift, setSelectedShift] = useState(getCurrentShift());
+    const [isManualOpen, setIsManualOpen] = useState(false); 
     
     
     // Estado para Hora y Minuto actuales (para la lógica de pasos)
@@ -557,7 +559,7 @@ useEffect(() => {
                                     </td>
                                 </tr>
                             </tbody>
-                        </table>
+                        </table>          
                     </section>
                 </div>
 
@@ -639,6 +641,14 @@ useEffect(() => {
                     </div>
                 </div>
             </div>
+
+            <button 
+                onClick={() => setIsManualOpen(true)}
+                style={{ padding: '10px 20px', cursor: 'pointer' }}
+                >
+                📖 Ver Manual de Uso
+            </button>
+            <Manual isOpen={isManualOpen} onClose={() => setIsManualOpen(false)}/> 
 
             <section className="contenedorTabla-ensamble">
                 <table className="tablaProduccion-ensamble">
@@ -835,6 +845,7 @@ useEffect(() => {
                     
                 </div>
             )}
+            
             <Footer></Footer>
         </div>
 

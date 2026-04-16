@@ -16,8 +16,9 @@ import TablaProdRotorWet from './RotorWet/TablaRotorWet';
 import TablaProdRotorIse from './RotorIse/TablaRotorISE';
 import TablaEnsamble from './Ensamble/TablaEnsamble';
 
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0) 
 
   return (
     <>

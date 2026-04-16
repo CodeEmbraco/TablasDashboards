@@ -1,0 +1,140 @@
+/* CAPA OSCURA (El fondo que bloquea la app) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8); /* Fondo oscuro semitransparente */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* Asegura que esté por encima de TODO */
+  backdrop-filter: blur(5px); /* Desenfoque estético */
+}
+
+/* CAJA DEL MODAL (La ventana blanca) */
+.modal-container {
+  background-color: white;
+  width: 90%;
+  max-width: 900px;
+  max-height: 90vh;
+  border-radius: 15px;
+  padding: 40px;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* BOTÓN DE CERRAR (X) */
+.modal-close-icon {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #333;
+  transition: transform 0.2s;
+}
+
+.modal-close-icon:hover {
+  transform: scale(1.2);
+  color: #ff4444;
+}
+
+/* HEADER */
+.modal-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.step-counter {
+  background: #e9ecef;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+/* GRID DEL CARRUSEL */
+.carousel-grid {
+  display: grid;
+  grid-template-columns: 60px 1fr 60px; /* Flecha | Imagen | Flecha */
+  align-items: center;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.image-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.manual-image {
+  max-width: 100%;
+  max-height: 450px;
+  object-fit: contain;
+  border-radius: 5px;
+}
+
+/* FLECHAS */
+.nav-arrow {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.nav-arrow:hover:not(:disabled) {
+  color: #0056b3;
+  transform: scale(1.2);
+}
+
+.nav-arrow:disabled {
+  color: #dee2e6;
+  cursor: not-allowed;
+}
+
+/* FOOTER Y TEXTOS */
+.modal-footer {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.manual-step-text {
+  font-size: 1.2rem;
+  color: #444;
+  margin-bottom: 20px;
+  min-height: 60px;
+}
+
+/* PUNTOS INDICADORES */
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #ced4da;
+}
+
+.dot.active {
+  background-color: #007bff;
+  width: 25px;
+  border-radius: 5px;
+}

@@ -1,5 +1,5 @@
-//const API_URL = import.meta.env.VITE_LOCAL_BACKEND_URL;  //?URL Local
-const API_URL = import.meta.env.VITE_PUBLIC_BACKEND_URL; //?URL Publico del servidor
+const API_URL = import.meta.env.VITE_LOCAL_BACKEND_URL;  //?URL Local
+//const API_URL = import.meta.env.VITE_PUBLIC_BACKEND_URL; //?URL Publico del servidor
 
 console.log("Url Backend Actual: ", API_URL);
 
