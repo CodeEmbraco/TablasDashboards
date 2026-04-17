@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "paths": {
+            "@assets/*": ["./assets/*"],
+            "@components/*": ["./components/*"],
+            "@pages/*": ["./pages/*"],
+        }
+    },
+    "exclude": ["node_modules", "dist"]
+}

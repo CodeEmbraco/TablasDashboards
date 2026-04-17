@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'; 
-import Footer from '../components/footer';
+import Footer from '../components/Footer/footer';
 import React from "react";
 import { useNavigate } from 'react-router-dom';
 import './TablaInsinkerator.css'

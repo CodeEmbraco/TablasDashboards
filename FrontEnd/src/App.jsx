@@ -7,7 +7,7 @@ import TablaProd from './pages/TablaProd';
 import SelectIdioma from './pages/SelectLanguage';
 import Login from './pages/Login';
 import Menu from './pages/Menu';
-import Footer from './components/footer';
+import Footer from './components/Footer/footer';
 import Zero from './assets/zeroproductividad.png';
 import Dashboard from './pages/Dashboard';
 import TablaProdCdu from './CDU/TablaCDU';

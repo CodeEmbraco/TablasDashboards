@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'; 
-import Footer from '../components/footer';
-import Manual from '../components/Manual/manual';
+import Footer from '@components/Footer/footer';
+import Manual from '@components/Manual/manual';
+import Header from '@components/Header/Header';
 import React from "react";
 import { useNavigate } from 'react-router-dom';
 import './TablaEnsamble.css'
-import logoNidec from '../assets/nidec-logo.png'
-import Zero from '../assets/zeroproductividad.png';
 import ZeroBien from '../assets/ZeroBien.png';
 import ZeroMal from '../assets/ZeroMal.png';
 import { 
@@ -500,12 +499,8 @@ useEffect(() => {
 
     return (
         <div className="bodyTablaEnsamble">
-            <title>Tabla Productividad Ensamble</title>
-            <header className="header-ensamble">
-                <img src={logoNidec} alt="Nidec ACIM Logo" className="logoTablaEnsamble" />
-                <h2 className="tituloPrincipal-ensamble">TABLA DE PRODUCTIVIDAD PRE-ENSAMBLE</h2>
-                <img src={Zero} alt="Zero Productividad" className="logoZero-ensamble" />
-            </header>
+            <title>Productivity Chart</title>
+            <Header line="PRE-ENSAMBLE"/>
 
             <div className="top-panel-container-ensamble">
                 <div className="panel-left-ensamble">

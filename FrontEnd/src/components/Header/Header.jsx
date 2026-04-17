@@ -1,0 +1,20 @@
+import React, {useEffect} from "react";
+import './Header.css'
+import logoNidec from '@assets/nidec-logo.png'
+import Zero from '@assets/zeroproductividad.png';
+
+const Header = ({line}) =>{
+    return(
+        <header className="header">
+            <img src={logoNidec} alt="Nidec ACIM Logo" className="logoTabla" />
+            <h2 className="tituloPrincipal">TABLA DE PRODUCTIVIDAD {line}</h2>
+            <img src={Zero} alt="Zero Productividad" className="logoZero" />
+        </header>
+    );
+};
+
+// Header.defaultProps = {
+//   title: "Nidec embraco"
+// };
+
+export default Header;
