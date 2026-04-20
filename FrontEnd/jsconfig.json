@@ -4,6 +4,9 @@
             "@assets/*": ["./assets/*"],
             "@components/*": ["./components/*"],
             "@pages/*": ["./pages/*"],
+            "@utils/*": ["./src/utils/*"],
+            "@context/*": ["./src/context/*"],
+            "@hooks/*": ["./src/hooks/*"]
         }
     },
     "exclude": ["node_modules", "dist"]

@@ -1,12 +1,32 @@
+//React
+import React from "react";
 import { useState, useEffect, useCallback } from 'react'; 
+import { useNavigate } from 'react-router-dom';
+//Context
+import { useProduction } from '@context/ProductionContext';
+import { useProductionMetrics } from '@context/useProductionMetrics';
+//Componentes
 import Footer from '@components/Footer/footer';
 import Manual from '@components/Manual/manual';
 import Header from '@components/Header/Header';
-import React from "react";
-import { useNavigate } from 'react-router-dom';
+import LineSelector from '@components/LineSelector/LineSelector';
+import ProductionWidgets from '@components/ProductionWidgets/ProductionWidgets';
+import ZeroBien from '@assets/ZeroBien.png';
+import ZeroMal from '@assets/ZeroMal.png';
+//Utils
+import { 
+  getFormattedDate, 
+  getCurrentShift, 
+  generateHourSlots, 
+  getMetaPorHoraIndividual 
+} from '@utils/dateUtils';
+import {
+    calcularMetaDiaAcumulada,
+    calculateShiftMeta,
+} from '@utils/shiftUtils';
+//Estilos
 import './TablaEnsamble.css'
-import ZeroBien from '../assets/ZeroBien.png';
-import ZeroMal from '../assets/ZeroMal.png';
+//API
 import { 
     PREENSAMBLE_API,
     preEnsam_totalPorFechaYTurno,
@@ -15,13 +35,12 @@ import {
     preEnsam_guardarReporte,
     preEnsam_consultarReporte
  } from './apiEnsamble.js';
-
 // LIBRERIAS VISUALES
 import GaugeChart from 'react-gauge-chart'
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
-// Desarrollado por Jorge Barrón y Sean Garcia
+//* Desarrollado por Jorge Barrón y Sean Garcia
 
 let isFormNotNull = true;
 //*Prueba de endpoint para extraer la informacion
@@ -31,51 +50,6 @@ console.log("ENDPOINT PRE-ENSAMBLE\n"
             ,"PRE-ENSAMBLE COUNTER:", prueba.COUNTER 
             ,"\nPRE-ENSAMBLE PRODUCT_ID:\t", prueba.PRODUCT_ID);
 */
-
-const getFormattedDate = () => {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-};
-
-const SHIFT_HOURS = {
-    '1': [6, 14, 8],
-    '2': [14, 23, 9],
-    '3': [23, 6, 7],
-};
-
-const getCurrentShift = () => {
-    const now = new Date();
-    const currentHour = now.getHours(); 
-    if (currentHour >= 6 && currentHour < 14) return '1';
-    if (currentHour >= 14 && currentHour < 23) return '2';
-    if (currentHour >= 23 || currentHour < 6) return '3';
-    return '0'; 
-};
-
-const generateHourSlots = (shiftId) => {
-    const [start, end, totalHours] = SHIFT_HOURS[shiftId];
-    const slots = [];
-    let currentHour = start;
-    for (let i = 0; i < totalHours; i++) {
-        const nextHour = (currentHour + 1) % 24;
-        const startStr = String(currentHour).padStart(2, '0') + ':00';
-        const endStr = String(nextHour).padStart(2, '0') + ':00';
-        slots.push(`${startStr}-${endStr}`);
-        currentHour = nextHour;
-    }
-    return slots;
-};
-
-// Función auxiliar para saber la meta de una hora específica
-const getMetaPorHoraIndividual = (startHour, shiftId, metaBase) => {
-    if (shiftId === '1' && startHour === 9) return metaBase / 2;
-    if (shiftId === '2' && startHour === 18) return metaBase / 2;
-    if (shiftId === '3' && startHour === 0) return metaBase / 2;
-    return metaBase;
-};
 
 const TablaEnsamble = () => {
     const navigate = useNavigate(); 
@@ -98,8 +72,8 @@ const TablaEnsamble = () => {
     const [totalTurno, setTotalTurno] = useState([]);
     const [breakdown, setBreakdown] = useState({ t3: 0, t1: 0, t2: 0 }); 
 
-    const [enableAnimation, setEnableAnimation] = useState(true);
     const [metaPorHora, setMetaPorHora] = useState(350);
+    const [enableAnimation, SetEnableAnimation]= useState(true);
     
     // Modales
     const [isMetaModalOpen, setIsMetaModalOpen] = useState(false);
@@ -132,23 +106,6 @@ const TablaEnsamble = () => {
         });
         //console.log("found Item: ", foundItem);
         return foundItem;
-    };
-
-    const handleLineChange = (event) => {
-        const val = event.target.value;
-        if (val === "0") { 
-            navigate('/TablaEnsamble');
-        }else if(val === "1"){//1 es electronics
-            navigate('/Tabla');
-        }else if(val === "2"){//insinkerator
-            navigate('/TablaInsin');
-        }else if(val === "3"){//Rotor Wet
-            navigate('/TablaRotorWet');
-        }else if(val === "4"){//Rotor ISE
-            navigate('/TablaRotorIse');
-        }else if(val === "5"){// cdu
-            navigate('/TablaCDU');
-        }
     };
 
 const consultarDatos = useCallback(async (fecha, turno, isPoll = false) => {
@@ -397,70 +354,12 @@ useEffect(() => {
         else { alert("Por favor ingresa un número válido mayor a 0"); }
     };
 
-    // Adherencia escalonada o progresiva (cada 15, 30, 45, 59 min)
-    const calculateShiftMeta = (shiftId) => {
-        const isToday = selectedDate === getFormattedDate();
-        
-        //Fechas Pasadas/Futuras
-        if (selectedDate < getFormattedDate()) return getFullShiftMeta(shiftId);
-        if (selectedDate > getFormattedDate()) return 0;
+    
 
-        //Verificar si el turno ya pasó hoy o es futuro
-        const currentShift = getCurrentShift();
-        const shiftOrder = ['3', '1', '2'];
-        const currentIndex = shiftOrder.indexOf(currentShift);
-        const targetIndex = shiftOrder.indexOf(shiftId);
-
-        if (targetIndex < currentIndex) return getFullShiftMeta(shiftId);
-        if (targetIndex > currentIndex) return 0;
-
-        // Es el turno ACTUAL -> Adherencia Minuto a Minuto
-        let metaAcum = 0;
-        const slots = generateHourSlots(shiftId);
-        
-        for (let slot of slots) {
-            const startHour = parseInt(slot.split(':')[0], 10);
-            const hourlyMeta = getMetaPorHoraIndividual(startHour, shiftId, metaPorHora);
-
-            // Si la hora ya pasó (es anterior a la actual), suma completa
-            
-            if (startHour === currentClientHour) {
-                // HORA ACTUAL
-                const quarterPart = Math.ceil(hourlyMeta / 6); // Redondear hacia arriba cuartos para no dejar decimales
-                
-                if (currentClientMinute >= 59) {
-                    metaAcum += hourlyMeta; // Minuto 59+: Meta completa exacta
-                } else if (currentClientMinute >= 45) {
-                    // Min 45-58: 3 cuartos 
-                    metaAcum += Math.min(hourlyMeta, quarterPart * 3);
-                } else if (currentClientMinute >= 30) {
-                    // Min 30-44: 2 cuartos
-                    metaAcum += Math.min(hourlyMeta, quarterPart * 2);
-                } else if (currentClientMinute >= 15) {
-                    // Min 15-29: 1 cuarto
-                    metaAcum += Math.min(hourlyMeta, quarterPart);
-                }
-                // Min 0-14: Suma 0
-                // Detenemos el loop aquí porque las horas siguientes son futuro
-                break; 
-            } else {
-                // Hora ya completada en el turno -> Suma total
-                metaAcum += hourlyMeta;
-            }
-        }
-        return metaAcum;
-    };
-
-    const getFullShiftMeta = (shiftId) => {
-        const slots = generateHourSlots(shiftId);
-        return slots.reduce((acc, slot) => {
-             const start = parseInt(slot.split(':')[0], 10);
-             return acc + getMetaPorHoraIndividual(start, shiftId, metaPorHora);
-        }, 0);
-    };
+    
 
     // Cálculos Finales
-    const totalMetaTurno = calculateShiftMeta(selectedShift);
+    const totalMetaTurno = calculateShiftMeta(selectedShift, selectedDate, currentClientMinute, currentClientHour, metaPorHora);
     //console.log("data: ",total);
     // const totalReal = data.reduce((sum, item) => sum + parseFloat(item.piezas_reales || item.Piezas_Reales || item.Real || 0), 0);
     
@@ -470,24 +369,8 @@ useEffect(() => {
     
     const rawPercentReal = totalMetaTurno > 0 ? (totalReal / totalMetaTurno) : 0;
     const chartPercentReal = Math.min(1, rawPercentReal);
-    
-    // Meta del dia acumulado
-    const calcularMetaDiaAcumulada = () => {
-        let metaAcum = 0;
-        if (selectedShift === '3') {
-            metaAcum += calculateShiftMeta('3');
-        } else if (selectedShift === '1') {
-            metaAcum += calculateShiftMeta('3'); 
-            metaAcum += calculateShiftMeta('1'); 
-        } else if (selectedShift === '2') {
-            metaAcum += calculateShiftMeta('3');
-            metaAcum += calculateShiftMeta('1');
-            metaAcum += calculateShiftMeta('2');
-        }
-        return metaAcum;
-    };
 
-    const metaDiaAcumulada = calcularMetaDiaAcumulada();
+    const metaDiaAcumulada = calcularMetaDiaAcumulada(selectedShift);
     
     //Estado del dia bueno y malo
     const diaStatusClass = total.TOTAL_DIA >= metaDiaAcumulada ? 'status-good' : 'status-bad';
@@ -543,14 +426,7 @@ useEffect(() => {
                                 <tr>
                                     <td>Línea:</td>
                                     <td>
-                                        <select value="0" onChange={handleLineChange}>
-                                            <option value="0">Ensamble ES</option>
-                                            <option value="1">Electronics</option>
-                                            <option value="2">Insinkerator</option>
-                                            <option value="3">Rotor Wet</option>
-                                            <option value="4">Rotor Ise</option>
-                                            <option value="5">CDU</option>
-                                        </select>
+                                        <LineSelector currentLineId="preensam"/>
                                     </td>
                                 </tr>
                             </tbody>
@@ -560,6 +436,13 @@ useEffect(() => {
 
                 <div className="panel-right-ensamble">
                     <div className="medidores-container-ensamble">
+                        {/* <ProductionWidgets 
+                        percent={chartPercentReal} 
+                        goal={totalMetaTurno} 
+                        real={totalReal} 
+                        losses={totalPerdidas} 
+                        enableAnimation="enableAnimation"/> 
+                        */}
                         <div className="medidor-ensamble">
                             <h3>Meta</h3>
                             <div className="gauge-wrapper-ensamble">

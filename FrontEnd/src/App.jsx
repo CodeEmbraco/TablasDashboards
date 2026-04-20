@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Routes, Route } from "react-router-dom";
 import React from "react";
 import logoNidec  from './assets/nidec-logo.png'
-import TablaProd from './pages/TablaProd';
+import TablaProd from './Electronics/TablaElectronics';
 import SelectIdioma from './pages/SelectLanguage';
 import Login from './pages/Login';
 import Menu from './pages/Menu';
@@ -23,7 +23,7 @@ function App() {
   return (
     <>
     <Routes>
-      <Route path="/Tabla" element={<TablaProd />} />
+      <Route path="/TablaElectronics" element={<TablaProd />} />
       <Route path="/TablaCDU" element={<TablaProdCdu />} />
       <Route path="/TablaEnsamble" element={<TablaEnsamble />} />
       <Route path="/TablaInsin" element={<TablaProdInsin />} />

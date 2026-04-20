@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Footer from '../components/Footer/footer';
 import React from "react";
 import { useNavigate } from 'react-router-dom';
-import './TablaProd.css'
+import './TablaElectronics.css'
 import logoNidec from '../assets/nidec-logo.png'
 import axios from 'axios';
 import Zero from '../assets/zeroproductividad.png';
