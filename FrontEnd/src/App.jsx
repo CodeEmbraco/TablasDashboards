@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { Routes, Route } from "react-router-dom";
 import React from "react";
+import { ProductionProvider } from '@context/ProductionContext'
 import logoNidec  from './assets/nidec-logo.png'
 import TablaProd from './Electronics/TablaElectronics';
 import SelectIdioma from './pages/SelectLanguage';
@@ -22,6 +23,7 @@ function App() {
 
   return (
     <>
+    <ProductionProvider>
     <Routes>
       <Route path="/TablaElectronics" element={<TablaProd />} />
       <Route path="/TablaCDU" element={<TablaProdCdu />} />
@@ -35,6 +37,7 @@ function App() {
       <Route path="/Dashboard" element={<Dashboard />} />
       <Route path="*" element={<TablaProd />} />
     </Routes>
+    </ProductionProvider>
     </>
   )
 }

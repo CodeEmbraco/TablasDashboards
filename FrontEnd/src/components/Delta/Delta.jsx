@@ -1,39 +1,35 @@
 import React from 'react';
-import './Delta.css'
 
-const Delta = (total, shiftTotal, accGoal, status, delta, deltaSign, dayPercent) =>{
+const Delta = ({ total, accGoal, status, totalTurno, eficiencia}) => {
+    const deltaValue = total - accGoal;
+    const deltaSign = deltaValue >= 0 ? "+" : "";
+    const deltaColor = status === 'bueno' ? '#4caf50' : '#f44336';
 
     return (
-    <div className="medidor-card">
-        <div className={`card-total-dia ${status}`}>
-            <div className="total-dia-content-wrapper">
-                <div className="total-dia-left">
-                    <h4>Total Día</h4>
-                    <p className="total-dia-number">
-                        {total.TOTAL_DIA} 
-                        <span style={{fontSize:'0.9rem', fontWeight:'normal', color:'#777'}}>/ {accGoal}</span>
-                    </p>
-                    <div className="delta-container" style={{color: deltaColor, fontWeight:'bold', fontSize:'1.1rem', marginTop:'5px'}}>
-                        Delta: {deltaSign}{delta}
-                    </div>
+        <div style={{ border: `2px solid ${deltaColor}`, borderRadius: '12px', padding: '15px', textAlign: 'center', backgroundColor: '#fff', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+            <h2 style={{ margin: '0 0 10px 0', color: '#555' }}>Delta</h2>
+            <div style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#333' }}>
+                {total} <span style={{ fontSize: '1rem', color: '#888' }}>/ {accGoal}</span>
+            </div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: deltaColor, marginTop: '5px' }}>
+                Delta: {deltaSign}{deltaValue}
+            </div>
+            <div className="total-dia-right-breakdown">
+                <div className="breakdown-item">
+                    <span>T3:</span> <strong>{totalTurno[2].CONTADOR}</strong>
                 </div>
-                <div className="total-dia-right-breakdown">
-                    <div className="breakdown-item">
-                        <span>T3:</span> <strong>{shiftTotal[2].CONTADOR}</strong>
-                    </div>
-                    <div className="breakdown-item">
-                        <span>T1:</span> <strong>{shiftTotal[0].CONTADOR}</strong>
-                    </div>
-                    <div className="breakdown-item">
-                        <span>T2:</span> <strong>{shiftTotal[1].CONTADOR}</strong>
-                    </div>
+                <div className="breakdown-item">
+                    <span>T1:</span> <strong>{totalTurno[0].CONTADOR}</strong>
+                </div>
+                <div className="breakdown-item">
+                    <span>T2:</span> <strong>{totalTurno[1].CONTADOR}</strong>
                 </div>
             </div>
             <div className="progress-bar-container">
-                <div className="progress-bar-fill" style={{ width: `${dayPercent}%` }}></div>
+                <div className="progress-bar-fill" style={{ width: `${eficiencia}%` }}></div>
             </div>
         </div>
-    </div>
+        
     );
 };
 

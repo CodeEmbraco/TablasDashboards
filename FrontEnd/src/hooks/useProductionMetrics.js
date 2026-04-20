@@ -1,33 +1,30 @@
+// src/hooks/useProductionMetrics.js
 import { useMemo } from 'react';
 import { useProduction } from '@context/ProductionContext';
 import { calcularMetaDiaAcumulada } from '@utils/shiftUtils';
 
-export const useProductionMetrics = (currentRealDia) => { 
-    const {selectedShift , selectedDate, metaPorHora} = useProduction();
+export const useProductionMetrics = (currentRealDia) => {
+    const { selectedShift, selectedDate, metaPorHora } = useProduction();
 
-    const now = new Date();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
+    return useMemo(() => {
+        const now = new Date();
 
-
-    const metrics = useMemo(() => {
-        const metaAcumulada = calcularMetaDiaAcumulada(
+        const config = {
             selectedShift,
             selectedDate,
-            currentMinute,
-            currentHour,
-            metaPorHora
-        );
-        const percent = metaAcumulada > 0 
-        ? Math.round((currentRealDia / metaAcumulada)*100)
-        : 0;
-        
-        return{
+            metaPorHora,
+            currentClientHour: now.getHours(),
+            currentClientMinute: now.getMinutes()
+        };
+
+        const metaAcumulada = parseInt(calcularMetaDiaAcumulada(config));
+
+        const percent = metaAcumulada > 0 ? Math.round((currentRealDia / metaAcumulada) * 100) : 0;
+
+        return {
             metaAcumulada,
-            eficiencia,
+            eficiencia: percent,
             status: percent >= 95 ? "bueno" : "mal"
         };
-    }, [selectedShift, selectedDate, metaPorHora, currentRealDia, currentHour, currentMinute]);
-    
-    return metrics;
-}
+    }, [selectedShift, selectedDate, metaPorHora, currentRealDia]);
+};

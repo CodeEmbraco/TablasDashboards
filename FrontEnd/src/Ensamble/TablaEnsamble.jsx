@@ -4,13 +4,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 //Context
 import { useProduction } from '@context/ProductionContext';
-import { useProductionMetrics } from '@context/useProductionMetrics';
+import { useProductionMetrics } from '@hooks/useProductionMetrics';
 //Componentes
 import Footer from '@components/Footer/footer';
 import Manual from '@components/Manual/manual';
 import Header from '@components/Header/Header';
 import LineSelector from '@components/LineSelector/LineSelector';
 import ProductionWidgets from '@components/ProductionWidgets/ProductionWidgets';
+import Delta from '@components/Delta/Delta'
 import ZeroBien from '@assets/ZeroBien.png';
 import ZeroMal from '@assets/ZeroMal.png';
 //Utils
@@ -52,6 +53,7 @@ console.log("ENDPOINT PRE-ENSAMBLE\n"
 */
 
 const TablaEnsamble = () => {
+    const {selectedDate, selectedShift} = useProduction();
     const navigate = useNavigate(); 
     const [data, setData] = useState([]); 
     const [dataHour, setDataHour] = useState([]);
@@ -59,9 +61,9 @@ const TablaEnsamble = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [modeloActual, setModeloActual] = useState('');
-    const [selectedDate, setSelectedDate] = useState(getFormattedDate());
-    const [selectedShift, setSelectedShift] = useState(getCurrentShift());
     const [isManualOpen, setIsManualOpen] = useState(false); 
+    const [totalRealDia, setTotalRealDia] = useState(0);
+    const {metaAcumulada, eficiencia, status} = useProductionMetrics(totalRealDia);
     
     
     // Estado para Hora y Minuto actuales (para la lógica de pasos)
@@ -73,7 +75,7 @@ const TablaEnsamble = () => {
     const [breakdown, setBreakdown] = useState({ t3: 0, t1: 0, t2: 0 }); 
 
     const [metaPorHora, setMetaPorHora] = useState(350);
-    const [enableAnimation, SetEnableAnimation]= useState(true);
+    const [enableAnimation, setEnableAnimation]= useState(true);
     
     // Modales
     const [isMetaModalOpen, setIsMetaModalOpen] = useState(false);
@@ -354,29 +356,25 @@ useEffect(() => {
         else { alert("Por favor ingresa un número válido mayor a 0"); }
     };
 
-    
-
-    
-
     // Cálculos Finales
-    const totalMetaTurno = calculateShiftMeta(selectedShift, selectedDate, currentClientMinute, currentClientHour, metaPorHora);
-    //console.log("data: ",total);
-    // const totalReal = data.reduce((sum, item) => sum + parseFloat(item.piezas_reales || item.Piezas_Reales || item.Real || 0), 0);
-    
+    //const totalMetaTurno = calculateShiftMeta(selectedShift, selectedDate, currentClientMinute, currentClientHour, metaPorHora);
+    // const metaDiaAcumulada = parseInt(calcularMetaDiaAcumulada(selectedShift),10);
+    console.log("metaAcumulada ===> ", metaAcumulada)
     const totalReal = parseInt(total.TOTAL_DIA, 10);
+
     // console.log("-> total real",total.CONTADOR);
     const totalPerdidas = Object.values(editableData).reduce((sum, item) => sum + (parseInt(item.perdidas) || 0), 0);
     
-    const rawPercentReal = totalMetaTurno > 0 ? (totalReal / totalMetaTurno) : 0;
+    const rawPercentReal = metaAcumulada > 0 ? (totalReal / metaAcumulada) : 0;
     const chartPercentReal = Math.min(1, rawPercentReal);
 
-    const metaDiaAcumulada = calcularMetaDiaAcumulada(selectedShift);
+ 
     
     //Estado del dia bueno y malo
-    const diaStatusClass = total.TOTAL_DIA >= metaDiaAcumulada ? 'status-good' : 'status-bad';
+    const diaStatusClass = total.TOTAL_DIA >= metaAcumulada ? 'status-good' : 'status-bad';
     
-    const percentDia = Math.min(100, (total.TOTAL_DIA / (metaDiaAcumulada || 1)) * 100);
-    const delta = total.TOTAL_DIA - metaDiaAcumulada;
+    const percentDia = Math.min(100, (total.TOTAL_DIA / (metaAcumulada || 1)) * 100);
+    const delta = total.TOTAL_DIA - metaAcumulada;
     const deltaSigno = delta > 0 ? "+" : ""; 
     const deltaColor = delta >= 0 ? "#388E3C" : "#D32F2F"; 
 
@@ -436,13 +434,13 @@ useEffect(() => {
 
                 <div className="panel-right-ensamble">
                     <div className="medidores-container-ensamble">
-                        {/* <ProductionWidgets 
-                        percent={chartPercentReal} 
-                        goal={totalMetaTurno} 
+                        <ProductionWidgets 
+                        percent={eficiencia} 
+                        goal={metaAcumulada} 
                         real={totalReal} 
                         losses={totalPerdidas} 
-                        enableAnimation="enableAnimation"/> 
-                        */}
+                        enableAnimation={enableAnimation}/> 
+{/*                        
                         <div className="medidor-ensamble">
                             <h3>Meta</h3>
                             <div className="gauge-wrapper-ensamble">
@@ -475,9 +473,16 @@ useEffect(() => {
                                     styles={buildStyles({ textColor: "#D32F2F", pathColor: "#D32F2F", trailColor: "#eee", textSize: '30px', pathTransitionDuration: 0.5 })}
                                 />
                             </div>
-                        </div>
+                        </div> */}
 
-                        <div className="medidor-ensamble-card">
+                    <Delta 
+                    total={totalReal} 
+                    accGoal={metaAcumulada} 
+                    status={status}
+                    totalTurno={totalTurno}
+                    eficiencia={eficiencia}
+                    />
+                        {/* <div className="medidor-ensamble-card">
                             <div className={`card-total-dia-ensamble ${diaStatusClass}`}>
                                 <div className="total-dia-content-wrapper">
                                     <div className="total-dia-left">
@@ -506,7 +511,7 @@ useEffect(() => {
                                     <div className="progress-bar-fill-ensamble" style={{ width: `${percentDia}%` }}></div>
                                 </div>
                             </div>
-                        </div>
+                        </div> 
 
                         <div className="medidor-ensamble-image">
                             <img 
@@ -515,7 +520,7 @@ useEffect(() => {
                                 className="indicador-imagen-ensamble"
                             />
                         </div>
-
+                        */}
                     </div>
                 </div>
             </div>

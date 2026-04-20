@@ -14,11 +14,15 @@ export const ProductionProvider = ({children}) =>{
         metaPorHora, setMetaPorHora,
     }
 
-    return <ProductionContext.Provider value={values}>{children}</ProductionContext.Provider>
+    return (
+        <ProductionContext.Provider value={values}>
+            {children}
+        </ProductionContext.Provider>
+    );
 };
 
 export const useProduction = () => {
-    const context = useContext (ProductionContext);
-    if(!context) throw new Error("useProduction debe usarse dentro de ProductionProvider");
+    const context = useContext(ProductionContext);
+    if(!context) {throw new Error("useProduction debe usarse dentro de ProductionProvider");}
     return context;
-}
+};
