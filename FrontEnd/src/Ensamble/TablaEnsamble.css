@@ -6,6 +6,7 @@
     color: #222;
     min-height: 100vh;
     width: 100%;
+    overflow: auto;
 }
 
 /* .header-ensamble {
@@ -50,10 +51,11 @@
     justify-content: flex-start; 
     align-items: center; 
     width: 98%;
-    margin: 20px auto 30px auto; 
+    margin: 10px auto 10px auto; 
     margin-left: 20px; 
     flex-wrap: nowrap;
     gap: 30px; 
+    overflow-x: fixed;
 }
 
 .panel-left-ensamble {
@@ -174,7 +176,7 @@
 }
 
 /* TARJETA TOTAL DÍA */
-.card-total-dia-ensamble {
+/* .card-total-dia-ensamble {
     background: linear-gradient(145deg, #ffffff, #f0f0f0);
     border-radius: 16px;
     box-shadow: 5px 5px 10px #d1d1d1, -5px -5px 10px #ffffff;
@@ -188,7 +190,7 @@
     border-left: 8px solid #ccc;
     margin-bottom: 15px;
     transition: border-color 0.3s ease;
-}
+} */
 
 .total-dia-content-wrapper {
     display: flex;
@@ -219,7 +221,7 @@
     line-height: 1.1;
 }
 
-.total-dia-right-breakdown {
+/* .total-dia-right-breakdown {
     display: flex;
     flex-direction: column;
     font-size: 0.85rem;
@@ -228,7 +230,7 @@
     padding: 5px 10px;
     border-radius: 6px;
     min-width: 80px;
-}
+} */
 
 .breakdown-item {
     display: flex;
@@ -264,6 +266,22 @@
     margin-bottom: 15px;   
 }
 
+.btn-manual{
+    background-color: #ffffff;
+    color: #008791;
+    padding: 10px;
+    cursor: pointer; 
+    border-radius:12px; 
+    border-color:#008791;
+    font-weight:bold;
+    font-size:large;
+}
+
+.btn-manual:hover{
+    background-color: #008791;
+    color: #ffffff;
+    transition: 0.3s;
+}
 /* ESTADOS SEMÁFORO TARJETA */
 .card-total-dia-ensamble.status-bad { border-left-color: #D32F2F; }
 .card-total-dia-ensamble.status-bad .total-dia-number-ensamble { color: #D32F2F; }
@@ -276,8 +294,8 @@
 /* TABLA Y RESTO DEL CSS */
 .contenedorTabla-ensamble { display: flex; justify-content: center; }
 .tablaProduccion-ensamble { margin: 0 auto 30px auto; border-collapse: collapse; width: 90%; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-.tablaProduccion-ensamble caption { font-size: 1.3rem; font-weight: 700; color: #0b6b3a; margin-bottom: 10px; letter-spacing: 1px; caption-side: top; text-align: center; }
-.tablaProduccion-ensamble th { background-color: #0b6b3a; color: white; padding: 12px; font-weight: 600; border: 1px solid #0b6b3a; font-size: 1rem; }
+.tablaProduccion-ensamble caption { font-size: 1.3rem; font-weight: 700; color: #008791; margin-bottom: 10px; letter-spacing: 1px; caption-side: top; text-align: center; }
+.tablaProduccion-ensamble th { background-color: #008791; color: white; padding: 12px; font-weight: 600; border: 1px solid #0b6b3a; font-size: 1rem; }
 .tablaProduccion-ensamble td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 0.95rem; }
 .tablaProduccion-ensamble tr:nth-child(even) { background-color: #f2f2f2; }
 .tablaProduccion-ensamble tr:hover { background-color: #e9f5ec; transition: 0.3s; }

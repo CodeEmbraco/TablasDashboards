@@ -33,7 +33,14 @@ async function dataPLCInsert() {
 
         //Logica de fecha y turno
         const now = new Date();
-        const queryDate = now.toISOString().split('T')[0];
+        
+        // CORRECCIÓN: Obtener componentes locales para evitar el salto de UTC a las 18:00
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0'); // Los meses van de 0 a 11
+        const day = String(now.getDate()).padStart(2, '0');
+        
+        const queryDate = `${year}-${month}-${day}`; // Formato YYYY-MM-DD local
+        
         const hour = now.getHours();
 
         let turno;
@@ -42,12 +49,12 @@ async function dataPLCInsert() {
         } else if (hour >= 14 && hour < 23) {
             turno = 2; // 2:00 PM - 10:59 PM
         } else {
-            turno = 3; // 11:00 PM - 5:59 AM
+            turno = 3; // 11:00 PM - 5:59
         }
 
-        console.log(`--- Ejecutando Registro: ${now.toLocaleString()} ---`);
+        console.log(`--- Ejecutando Registro Local: ${queryDate} ${now.toLocaleTimeString()} ---`);
         console.log("Counter:", COUNTER, "| Product:", PRODUCT_ID, "| Turno:", turno);
-
+        
         pool_query = await sql.connect(sqlConfigCIMA);
         const res_query = await pool_query.request()
             .input("COUNTER", sql.Int, COUNTER)

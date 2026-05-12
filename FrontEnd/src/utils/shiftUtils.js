@@ -2,8 +2,16 @@ import { getFormattedDate, getCurrentShift, generateHourSlots, getMetaPorHoraInd
 
 const SHIFT_ORDER = ['3', '1', '2'];
 
-export const calculateShiftMeta = ({ shiftId, selectedDate, currentClientMinute, currentClientHour, metaPorHora }) => {
-    const isToday = selectedDate === getFormattedDate();
+export const calculateShiftMeta = ({ 
+    shiftId,
+    selectedDate, 
+    currentClientMinute, 
+    currentClientHour, 
+    metaPorHora,
+    localConfig
+}) => {
+    const activeShifts = localConfig?.activeShifts || ['1', '2', '3'];
+    if (!activeShifts.includes(shiftId)) return 0;
     
     // 1. Si la fecha es pasada, devolvemos el turno completo (100% de la meta)
     if (selectedDate < getFormattedDate()) return getFullShiftMeta(shiftId, metaPorHora);
@@ -28,7 +36,15 @@ export const calculateShiftMeta = ({ shiftId, selectedDate, currentClientMinute,
 
     for (const slot of slots) {
         const startHour = parseInt(slot.split(':')[0], 10);
-        const hourlyMeta = getMetaPorHoraIndividual(startHour, shiftId, metaPorHora);
+        let hourlyMeta;
+        // if (localConfig.mealHour === slot) {
+        //     hourlyMeta = 0; // Hora de comida = 0 piezas
+        // } else 
+        if (localConfig?.customMetas?.[slot] !== undefined) {
+            hourlyMeta = Number(localConfig.customMetas[slot]); // Meta editada
+        } else {
+            hourlyMeta = getMetaPorHoraIndividual(startHour, shiftId, metaPorHora); // Meta base
+        }
 
         if (startHour < currentClientHour) {
             // Hora terminada
@@ -48,17 +64,52 @@ export const calculateShiftMeta = ({ shiftId, selectedDate, currentClientMinute,
     return metaAcum;
 };
 
-export const calcularMetaDiaAcumulada = (config) => {
-    const { selectedShift } = config;
-    console.log("config => ", config)
-    if (!['1', '2', '3'].includes(selectedShift)) return 0;
-    return calculateShiftMeta({ ...config, shiftId: selectedShift });
+// Función auxiliar interna
+export const getFullShiftMeta = (config, localConfig) => {
+    const { selectedShift, metaPorHora } = config;
+    const activeShifts = localConfig?.activeShifts || ['1', '2', '3'];
+    if (!activeShifts.includes(selectedShift)) return 0;
+    
+    return generateHourSlots(selectedShift).reduce((acc, slot) => {
+        const start = parseInt(slot.split(':')[0], 10);
+        let hourlyMeta;
+        // if (localConfig?.mealHour === slot) hourlyMeta = 0;
+        // else 
+        if (localConfig?.customMetas?.[slot] !== undefined) hourlyMeta = Number(localConfig.customMetas[slot]);
+        else hourlyMeta = getMetaPorHoraIndividual(start, selectedShift, metaPorHora);
+        
+        return acc + hourlyMeta;
+    }, 0);
 };
 
-// Función auxiliar interna
-const getFullShiftMeta = (shiftId, metaPorHora) => {
-    return generateHourSlots(shiftId).reduce((acc, slot) => {
-        const start = parseInt(slot.split(':')[0], 10);
-        return acc + getMetaPorHoraIndividual(start, shiftId, metaPorHora);
-    }, 0);
+export const calcularMetaDiaAcumulada = (config, localConfig) => {
+    const { selectedDate, metaPorHora, currentClientHour, currentClientMinute } = config;
+    const today = getFormattedDate();
+    
+    if (selectedDate > today) return 0;
+
+    const currentShift = getCurrentShift();
+    const currentShiftIdx = SHIFT_ORDER.indexOf(currentShift);
+    let totalAcc = 0;
+
+    for (let i = 0; i < SHIFT_ORDER.length; i++) {
+        const shiftId = SHIFT_ORDER[i];
+        
+        if (selectedDate === today) {
+            if (i < currentShiftIdx) {
+                // Turno ya pasado hoy: sumamos su meta completa
+                totalAcc += getFullShiftMeta({ selectedShift: shiftId, metaPorHora }, localConfig);
+            } else if (i === currentShiftIdx) {
+                // Turno actual: sumamos solo el progreso hasta el minuto actual
+                totalAcc += calculateShiftMeta({ 
+                    shiftId, selectedDate, currentClientMinute, currentClientHour, metaPorHora, localConfig 
+                });
+                break; // No sumamos turnos futuros
+            }
+        } else {
+            // Fecha pasada: sumamos el total de todos los turnos activos de ese día
+            totalAcc += getFullShiftMeta({ selectedShift: shiftId, metaPorHora }, localConfig);
+        }
+    }
+    return totalAcc;
 };

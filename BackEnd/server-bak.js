@@ -1477,7 +1477,7 @@ app.get("/api/ensamble/get_cima_data", async (req, res) => {
     }
 });
 
-app.get("/api/ensamble/get_cima_databyhour", async (req, res) => {
+app.get("/api/preensamble/hourly", async (req, res) => {
     const {fecha, turno} = req.query;
     //*Abrimos una conexion con CIMA
     let pool = await sql.connect(sqlConfigCIMA);
@@ -1500,7 +1500,7 @@ app.get("/api/ensamble/get_cima_databyhour", async (req, res) => {
 });
 
 
-app.get("/api/ensamble/get_cima_totalByDate", async (req, res) => {
+app.get("/api/preensamble/total-day", async (req, res) => {
     const {fecha} = req.query;
     //*Abrimos una conexion con CIMA
     let pool = await sql.connect(sqlConfigCIMA); 
@@ -1522,7 +1522,7 @@ app.get("/api/ensamble/get_cima_totalByDate", async (req, res) => {
     }
 });
 
-app.get("/api/ensamble/get_cima_totalByDateAndShift", async (req, res) => {
+app.get("/api/preensamble/total-shift", async (req, res) => {
     const { fecha } = req.query;
     let pool;
 
@@ -1556,7 +1556,32 @@ app.get("/api/ensamble/get_cima_totalByDateAndShift", async (req, res) => {
     }
 });
 
-app.post("/api/ensamble/post_cima_report", async(req, res) =>{
+app.get("/api/preensamble/shift", async(req,res) => {
+    const { fecha, turno } = req.query;
+    //console.log("^backend^ fecha: ", fecha, "\nturno: ", turno);
+    let pool;
+    try{
+        pool = await sql.connect(sqlConfigCIMA);
+        const result = await pool.request()
+        .input("FECHA", sql.Date, fecha)
+        .input("TURNO", sql.Int, turno)
+        .execute("preEnsam_sp_ShiftTotalByDate");
+
+        const row = result.recordset[0];
+        res.json({TOTAL_TURNO : row ? row.TOTAL_TURNO : 0});
+    }
+    catch(err){
+        console.log(err);
+        res.status(500).send('Error al obtener los datos');
+    }
+    finally{
+        if(pool){
+            await pool.close;
+        }
+    }
+});
+
+app.post("/api/preensamble/save", async(req, res) =>{
     let poolCIMA; 
     try {
         const reportData = req.body;
@@ -1622,7 +1647,7 @@ app.post("/api/ensamble/post_cima_report", async(req, res) =>{
     }
 });
 
-app.get("/api/ensamble/get_cima_report", async (req, res) => {
+app.get("/api/preensamble/reports", async (req, res) => {
     const { fecha, turno } = req.query;
 
     if (!fecha || !turno) {

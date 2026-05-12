@@ -1,0 +1,7 @@
+.contenedorTabla { display: flex; justify-content: center; }
+.tablaProduccion { margin: 0 auto 30px auto; border-collapse: collapse; width: 90%; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.tablaProduccion caption { font-size: 1.3rem; font-weight: 700; color: #008791; margin-bottom: 10px; letter-spacing: 1px; caption-side: top; text-align: center; }
+.tablaProduccion th { background-color: #008791; color: white; padding: 12px; font-weight: 600; border: 1px solid #0b6b3a; font-size: 1rem; }
+.tablaProduccion td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 0.95rem; }
+.tablaProduccion tr:nth-child(even) { background-color: #f2f2f2; }
+.tablaProduccion tr:hover { background-color: #e9f5ec; transition: 0.3s; }

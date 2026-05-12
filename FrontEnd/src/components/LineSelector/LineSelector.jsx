@@ -8,7 +8,7 @@ const LINES = [
     { id: 'insinkerator', name: 'Insinkerator', path: '/TablaInsinkerator' },
     { id: 'rotorIse', name: 'Rotor Insinkerator', path: '/TablaRotorISE' },
     { id: 'rotorwet', name: 'Rotor Wet', path: '/TablaRotorWet' },
-    { id: 'preensam', name: 'Pre-Ensamble', path: '/TablaEnsamble' },
+    { id: 'preensamble', name: 'Pre-Ensamble', path: '/TablaEnsamble' },
 ]
 
 const LineSelector = ({currentLineId}) => {

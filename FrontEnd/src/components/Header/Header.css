@@ -3,7 +3,7 @@
     align-items: center;
     justify-content: center;
     padding: 15px 0;
-    border-bottom: 3px solid #0b6b3a;
+    border-bottom: 3px solid #008791;
     background-color: #f7f7f7;
     position: relative;
 }
@@ -28,7 +28,7 @@
     color: #000000;
     letter-spacing: 2px;
     text-align: center;
-    border-bottom: 3px solid #0b6b3a;
+    border-bottom: 3px solid #008791;
     display: inline-block;
     padding-bottom: 6px;
     margin: 0;
