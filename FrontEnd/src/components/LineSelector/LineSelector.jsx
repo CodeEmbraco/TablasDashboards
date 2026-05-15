@@ -5,7 +5,7 @@ import './LineSelector.css'
 const LINES = [
     { id: 'cdu', name: 'CDU', path: '/TablaCDU' },
     { id: 'electronics', name: 'Electronics', path: '/TablaElectronics' },
-    { id: 'insinkerator', name: 'Insinkerator', path: '/TablaInsinkerator' },
+    { id: 'insi', name: 'Insinkerator', path: '/TablaInsin' },
     { id: 'rotorIse', name: 'Rotor Insinkerator', path: '/TablaRotorISE' },
     { id: 'rotorwet', name: 'Rotor Wet', path: '/TablaRotorWet' },
     { id: 'preensamble', name: 'Pre-Ensamble', path: '/TablaEnsamble' },

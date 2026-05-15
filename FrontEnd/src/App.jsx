@@ -3,13 +3,10 @@ import { useState } from 'react'
 import { Routes, Route } from "react-router-dom";
 import React from "react";
 import { ProductionProvider } from '@context/ProductionContext'
-import logoNidec  from './assets/nidec-logo.png'
 import TablaProd from './Electronics/TablaElectronics';
 import SelectIdioma from './pages/SelectLanguage';
 import Login from './pages/Login';
 import Menu from './pages/Menu';
-import Footer from './components/Footer/footer';
-import Zero from './assets/zeroproductividad.png';
 import Dashboard from './pages/Dashboard';
 import TablaProdCdu from './CDU/TablaCDU';
 import TablaProdInsin from './Insinkerator/TablaInsinkerator';
@@ -19,8 +16,6 @@ import TablaEnsamble from './Ensamble/TablaEnsamble';
 
 
 function App() {
-  const [count, setCount] = useState(0) 
-
   return (
     <>
     <ProductionProvider>

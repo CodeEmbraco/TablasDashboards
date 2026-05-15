@@ -28,19 +28,19 @@ import LossModal from "@components/Modals/LossModals";
 import '@styles/global.css';
 
 const TablaEnsamble = () => {
-    const { selectedDate, selectedShift, metaPorHora, setSelectedDate, setSelectedShift } = useProduction();
+    const { selectedDate, selectedShift, setSelectedDate, setSelectedShift } = useProduction();
     const lineConfig = LINES_CONFIG.preensamble;
 
-    const { config, setMealHour, setCustomMeta, toggleShift} = useLocalLineConfig(lineConfig.id);
+    const { config, setMealHour, setCustomMeta, toggleShift} = useLocalLineConfig(lineConfig.id, lineConfig.defaultMeta);
 
     const apiConfig = useMemo(() => ({
-        getHourData: (date, shift) => productionService.getHourlyData(lineConfig.id, date, shift),
-        getTotalShift: (date, shift) => productionService.getTotalShift(lineConfig.id, date, shift),
-        getTotalShiftDelta: (date) => productionService.getTotalShiftDelta(lineConfig.id, date),
-        getReport: (date, shift) => productionService.getLossReports(lineConfig.id, date, shift),
-        postReport: (date, shift) => productionService.saveReport(lineConfig.id, date, shift),
-        getTotalDate: (date, shift) => productionService.getTotalDate(lineConfig.id, date, shift)
-
+        // Agregamos el argumento 'ln' (lineNo) a cada función para que el hook pueda pasarlo
+        getHourData: (date, shift, ln) => productionService.getHourlyData(lineConfig.id, date, shift, ln),
+        getTotalShift: (date, shift, ln) => productionService.getTotalShift(lineConfig.id, date, shift, ln),
+        getTotalShiftDelta: (date, ln) => productionService.getTotalShiftDelta(lineConfig.id, date, ln),
+        getReport: (date, shift, ln) => productionService.getLossReports(lineConfig.id, date, shift, ln),
+        postReport: (reportData, ln) => productionService.saveReport(lineConfig.id, reportData, ln),
+        getTotalDate: (date, ln) => productionService.getTotalDate(lineConfig.id, date, ln)
     }), [lineConfig.id]);
 
 const { 
@@ -50,8 +50,9 @@ const {
         turnoDelta,
         loading, 
         error, 
-        saveLocalLoss 
-    } = useProductionData(selectedDate, selectedShift, metaPorHora, apiConfig);
+        saveLocalLoss,
+        saveReportToDB
+    } = useProductionData(selectedDate, selectedShift, lineConfig.defaultMeta, apiConfig);
 
     const { metaAcumulada, metaTotalAcumulada, eficiencia, status } = useProductionMetrics(totalDia, config);
 
@@ -94,7 +95,7 @@ const {
         });
 
         try {
-            await EnsamAPI.preEnsam_guardarReporte(reportDataFlat);
+            await saveReportToDB(reportDataFlat); // Use the new function from the hook
             alert('¡Guardado exitosamente!');
             window.location.reload(); 
         } catch (err) {

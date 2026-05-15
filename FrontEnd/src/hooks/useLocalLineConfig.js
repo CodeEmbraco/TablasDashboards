@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 
-export const useLocalLineConfig = (lineId) =>{
+export const useLocalLineConfig = (lineId, initialDefaultMeta) =>{
     const storageKey = `config_line_${lineId}`;
 
     const [config, setConfig] = useState(() =>{
@@ -8,6 +8,7 @@ export const useLocalLineConfig = (lineId) =>{
         const parsed = saved ? JSON.parse(saved) : {};
 
         return {
+            defaultMeta: initialDefaultMeta,
             mealHour: null,
             customMetas: {},
             activeShifts: ['1', '2', '3'],

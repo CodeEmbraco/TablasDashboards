@@ -13,10 +13,12 @@ export const useProductionMetrics = (currentRealDia, localConfig) => {
             return { metaAcumulada: 0, metaTotalAcumulada: 0, eficiencia: 0, status: 'mal' };
         }
 
+        const effectiveMeta = localConfig?.defaultMeta || metaPorHora;
+
         const config = {
             selectedShift,
             selectedDate,
-            metaPorHora,
+            metaPorHora: effectiveMeta,
             currentClientHour: now.getHours(),
             currentClientMinute: now.getMinutes()
         };

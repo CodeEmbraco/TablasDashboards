@@ -24,7 +24,7 @@ export const LINES_CONFIG = {
     insinkerator:{
         name: "INSINKERATOR ES",
         id: "insi",
-        defaultMeta: 130,
+        defaultMeta: 140,
         supervisors: ["Hugo Zapata"],
         leaders: ["Cesar Rangel", "Jorge Carrizales", "Gerardo Sánchez", "Rosa Navarro"]
     },

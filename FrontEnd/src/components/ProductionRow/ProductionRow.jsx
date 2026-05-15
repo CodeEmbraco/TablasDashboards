@@ -59,8 +59,8 @@ const ProductionRow = ({ row, onOpenModal, isMealHour, customMeta, onUpdateMeta,
                 }}>
                     {formatHourRange(row.HORA)}
                     {isMealHour && (
-                        <div style={{border: "2px solid #ffa726" , borderRadius: "5px", justifyContent: "space-between", paddingInline:"5px", paddingBlockStart:"2px"}}>
-                        <Utensils size={20} color="#ffa726" strokeWidth={4} />
+                        <div style={{border: "2px solid #39bc4d" , borderRadius: "5px", justifyContent: "space-between", paddingInline:"5px", paddingBlockStart:"2px"}}>
+                        <Utensils size={20} color="#39bc4d" strokeWidth={4} />
                         </div>
                     )}
                 </div>
@@ -97,7 +97,7 @@ const ProductionRow = ({ row, onOpenModal, isMealHour, customMeta, onUpdateMeta,
             <td style={{ 
                 fontWeight: 'bold', 
                 color: getRealColor(), 
-                backgroundColor : `${getRealColor()}20` // Bajé la opacidad a 20 para que sea más sutil
+                backgroundColor : `${getRealColor()}20`
             }}>
                 {row.REAL}
             </td>
@@ -115,7 +115,7 @@ const ProductionRow = ({ row, onOpenModal, isMealHour, customMeta, onUpdateMeta,
 
             {/* COLUMNA 6: OBSERVACIONES */}
             <td style={{ textAlign: 'left', fontSize: '0.85rem', color: '#555' }}>
-                {typeof row.OBSERVACIONES === 'string' ? row.OBSERVACIONES : ""}
+                {renderObservations()}
             </td>
 
             {/* COLUMNA 7: ACCIONES */}

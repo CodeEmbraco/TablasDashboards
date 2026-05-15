@@ -3,7 +3,7 @@ import { generateHourSlots, getFormattedDate } from '@utils/dateUtils';
 
 const getStorageKey = (fecha, turno) => `pending_losses_${fecha}_T${turno}`;
 
-export const useProductionData = (fecha, turno, metaPorHora, apiFunctions) => {
+export const useProductionData = (fecha, turno, metaPorHora, apiFunctions, lineNo = null) => {
     const [data, setData] = useState({
         tableItems: [],
         totalDia: 0,
@@ -11,7 +11,8 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions) => {
         totalTurno: 0,
         loading: true,
         error: null
-    });
+    }); 
+    const { postReport } = apiFunctions; // Destructure postReport here
 
     const fetchAll = useCallback(async (isPoll = false) => {
         if (!isPoll) setData(prev => ({ ...prev, loading: true }));
@@ -19,11 +20,11 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions) => {
 
         try {
             const [dataByHour, totalDiaRes, reporteDia, prodDiaTurno, prodDelta] = await Promise.all([
-                apiFunctions.getHourData(fecha, turno),
-                apiFunctions.getTotalDate(fecha),
-                apiFunctions.getReport(fecha, turno),
-                apiFunctions.getTotalShift(fecha, turno),
-                apiFunctions.getTotalShiftDelta(fecha)
+                apiFunctions.getHourData(fecha, turno, lineNo),
+                apiFunctions.getTotalDate(fecha, lineNo),
+                apiFunctions.getReport(fecha, turno, lineNo),
+                apiFunctions.getTotalShift(fecha, turno, lineNo),
+                apiFunctions.getTotalShiftDelta(fecha, lineNo)
             ]);
 
             const slots = generateHourSlots(turno);
@@ -67,7 +68,7 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions) => {
             console.error("Error en useProductionData:", err);
             setData(prev => ({ ...prev, loading: false, error: "Error al cargar datos" }));
         }
-    }, [fecha, turno, metaPorHora, apiFunctions]);
+    }, [fecha, turno, metaPorHora, apiFunctions, lineNo]);
 
     // Función para persistir cambios locales del modal
     const saveLocalLoss = (slot, totalMinutos, formattedString, detallesArray) => {
@@ -84,7 +85,17 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions) => {
         fetchAll(true); // Refresco silencioso
     };
 
-    useEffect(() => {
+    // Function to save report data to the database
+    const saveReportToDB = useCallback(async (reportData) => {
+        try {
+            await postReport(reportData, lineNo); // Pasar lineNo aquí también
+        } catch (err) {
+            console.error("Error saving report to DB:", err);
+            throw err; // Re-throw to be handled by the component
+        }
+    }, [postReport, lineNo]);
+
+    useEffect(() => { // This useEffect should be after saveReportToDB definition if it uses it.
         const isToday = fecha === getFormattedDate();
         fetchAll();
         if (isToday && turno !== '0') {
@@ -93,5 +104,5 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions) => {
         }
     }, [fetchAll, fecha, turno]);
 
-    return { ...data, saveLocalLoss, refresh: fetchAll };
+    return { ...data, saveLocalLoss, saveReportToDB, refresh: fetchAll };
 };
