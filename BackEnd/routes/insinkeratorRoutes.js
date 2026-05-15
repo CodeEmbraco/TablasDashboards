@@ -23,7 +23,12 @@ router.get("/hourly", async (req, res) => {
         .input("TableName", sql.NVarChar(128), tablename)
         .execute("INSINK_sp_prodByHour");
 
-        res.json(result.recordset);
+        // Normalizar para que el FrontEnd encuentre la propiedad 'REAL'
+        const normalizedData = result.recordset.map(row => ({
+            ...row,
+            REAL: row.REAL ?? row.CONTADOR ?? row.CANTIDAD ?? 0
+        }));
+        res.json(normalizedData);
 
     } catch (error) {
         res.status(500).send('Error al obtener los datos');

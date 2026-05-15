@@ -3,7 +3,10 @@ import React from 'react';
 const Delta = ({ total, accGoal, status, totalTurno, eficiencia, activeShifts = [], onToggleShift}) => {
     const deltaValue = total - accGoal;
     const deltaSign = deltaValue >= 0 ? "+" : "";
-    const deltaColor = status === 'bueno' ? '#4caf50' : '#ff8800';
+
+    // Lógica de color: Verde (>=100%), Amarillo (90-99%), Rojo (<90%)
+    const deltaColor = eficiencia >= 100 ? '#4caf50' : (eficiencia >= 90 ? '#fbc02d' : '#f44336');
+
     const displayValue = Math.min(Math.max(eficiencia,0), 100);
     
     
@@ -50,9 +53,9 @@ const Delta = ({ total, accGoal, status, totalTurno, eficiencia, activeShifts = 
                                 }}
                                 title={isActive ? "Turno activo (Click para desactivar)" : "Turno inactivo (Click para activar)"}
                             >
-                                <span style={{ fontWeight: 'bold', color: isActive ? '#6e6e6e' : '#ff9900' }}>
+                                <span style={{ fontWeight: 'bold', color: isActive ? '#6e6e6e' : '#888888' }}>
                                     {/* Punto de color de estado */}
-                                    <span style={{ marginRight: '5px', color: isActive ? '#4caf50' : '#ff9900' }}>●</span>
+                                    <span style={{ marginRight: '5px', color: isActive ? '#4caf50' : '#727272' }}>●</span>
                                     {s.label}:
                                 </span>
                                 <strong style={{ marginLeft: '10px', color: '#333' }}>{s.value}</strong>

@@ -99,7 +99,7 @@ const ProductionRow = ({ row, onOpenModal, isMealHour, customMeta, onUpdateMeta,
                 color: getRealColor(), 
                 backgroundColor : `${getRealColor()}20`
             }}>
-                {row.REAL}
+                {row.REAL ?? 0}
             </td>
 
             {/* COLUMNA 4: MODELO */}

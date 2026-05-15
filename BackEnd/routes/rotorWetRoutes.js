@@ -107,7 +107,7 @@ router.get("/produccion-real", (req, res) => {
 
                 return {
                     time_slot: slot,
-                    piezas_reales: row.Total || 0,
+                    REAL: row.Total || 0,
                     Modelo: row.Modelo || ''
                 };
             });
