@@ -14,6 +14,13 @@ export const LINES_CONFIG = {
         supervisors: ["Pablo Muñoz"],
         leaders: ["Jesús Hernández", "Jose Vasquez"]
     },
+    thermo: {
+        name: "CDU TFS",
+        id: "thermo",
+        defaultMeta: 3,
+        supervisors: ["Pablo Muñoz"],
+        leaders: ["Jesús Hernández", "Jose Vasquez"]
+    },
     electronics:{
         name: "ELECTRONICS",
         id: "electronics",

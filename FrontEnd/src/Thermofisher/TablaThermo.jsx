@@ -27,9 +27,9 @@ import LossModal from "@components/Modals/LossModals";
 // Estilos
 import '@styles/global.css';
 
-const TablaCDU = () => {
+const TablaThermo = () => {
     const { selectedDate, selectedShift, setSelectedDate, setSelectedShift } = useProduction();
-    const lineConfig = LINES_CONFIG.cdu;
+    const lineConfig = LINES_CONFIG.thermo;
 
     const { config, setMealHour, setCustomMeta, toggleShift} = useLocalLineConfig(lineConfig.id, lineConfig.defaultMeta);
 
@@ -222,4 +222,4 @@ const {
     );
 }
 
-export default TablaCDU;
+export default TablaThermo;

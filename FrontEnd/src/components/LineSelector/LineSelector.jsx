@@ -9,6 +9,7 @@ const LINES = [
     { id: 'rotorIse', name: 'Rotor Insinkerator', path: '/TablaRotorISE' },
     { id: 'rotorwet', name: 'Rotor Wet', path: '/TablaRotorWet' },
     { id: 'preensamble', name: 'Pre-Ensamble', path: '/TablaEnsamble' },
+    { id: 'thermo', name: 'CDU TFS', path: '/TablaThermo' },
 ]
 
 const LineSelector = ({currentLineId}) => {

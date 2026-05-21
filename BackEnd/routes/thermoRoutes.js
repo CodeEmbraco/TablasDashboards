@@ -1,34 +1,23 @@
 import express from "express";
-import axios from 'axios';
 import sql from "mssql";
-import { sqlConfigINSI } from "../config/dbConnections.js";
+import { sqlConfig, sqlConfigCIMA } from "../config/dbConnections.js";
 
 const router = express.Router();
-
 //? ----------------------
 //? --Autor: Sean Garcia--
 //? ----------------------
-//ENDPOINTS DE INSINKERATOR
-
+//ENDPOINTS DE CDU
 router.get("/hourly", async (req, res) => {
-    const {fecha, turno, lineNo} = req.query;
-    const tablename = "EIN_0" + lineNo;
-    //*Abrimos una conexion con ES_INSI_TESTER
-    let pool = await sql.connect(sqlConfigINSI);
+    const {fecha, turno} = req.query;
+    //*Abrimos una conexion con CIMA
+    let pool = await sql.connect(sqlConfig);
     try {
-        //*Se hace la consulta de la info de la tabla de logs del tester de insinkerator
         const result = await pool.request()
-        .input("FECHA", sql.Date, fecha)
-        .input("TURNO", sql.Int, turno)
-        .input("TableName", sql.NVarChar(128), tablename)
-        .execute("INSINK_sp_prodByHour");
+        .input("fechaParam", sql.Date, fecha)
+        .input("turnoParam", sql.Int, turno)
+        .execute("THERMO_HOURLY");
 
-        // Normalizar para que el FrontEnd encuentre la propiedad 'REAL'
-        const normalizedData = result.recordset.map(row => ({
-            ...row,
-            REAL: row.REAL ?? row.CONTADOR ?? row.CANTIDAD ?? 0
-        }));
-        res.json(normalizedData);
+        res.json(result.recordset);
 
     } catch (error) {
         res.status(500).send('Error al obtener los datos');
@@ -41,16 +30,13 @@ router.get("/hourly", async (req, res) => {
 
 
 router.get("/total-day", async (req, res) => {
-    const {fecha, lineNo} = req.query;
-    const tablename = "EIN_0" + lineNo;
+    const {fecha} = req.query;
     //*Abrimos una conexion con CIMA
-    let pool = await sql.connect(sqlConfigINSI);
+    let pool = await sql.connect(sqlConfig);
     try {
-        //*Se hace la consulta de la info de la tabla de logs del tester de insinkerator
         const result = await pool.request()
-        .input("FECHA", sql.Date, fecha)
-        .input("TableName", sql.NVarChar(128), tablename)
-        .execute("INSINK_sp_totalProdByDate");
+        .input("fechaParam", sql.Date, fecha)
+        .execute("THERMO_TOTALDAY");
 
         const row = result.recordset[0];
         res.json({ TOTAL_DIA: row ? row.TOTAL_DIA : 0 })
@@ -65,17 +51,15 @@ router.get("/total-day", async (req, res) => {
 });
 
 router.get("/total-shift", async (req, res) => {
-    const { fecha, lineNo } = req.query;
-    const tablename = "EIN_0" + lineNo;
+    const { fecha } = req.query;
     let pool;
 
     try {
-        pool = await sql.connect(sqlConfigINSI);
+        pool = await sql.connect(sqlConfig);
 
         const result = await pool.request()
-            .input("FECHA", sql.Date, fecha)
-            .input("TableName", sql.NVarChar(128), tablename)   
-            .execute("INSINK_sp_queryByDateAndShift");
+            .input("fechaParam", sql.Date, fecha)
+            .execute("THERMO_TOTALSHIFT");
 
         const rows = result.recordset;
 
@@ -101,17 +85,15 @@ router.get("/total-shift", async (req, res) => {
 });
 
 router.get("/shift", async(req,res) => {
-    const { fecha, turno, lineNo } = req.query;
-    const tablename = "EIN_0" + lineNo;
+    const { fecha, turno } = req.query;
     //console.log("^backend^ fecha: ", fecha, "\nturno: ", turno);
     let pool;
     try{
-        pool = await sql.connect(sqlConfigINSI);
+        pool = await sql.connect(sqlConfig);
         const result = await pool.request()
-        .input("FECHA", sql.Date, fecha)
-        .input("TURNO", sql.Int, turno)
-        .input("TableName", sql.NVarChar(128), tablename)
-        .execute("INSINK_sp_ShiftTotalByDate");
+        .input("fechaParam", sql.Date, fecha)
+        .input("turnoParam", sql.Int, turno)
+        .execute("THERMO_SHIFT");
 
         const row = result.recordset[0];
         res.json({TOTAL_TURNO : row ? row.TOTAL_TURNO : 0});
@@ -128,17 +110,16 @@ router.get("/shift", async(req,res) => {
 });
 
 router.post("/save", async(req, res) =>{
-    let pool;
+    let poolCIMA;
     try {
-        const { lineNo } = req.query;
         const reportData = req.body;
 
         if (!Array.isArray(reportData) || reportData.length === 0) {
             return res.status(400).json({ error: "Datos de reporte inválidos o vacíos." });
         }
 
-        pool = new sql.ConnectionPool(sqlConfigINSI);
-        await pool.connect();
+        poolCIMA = new sql.ConnectionPool(sqlConfigCIMA);
+        await poolCIMA.connect();
 
         const dataPorHora = {};
 
@@ -153,19 +134,19 @@ router.post("/save", async(req, res) =>{
             const filasDeEstaHora = dataPorHora[horaSlot];
             const { Fecha, Turno } = filasDeEstaHora[0];
 
-            await pool.request()
+            await poolCIMA.request()
                 .input('Fecha', sql.Date, Fecha)
                 .input('Turno', sql.Int, Turno)
                 .input('Hora', sql.VarChar, horaSlot)
                 .query(`
-                    DELETE FROM EIN_PERDIDAS
+                    DELETE FROM tbl_HistProdThermo
                     WHERE CAST(FECHA AS DATE) = @Fecha
                       AND TURNO = @Turno
                       AND HORA = @Hora
                 `);
 
             for (const row of filasDeEstaHora) {
-                await pool.request()
+                await poolCIMA.request()
                     .input('Fecha', sql.Date, row.Fecha)
                     .input('Turno', sql.Int, row.Turno)
                     .input('Hora_Slot', sql.VarChar, row.Hora_Slot)
@@ -176,7 +157,7 @@ router.post("/save", async(req, res) =>{
                     .input('Modelo', sql.VarChar, row.Modelo)
                     .input('Motivo', sql.VarChar, row.Motivo || '')
                     .query(`
-                        INSERT INTO EIN_PERDIDAS (FECHA, TURNO, HORA, SUPERVISOR, LIDER, PERDIDAS, OBSERVACIONES, MODELO, MOTIVO)
+                        INSERT INTO tbl_HistProdThermo (FECHA, TURNO, HORA, SUPERVISOR, LIDER, PERDIDAS, OBSERVACIONES, MODELO, MOTIVO)
                         VALUES (@Fecha, @Turno, @Hora_Slot, @Supervisor, @Lider, @Perdidas, @Observaciones, @Modelo, @Motivo)
                     `);
             }
@@ -185,27 +166,27 @@ router.post("/save", async(req, res) =>{
         res.status(200).json({ message: "Reporte guardado con desglose correctamente." });
 
     } catch (err) {
-        console.error("Error al guardar el reporte Insinkerator:", err);
+        console.error("Error al guardar el reporte Ensamble:", err);
         res.status(500).json({ error: "Error interno del servidor al guardar." });
     } finally {
-        if (pool) {
-            await pool.close();
+        if (poolCIMA) {
+            await poolCIMA.close();
         }
     }
 });
 
 router.get("/reports", async (req, res) => {
-    const { fecha, turno, lineNo } = req.query;
+    const { fecha, turno } = req.query;
 
     if (!fecha || !turno) {
         return res.status(400).json({ error: "Faltan parámetros fecha o turno" });
     }
 
-    let pool;
+    let poolCIMA;
 
     try {
-        pool = new sql.ConnectionPool(sqlConfigINSI);
-        await pool.connect();
+        poolCIMA = new sql.ConnectionPool(sqlConfigCIMA);
+        await poolCIMA.connect();
 
         const query = `
             SELECT
@@ -216,13 +197,13 @@ router.get("/reports", async (req, res) => {
                 SUPERVISOR,
                 LIDER,
                 MODELO
-            FROM EIN_PERDIDAS
+            FROM tbl_HistProdThermo
             WHERE
                 CAST(FECHA AS DATE) = @fecha
                 AND TURNO = @turno
         `;
 
-        const result = await pool.request()
+        const result = await poolCIMA.request()
             .input('fecha', sql.Date, fecha)
             .input('turno', sql.Int, turno)
             .query(query);
@@ -230,11 +211,11 @@ router.get("/reports", async (req, res) => {
         res.json(result.recordset);
 
     } catch (err) {
-        console.error("Error al consultar historial Insinkerator:", err);
-        res.status(500).json({ error: "Error al consultar la base de datos." });
+        console.error("Error al consultar historial Pre-Ensamble:", err);
+        res.status(500).json({ error: "Error al consultar la base de datos CIMA." });
     } finally {
-        if (pool) {
-            await pool.close();
+        if (poolCIMA) {
+            await poolCIMA.close();
         }
     }
 });

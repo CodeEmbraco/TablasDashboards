@@ -17,7 +17,7 @@ export const mysqlPool = mysql.createPool({
     queueLimit: 0
 });
 
-// SQL Server Config for CDU
+// SQL Server Config for CDU y THERMOFISHER
 export const sqlConfig = {
     user: process.env.MSSQL_USER,
     password: process.env.MSSQL_PASSWORD,

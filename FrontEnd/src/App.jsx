@@ -13,7 +13,7 @@ import TablaProdInsin from './Insinkerator/TablaInsinkerator';
 import TablaProdRotorWet from './RotorWet/TablaRotorWet';
 import TablaProdRotorIse from './RotorIse/TablaRotorISE';
 import TablaEnsamble from './Ensamble/TablaEnsamble';
-
+import TablaThermo from './Thermofisher/TablaThermo';
 
 function App() {
   return (
@@ -23,6 +23,7 @@ function App() {
       <Route path="/TablaElectronics" element={<TablaProd />} />
       <Route path="/TablaCDU" element={<TablaProdCdu />} />
       <Route path="/TablaEnsamble" element={<TablaEnsamble />} />
+      <Route path="/TablaThermo" element={<TablaThermo />} />
       <Route path="/TablaInsin" element={<TablaProdInsin />} />
       <Route path="/TablaRotorWet" element={<TablaProdRotorWet />} />
       <Route path="/TablaRotorIse" element={<TablaProdRotorIse />} />

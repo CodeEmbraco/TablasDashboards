@@ -1,7 +1,7 @@
 import express from "express";
 import axios from 'axios';
 import sql from "mssql";
-import { sqlConfigCIMA } from "../config/dbConnections.js"; // Import centralized configs
+import { sqlConfigCIMA } from "../config/dbConnections.js"
 
 const router = express.Router();
 
