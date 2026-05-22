@@ -1,91 +1,111 @@
 import express from "express";
 import sql from "mssql";
-import { sqlConfigCIMA } from "../config/dbConnections.js";
-import { mysqlPool } from "../config/dbConnections.js";
+import { sqlConfigFAN, sqlConfigCIMA } from "../config/dbConnections.js";
 
 const router = express.Router();
-/**
- * 1. OBTENER PRODUCCIÓN POR HORA
- * URL ejemplo: /hourly?fecha=2026-05-20&turno=1
- */
-router.get('/hourly', async (req, res) => {
-    const { fecha, turno } = req.query;
-
-    if (!fecha || !turno) {
-        return res.status(400).json({ error: 'Faltan los parámetros requeridos: fecha y turno' });
-    }
-
+//? ----------------------
+//? --Autor: Sean Garcia--
+//? ----------------------
+//ENDPOINTS DE ECMFAN
+router.get("/hourly", async (req, res) => {
+    const {fecha, turno} = req.query;
+    //*Abrimos una conexion con CIMA
+    let pool = await sql.connect(sqlConfigFAN);
     try {
-        // En MySQL, los Stored Procedures se ejecutan con CALL
-        const [result] = await mysqlPool.query('CALL ELECTRO_HOURLY(?, ?)', [fecha, turno]);
-        
-        // MySQL devuelve un array de arrays para los SPs; las filas reales están en la primera posición
-        res.json(result[0]);
+        const result = await pool.request()
+        .input("fechaParam", sql.Date, fecha)
+        .input("turnoParam", sql.Int, turno)
+        .execute("ECMFAN_HOURLY");
+
+        res.json(result.recordset);
+
     } catch (error) {
-        console.error('Error en /hourly:', error);
-        res.status(500).json({ error: 'Error interno del servidor al consultar la producción por hora' });
+        res.status(500).send('Error al obtener los datos');
+    }finally {
+        if (pool) {
+            await pool.close();
+        }
     }
 });
 
-/**
- * 2. OBTENER PRODUCCIÓN TOTAL DEL DÍA
- * URL ejemplo: /total-day?fecha=2026-05-20
- */
-router.get('/total-day', async (req, res) => {
+
+router.get("/total-day", async (req, res) => {
+    const {fecha} = req.query;
+    //*Abrimos una conexion con CIMA
+    let pool = await sql.connect(sqlConfigFAN);
+    try {
+        const result = await pool.request()
+        .input("fechaParam", sql.Date, fecha)
+        .execute("ECMFAN_TOTALDAY");
+
+        const row = result.recordset[0];
+        res.json({ TOTAL_DIA: row ? row.TOTAL_DIA : 0 })
+
+    } catch (error) {
+        res.status(500).send('Error al obtener los datos');
+    }finally {
+        if (pool) {
+            await pool.close();
+        }
+    }
+});
+
+router.get("/total-shift", async (req, res) => {
     const { fecha } = req.query;
-
-    if (!fecha) {
-        return res.status(400).json({ error: 'Falta el parámetro requerido: fecha' });
-    }
+    let pool;
 
     try {
-        const [result] = await mysqlPool.query('CALL ELECTRO_TOTALDAY(?)', [fecha]);
-        
-        // Como este SP devuelve una sola fila, puedes enviar result[0][0] o todo el array
-        res.json(result[0][0] || { TOTAL_DIA: 0 });
+        pool = await sql.connect(sqlConfigFAN);
+
+        const result = await pool.request()
+            .input("fechaParam", sql.Date, fecha)
+            .execute("ECMFAN_TOTALSHIFT");
+
+        const rows = result.recordset;
+
+        const turnosRequeridos = [1, 2, 3];
+        const dataFinal = turnosRequeridos.map(idTurno => {
+            // Buscamos si el turno existe en los resultados de la DB
+            const registro = rows.find(r => r.TURNO === idTurno);
+
+            // Si existe, lo usamos. Si no, creamos el objeto con CONTADOR 0
+            return registro ? registro : { CONTADOR: 0, TURNO: idTurno };
+        });
+
+        res.json(dataFinal);
+
     } catch (error) {
-        console.error('Error en /total-day:', error);
-        res.status(500).json({ error: 'Error interno del servidor al consultar el total del día' });
+        console.error(error);
+        res.status(500).send('Error al obtener los datos');
+    } finally {
+        if (pool) {
+            await pool.close();
+        }
     }
 });
 
-/**
- * 3. OBTENER TOTAL POR TURNOS DEL DÍA
- * URL ejemplo: /total-shift?fecha=2026-05-20
- */
-router.get('/total-shift', async (req, res) => {
-    const { fecha } = req.query;
-
-    if (!fecha) {
-        return res.status(400).json({ error: 'Falta el parámetro requerido: fecha' });
-    }
-
-    try {
-        const [result] = await mysqlPool.query('CALL ELECTRO_TOTALSHIFT(?)', [fecha]);
-        res.json(result[0]);
-    } catch (error) {
-        console.error('Error en /total-shift:', error);
-        res.status(500).json({ error: 'Error interno del servidor al consultar los totales por turno' });
-    }
-});
-
-/**
- * 4. OBTENER TOTAL DE UN TURNO ESPECÍFICO
- * URL ejemplo: /shift?fecha=2026-05-20&turno=1
- */
-router.get('/shift', async (req, res) => {
+router.get("/shift", async(req,res) => {
     const { fecha, turno } = req.query;
+    //console.log("^backend^ fecha: ", fecha, "\nturno: ", turno);
+    let pool;
+    try{
+        pool = await sql.connect(sqlConfigFAN);
+        const result = await pool.request()
+        .input("fechaParam", sql.Date, fecha)
+        .input("turnoParam", sql.Int, turno)
+        .execute("ECMFAN_SHIFT");
 
-    if (!fecha || !turno) {
-        return res.status(400).json({ error: 'Faltan los parámetros requeridos: fecha y turno' });
+        const row = result.recordset[0];
+        res.json({TOTAL_TURNO : row ? row.TOTAL_TURNO : 0});
     }
-
-    try {
-        const [result] = await mysqlPool.query('CALL ELECTRO_SHIFT(?, ?)', [fecha, turno]);
-        res.json(result[0][0] || { TOTAL_TURNO: 0 });
-    } catch (error) {
-        console.error('Error en /shift:', error);
-        res.status(500).json({ error: 'Error interno del servidor al consultar el total del turno' });
+    catch(err){
+        console.log(err);
+        res.status(500).send('Error al obtener los datos');
+    }
+    finally{
+        if(pool){
+            await pool.close;
+        }
     }
 });
 
@@ -119,7 +139,7 @@ router.post("/save", async(req, res) =>{
                 .input('Turno', sql.Int, Turno)
                 .input('Hora', sql.VarChar, horaSlot)
                 .query(`
-                    DELETE FROM tbl_HistProdElectro
+                    DELETE FROM tbl_HistProdECMFAN
                     WHERE CAST(FECHA AS DATE) = @Fecha
                       AND TURNO = @Turno
                       AND HORA = @Hora
@@ -137,7 +157,7 @@ router.post("/save", async(req, res) =>{
                     .input('Modelo', sql.VarChar, row.Modelo)
                     .input('Motivo', sql.VarChar, row.Motivo || '')
                     .query(`
-                        INSERT INTO tbl_HistProdCDU (FECHA, TURNO, HORA, SUPERVISOR, LIDER, PERDIDAS, OBSERVACIONES, MODELO, MOTIVO)
+                        INSERT INTO tbl_HistProdECMFAN (FECHA, TURNO, HORA, SUPERVISOR, LIDER, PERDIDAS, OBSERVACIONES, MODELO, MOTIVO)
                         VALUES (@Fecha, @Turno, @Hora_Slot, @Supervisor, @Lider, @Perdidas, @Observaciones, @Modelo, @Motivo)
                     `);
             }
@@ -146,7 +166,7 @@ router.post("/save", async(req, res) =>{
         res.status(200).json({ message: "Reporte guardado con desglose correctamente." });
 
     } catch (err) {
-        console.error("Error al guardar el reporte Ensamble:", err);
+        console.error("Error al guardar el reporte ECM FAN:", err);
         res.status(500).json({ error: "Error interno del servidor al guardar." });
     } finally {
         if (poolCIMA) {
@@ -177,7 +197,7 @@ router.get("/reports", async (req, res) => {
                 SUPERVISOR,
                 LIDER,
                 MODELO
-            FROM tbl_HistProdElectro
+            FROM tbl_HistProdECMFAN
             WHERE
                 CAST(FECHA AS DATE) = @fecha
                 AND TURNO = @turno
@@ -191,7 +211,7 @@ router.get("/reports", async (req, res) => {
         res.json(result.recordset);
 
     } catch (err) {
-        console.error("Error al consultar historial Electronics:", err);
+        console.error("Error al consultar historial ECM FAN:", err);
         res.status(500).json({ error: "Error al consultar la base de datos CIMA." });
     } finally {
         if (poolCIMA) {

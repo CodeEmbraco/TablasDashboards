@@ -48,5 +48,12 @@ export const LINES_CONFIG = {
         defaultMeta: 408,
         supervisors: ["Rubén Núñez"],
         leaders: ["Alejandro Castillo","Edgar Rodriguez","Jaime Jiménez"]
-    }
+    },
+    ecmfan:{
+        name: "ECM FAN",
+        id: "ecmfan",
+        defaultMeta: 60,
+        supervisors: ["Por Definir"],
+        leaders: ["Por Definir"]
+    },
 };

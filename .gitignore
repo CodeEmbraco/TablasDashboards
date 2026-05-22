@@ -36,3 +36,4 @@ BackEnd/Usersjorgeb03Documentsdb.sqlite3
 *.njsproj
 *.sln
 *.sw?
+BackEnd/migration-MySQLtoSQLServer.js

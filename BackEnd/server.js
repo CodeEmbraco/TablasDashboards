@@ -12,6 +12,8 @@ import cduRoutes from "./routes/cduRoutes.js"
 import rotwetRoutes from "./routes/rotorWetRoutes.js"
 import electronicRoutes from "./routes/electronicsRoutes.js"
 import thermoRoutes from "./routes/thermoRoutes.js"
+import ecmfanRoutes from "./routes/ecmfanRoutes.js"
+
 
 
 const app = express();
@@ -22,8 +24,9 @@ app.use("/api/preensamble", preensamRoutes);
 app.use("/api/insi", insiRoutes);
 app.use("/api/cdu", cduRoutes);
 app.use("/api/rotwet", rotwetRoutes);
-app.use("/api/electronic", electronicRoutes);
+app.use("/api/electronics", electronicRoutes);
 app.use("/api/thermo", thermoRoutes);
+app.use("/api/ecmfan", ecmfanRoutes);
 
 //Server 
 app.listen(3001, () => console.log("Server corriendo en el puerto 3001"));

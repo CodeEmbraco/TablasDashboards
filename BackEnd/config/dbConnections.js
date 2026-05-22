@@ -51,7 +51,7 @@ export const sqlConfigCIMA = {
     }
 };
 
-// SQLite for Insinkerator
+// SQL Server for Insinkerator
 export const sqlConfigINSI = {
     user: process.env.INSI_USER,
     password: process.env.INSI_PASSWORD,
@@ -67,6 +67,24 @@ export const sqlConfigINSI = {
         trustServerCertificate: true
     }
 };
+
+// SQL Server de ECM FAN
+export const sqlConfigFAN = {
+    user: process.env.FAN_USER,
+    password: process.env.FAN_PASSWORD,
+    database: process.env.FAN_DATABASE,
+    server: process.env.FAN_SERVER,
+    pool: {
+        max: 10,
+        min: 0,
+        idleTimeoutMillis: 30000
+    },
+    options: {
+        encrypt: false,
+        trustServerCertificate: true
+    }
+};
+
 
 // SQLite for Rotor Wet and Rotor Insinkerator
 const dbPathLiteWetISE = 'C:/Users/jorgeb03/Documents/Proyectos/PlataformaProduccion v3 - local/dbRotorWet.sqlite3';

@@ -27,9 +27,9 @@ import LossModal from "@components/Modals/LossModals";
 // Estilos
 import '@styles/global.css';
 
-const TablaElectronics = () => {
+const TablaECMFAN = () => {
     const { selectedDate, selectedShift, setSelectedDate, setSelectedShift } = useProduction();
-    const lineConfig = LINES_CONFIG.electronics;
+    const lineConfig = LINES_CONFIG.ecmfan;
 
     const { config, setMealHour, setCustomMeta, toggleShift} = useLocalLineConfig(lineConfig.id, lineConfig.defaultMeta);
 
@@ -222,4 +222,4 @@ const {
     );
 }
 
-export default TablaElectronics;
+export default TablaECMFAN;
