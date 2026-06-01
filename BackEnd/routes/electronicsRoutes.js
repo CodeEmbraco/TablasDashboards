@@ -93,6 +93,10 @@ router.post("/save", async(req, res) =>{
     let poolCIMA;
     try {
         const reportData = req.body;
+        //----------------------
+        //DEBUG
+        console.log("Que recibimos, Electronics?", reportData);
+        //----------------------
 
         if (!Array.isArray(reportData) || reportData.length === 0) {
             return res.status(400).json({ error: "Datos de reporte inválidos o vacíos." });
@@ -137,7 +141,7 @@ router.post("/save", async(req, res) =>{
                     .input('Modelo', sql.VarChar, row.Modelo)
                     .input('Motivo', sql.VarChar, row.Motivo || '')
                     .query(`
-                        INSERT INTO tbl_HistProdCDU (FECHA, TURNO, HORA, SUPERVISOR, LIDER, PERDIDAS, OBSERVACIONES, MODELO, MOTIVO)
+                        INSERT INTO tbl_HistProdElectro (FECHA, TURNO, HORA, SUPERVISOR, LIDER, PERDIDAS, OBSERVACIONES, MODELO, MOTIVO)
                         VALUES (@Fecha, @Turno, @Hora_Slot, @Supervisor, @Lider, @Perdidas, @Observaciones, @Modelo, @Motivo)
                     `);
             }
