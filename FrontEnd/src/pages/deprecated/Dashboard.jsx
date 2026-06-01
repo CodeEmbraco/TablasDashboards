@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import './Dashboard.css';
 import logoNidec from '../assets/nidec-logo.png';
-import Footer from '../components/Footer/footer';
+import Footer from '../../components/Footer/footer';
 import Zero from '../assets/zeroproductividad.png';
 
 import {

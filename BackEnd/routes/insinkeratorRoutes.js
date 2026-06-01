@@ -157,11 +157,13 @@ router.post("/save", async(req, res) =>{
                 .input('Fecha', sql.Date, Fecha)
                 .input('Turno', sql.Int, Turno)
                 .input('Hora', sql.VarChar, horaSlot)
+                .input('Linea', sql.Int, lineNo)
                 .query(`
                     DELETE FROM EIN_PERDIDAS
                     WHERE CAST(FECHA AS DATE) = @Fecha
                       AND TURNO = @Turno
                       AND HORA = @Hora
+                      AND LINEA = @Linea
                 `);
 
             for (const row of filasDeEstaHora) {
@@ -175,9 +177,10 @@ router.post("/save", async(req, res) =>{
                     .input('Observaciones', sql.VarChar, row.Observaciones || '')
                     .input('Modelo', sql.VarChar, row.Modelo)
                     .input('Motivo', sql.VarChar, row.Motivo || '')
+                    .input('Linea', sql.Int, lineNo)
                     .query(`
-                        INSERT INTO EIN_PERDIDAS (FECHA, TURNO, HORA, SUPERVISOR, LIDER, PERDIDAS, OBSERVACIONES, MODELO, MOTIVO)
-                        VALUES (@Fecha, @Turno, @Hora_Slot, @Supervisor, @Lider, @Perdidas, @Observaciones, @Modelo, @Motivo)
+                        INSERT INTO EIN_PERDIDAS (FECHA, TURNO, HORA, SUPERVISOR, LIDER, PERDIDAS, OBSERVACIONES, MODELO, MOTIVO, LINEA)
+                        VALUES (@Fecha, @Turno, @Hora_Slot, @Supervisor, @Lider, @Perdidas, @Observaciones, @Modelo, @Motivo, @Linea)
                     `);
             }
         }
@@ -215,16 +218,19 @@ router.get("/reports", async (req, res) => {
                 MOTIVO,
                 SUPERVISOR,
                 LIDER,
-                MODELO
+                MODELO,
+                LINEA
             FROM EIN_PERDIDAS
             WHERE
                 CAST(FECHA AS DATE) = @fecha
                 AND TURNO = @turno
+                AND LINEA = @lineNo
         `;
 
         const result = await pool.request()
             .input('fecha', sql.Date, fecha)
             .input('turno', sql.Int, turno)
+            .input('lineNo', sql.Int, lineNo)
             .query(query);
 
         res.json(result.recordset);

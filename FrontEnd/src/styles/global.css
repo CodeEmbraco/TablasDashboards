@@ -1,4 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+#root{
+    --nidec-lightgreen : #009b4a;
+    --nidec-orange : #ea5a00;
+    --embraco-teal : #008791;
+    --warning : #
+}
 
 .bodyTabla {
     font-family: 'Poppins', sans-serif;
@@ -14,7 +19,7 @@
     align-items: center;
     justify-content: center;
     padding: 15px 0;
-    border-bottom: 3px solid #008791;
+    border-bottom: 3px solid var(--embraco-teal);
     background-color: #f7f7f7;
     position: relative;
 }
@@ -285,6 +290,22 @@
     margin-inline: 5px;
 }
 
+.progress-bar-container-shift{
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    height: 12px;
+    overflow: hidden;
+    margin-inline: 5px;
+}
+
+.progress-bar-shift{
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease-in-out, background-color 0.5s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
 .progressBar {
     height: 100%;
     border-radius: 10px;
@@ -516,4 +537,263 @@
   background-color: #007bff;
   width: 25px;
   border-radius: 5px;
+}
+
+/*DASHBOARD*/
+
+/* Contenedor principal de la página */
+.global-dashboard {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f3f4f6; /* Un gris muy claro para contrastar las tarjetas */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Área central de contenido */
+.dashboard-main-content {
+    flex: 1;
+    padding: 1rem;
+    /* max-width: 1400px;
+    margin: 0 auto;
+    width: 100%; */
+}
+
+.dashboard-header-titles {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.dashboard-header-titles h1 {
+    color: #111827;
+    margin: 0 0 0.5rem 0;
+    font-size: 2rem;
+    
+}
+
+.dashboard-header-titles p {
+    color: #6b7280;
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+/* LA CUADRÍCULA (GRID) */
+.deltas-grid {
+  display: grid;
+  padding : 10 px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+}
+
+/* Estilo para la tarjeta contenedora del Delta */
+.grid-item {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  min-height: 280px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Pequeño efecto al pasar el mouse por encima de una línea */
+.grid-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+
+/* DASHBOARD DELTA */
+/* Estilos para el DashboardDelta */
+
+.container-delta-dashboard{
+    padding: 5px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    /* justify-content: space-between; */
+    justify-content:flex-start
+}
+
+.total-dia-delta-dashboard{
+    display: flex;
+    background-color: #fff;
+    justify-content: space-between;
+    /* border-radius: 12px; */
+    /* padding: 10px; */
+    /* box-shadow: 0 4px 6px rgba(0,0,0,0.05); */
+    align-items: center;
+    /* gap: 45px; */
+}
+
+.total-dia-delta-text{
+    font-size: 1.5rem; 
+    font-weight: bold;
+    margin-top: 4px;
+    padding: 0px 10px;
+    border-radius: 5px;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+}
+
+.total-dia-icon{
+    width: 250px;
+    height: 250px; 
+    object-fit: scale-down; 
+}
+
+.dashboard-delta-card {
+    border: 3px solid #ccc; /* El color del borde se cambiará por clase */
+    border-radius: 12px;
+    padding: 1rem;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color 0.3s ease;
+}
+
+.dashboard-delta-error{
+    border-top: 8px solid var(--embraco-teal);
+    background-color: color-mix(in srgb,var(--embraco-teal), #fff 40%);
+    color: #fff;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+    min-height: 280px;
+}
+
+/* Clases de estado dinámico */
+.status-bien { border-color: #4caf50; }
+.status-regular { border-color: #fbc02d; }
+.status-mal { border-color: #f44336; }
+
+.dashboard-delta-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.delta-value.positive { color: #4caf50; }
+.delta-value.negative { color: #f44336; }
+
+/* Contenedor de turnos */
+.dashboard-delta-shifts {
+    display: flex;
+    justify-content: space-around;
+    padding: 5px 0;
+    background: #f9f9f9;
+    border-radius: 8px;
+}
+
+.shift-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.shift-box.inactive {
+    opacity: 0.4;
+    text-decoration: line-through;
+}
+
+.shift-name {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.shift-count {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.turnos-breakdown-dashbooard-delta {
+    display: flex; 
+    flex-direction: column; 
+    /* min-width: 100px; */
+    width:100%;
+    border-radius:10px;
+    /* padding: 5px; */
+}
+
+/* Barra de progreso */
+.progress-container {
+    height: 16px;
+    margin-inline: 10px;
+    background: #ddd;
+    border-radius: 8px;
+    /* border: 2px solid #ccc; */
+    overflow: hidden;
+}
+
+.progress-bar-dashboard{
+    height: 100%;
+    transition: width 0.5s ease-in-out;
+    
+}
+
+/* Animación de carga para el Dashboard */
+.spinner {
+    width: 45px;
+    height: 45px;
+    border: 5px solid rgba(0, 0, 0, 0.1);
+    border-left-color: var(--nidec-orange); 
+    border-radius: 50%;
+    animation: girar 1s linear infinite;
+}
+
+@keyframes girar {
+    to { transform: rotate(360deg); }
+}
+
+/* Spinner gigante para cuando la pantalla principal está cargando */
+.spinner-large {
+    width: 75px;
+    height: 75px;
+    border: 8px solid rgba(250, 250, 250, 0.1);
+    border-left-color: #ff6600; 
+    border-radius: 50%;
+    animation: girar 1s linear infinite;
+}
+
+/* MODO QUIOSCO - FONDO GRIS CLARO */
+.global-dashboard-kiosk {
+    background-color: #e0e0e0; /* Gris claro solicitado */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ANIMACIÓN: DESLIZAMIENTO VERTICAL HACIA ABAJO (Delta Grande) */
+.slide-down-animation {
+    animation: slideDown 1s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+    height: 100%;
+}
+
+@keyframes slideDown {
+    0% { transform: translateY(-100%); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+/* ANIMACIÓN: SCROLL HORIZONTAL CONTINUO A LA DERECHA (Deltas Pequeñas) */
+.marquee-track-right {
+    display: flex;
+    gap: 20px;
+    height: 100%;
+    width:1250px;
+    /* Comienza a la mitad (oculto hacia la izquierda) y viaja a 0 (derecha) */
+    animation: scrollRight 60s linear infinite; 
+}
+
+@keyframes scrollRight {
+    0% { transform: translateX(calc(-50% - 10px)); }
+    100% { transform: translateX(0); }
 }

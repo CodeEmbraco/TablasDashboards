@@ -6,6 +6,8 @@ const router = express.Router();
 //? ----------------------
 //? --Autor: Sean Garcia--
 //? ----------------------
+
+console.log("A DONDE ME ESTOY COMUNICANDO! : ", sqlConfig);
 //ENDPOINTS DE CDU
 router.get("/hourly", async (req, res) => {
     const {fecha, turno} = req.query;

@@ -7,7 +7,13 @@ const Header = ({line}) =>{
     return(
         <header className="header">
             <img src={logoNidec} alt="Nidec ACIM Logo" className="logoTabla" />
-            <h2 className="tituloPrincipal">TABLA DE PRODUCTIVIDAD {line}</h2>
+            {
+                line ? (
+                    <h2 className="tituloPrincipal">TABLA DE PRODUCTIVIDAD {line}</h2>
+                ) : (
+                    <h2 className="tituloPrincipal">LINEAS DE PRODUCCION: GA COLD MX</h2>
+                )
+            }
             <img src={Zero} alt="Zero Productividad" className="logoZero" />
         </header>
     );

@@ -7,47 +7,46 @@ const api = axios.create({
 
 const productionService =  {
     getHourlyData: async (lineID, date, shift, lineNo = null) => {
-        const response = await api.get(`/${lineID}/hourly`, {
-            params: {fecha: date, turno: shift, lineNo: lineNo}
-        });
+        const params = { fecha: date, turno: shift };
+        if (lineNo) params.lineNo = lineNo; // Solo inyectar si existe
+        const response = await api.get(`/${lineID}/hourly`, { params });
         return response.data;
     },
 
     getTotalDate: async(lineID, date, lineNo = null) => {
-        const response = await api.get(`/${lineID}/total-day`, {
-            params : {fecha: date, lineNo: lineNo}
-        });
+        const params = { fecha: date };
+        if (lineNo) params.lineNo = lineNo;
+        const response = await api.get(`/${lineID}/total-day`, { params });
         return response.data;
     },
     
     getTotalShiftDelta: async(lineID, date, lineNo = null) => {
-        const response = await api.get(`/${lineID}/total-shift`, {
-            params : {fecha: date, lineNo: lineNo}
-        });
+        const params = { fecha: date };
+        if (lineNo) params.lineNo = lineNo;
+        const response = await api.get(`/${lineID}/total-shift`, { params });
         return response.data;
     },
 
     getTotalShift: async(lineID, date, shift, lineNo = null) => {
-        // console.log("##estoy en la funcion?");
-        // console.log("##parametros? :", lineID, date, shift);
-        const response = await api.get(`/${lineID}/shift`, {
-            params: {fecha: date, turno: shift, lineNo: lineNo}
-        });
+        const params = { fecha: date, turno: shift };
+        if (lineNo) params.lineNo = lineNo;
+        const response = await api.get(`/${lineID}/shift`, { params });
         return response.data;
     },
     
     getLossReports: async(lineID, date, shift, lineNo = null) => {
-        const response = await api.get(`/${lineID}/reports`, {
-            params: {fecha: date, turno: shift, lineNo: lineNo}
-        });
+        const params = { fecha: date, turno: shift };
+        if (lineNo) params.lineNo = lineNo;
+        const response = await api.get(`/${lineID}/reports`, { params });
+        //DEBUG
+        console.log("QUE ES ESTO!?",response.data);
         return response.data;
     },
     
     saveReport: async (lineID, reportData, lineNo = null) => {
-        // En POST: body es el 2do arg, config (con params) es el 3ro
-        const response = await api.post(`/${lineID}/save`, reportData, {
-            params: { lineNo }
-        }); 
+        const params = {};
+        if (lineNo) params.lineNo = lineNo;
+        const response = await api.post(`/${lineID}/save`, reportData, { params });
         return response.data;
     }
 } ;

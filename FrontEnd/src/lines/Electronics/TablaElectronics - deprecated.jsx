@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'; 
+import Footer from '../../components/Footer/footer';
 import React from "react";
 import { useNavigate } from 'react-router-dom';
-import './TablaRotorWet.css'
+import './TablaElectronics.css'
 import logoNidec from '../assets/nidec-logo.png'
 import axios from 'axios';
 import Zero from '../assets/zeroproductividad.png';
+// IMPORTACIÓN DE IMÁGENES DE ESTADO
 import ZeroBien from '../assets/ZeroBien.png'; 
 import ZeroMal from '../assets/ZeroMal.png';
 
@@ -50,7 +52,7 @@ const generateHourSlots = (shiftId) => {
     return slots;
 };
 
-// Función auxiliar para saber la meta de una hora específica
+// Función auxiliar para saber la meta de una hora específica 
 const getMetaPorHoraIndividual = (startHour, shiftId, metaBase) => {
     if (shiftId === '1' && startHour === 10) return metaBase / 2;
     if (shiftId === '2' && startHour === 18) return metaBase / 2;
@@ -58,7 +60,7 @@ const getMetaPorHoraIndividual = (startHour, shiftId, metaBase) => {
     return metaBase;
 };
 
-const TablaProdRotorWet = () => {
+const TablaProd = () => {
     const navigate = useNavigate(); 
     const [data, setData] = useState([]); 
     const [loading, setLoading] = useState(true);
@@ -76,18 +78,18 @@ const TablaProdRotorWet = () => {
     const [breakdown, setBreakdown] = useState({ t3: 0, t1: 0, t2: 0 }); 
 
     const [enableAnimation, setEnableAnimation] = useState(true);
-    const [metaPorHora, setMetaPorHora] = useState(408); 
+    const [metaPorHora, setMetaPorHora] = useState(180); // Meta base Electronics
     
     // Modales
     const [isMetaModalOpen, setIsMetaModalOpen] = useState(false);
-    const [tempMetaInput, setTempMetaInput] = useState(408);
+    const [tempMetaInput, setTempMetaInput] = useState(180);
     
     // Modal Pérdidas (Lista)
     const [isLossModalOpen, setIsLossModalOpen] = useState(false);
     const [currentLossSlot, setCurrentLossSlot] = useState(null);
     const [tempLossList, setTempLossList] = useState([]); 
     
-    // Inputs Modal 
+    // Inputs Modal
     const [newLossMotivo, setNewLossMotivo] = useState(''); 
     const [newLossMinutos, setNewLossMinutos] = useState('');
     const [newLossObs, setNewLossObs] = useState('');
@@ -115,8 +117,8 @@ const TablaProdRotorWet = () => {
             navigate('/TablaInsin');
         }else if(val === "3"){//Rotor Wet
             navigate('/TablaRotorWet');
-        }else if(val === "4"){//Rotor ISE
-            navigate('/TablaRotorIse');
+        }else if(val === "5"){//Ensamble
+            navigate('/TablaEnsamble');
         }
     };
 
@@ -124,33 +126,45 @@ const TablaProdRotorWet = () => {
         if (!isPoll) setLoading(true);
         
         try {
-            // Llamadas endpoints de Rotor Wet
-            const pTabla = axios.get(`http://10.13.225.20:3003/api/rotwet/produccion-real?fecha=${fecha}&turno=${turno}`);
-            const pTotal = axios.get(`http://10.13.225.20:3003/api/rotwet/total-dia?fecha=${fecha}`);
-            const pGuardado = axios.get(`http://10.13.225.20:3003/api/rotwet/reporte-guardado?fecha=${fecha}&turno=${turno}`);
+            const p1 = axios.get(`http://10.13.225.156:3001/api/produccion-real?fecha=${fecha}&turno=3`);
+            const p2 = axios.get(`http://10.13.225.156:3001/api/produccion-real?fecha=${fecha}&turno=1`);
+            const p3 = axios.get(`http://10.13.225.156:3001/api/produccion-real?fecha=${fecha}&turno=2`);
+            const pModelo = axios.get(`http://10.13.225.156:3001/api/getModeloElectronics`);
+            // const p1 = axios.get(`http://localhost:3001/api/produccion-real?fecha=${fecha}&turno=3`);
+            // const p2 = axios.get(`http://localhost:3001/api/produccion-real?fecha=${fecha}&turno=1`);
+            // const p3 = axios.get(   `http://localhost:3001/api/produccion-real?fecha=${fecha}&turno=2`);
+            // const pModelo = axios.get(`http://localhost:3001/api/getModeloElectronics`);
 
-            // Esperamos que las 3 consultas terminen
-            const [resTabla, resTotal, resGuardado] = await Promise.all([pTabla, pTotal, pGuardado]);
+            const [resT3, resT1, resT2, resModelo] = await Promise.all([p1, p2, p3, pModelo]);
 
-            const { t3, t1, t2 } = resTotal.data.breakdown;
-            setBreakdown({ t3, t1, t2 });
+            // Calculamos totales reales de cada turno
+            const t3Total = resT3.data.reduce((acc, row) => acc + (parseFloat(row.piezas_reales)||0), 0);
+            const t1Total = resT1.data.reduce((acc, row) => acc + (parseFloat(row.piezas_reales)||0), 0);
+            const t2Total = resT2.data.reduce((acc, row) => acc + (parseFloat(row.piezas_reales)||0), 0);
 
+            // Actualizamos breakdown con datos reales (no simulados)
+            const newBreakdown = { t3: t3Total, t1: t1Total, t2: t2Total };
+            setBreakdown(newBreakdown);
+
+            // Total Día 
             let diaTotal = 0;
-            if (turno === '3') diaTotal = t3;
-            else if (turno === '1') diaTotal = t3 + t1;
-            else if (turno === '2') diaTotal = t3 + t1 + t2;
+            if (turno === '3') diaTotal = t3Total;
+            else if (turno === '1') diaTotal = t3Total + t1Total;
+            else if (turno === '2') diaTotal = t3Total + t1Total + t2Total;
             setTotalDia(diaTotal);
 
-            const datosTabla = resTabla.data;
+            // Seleccionamos los datos para la tabla del turno seleccionado
+            let datosTabla = [];
+            if (turno === '3') datosTabla = resT3.data;
+            if (turno === '1') datosTabla = resT1.data;
+            if (turno === '2') datosTabla = resT2.data;
+            
             setData(datosTabla);
 
-            const rowConModelo = datosTabla.find(r => r.Modelo && r.Modelo.trim() !== '');
-            if (rowConModelo) {
-                setModeloActual(rowConModelo.Modelo);
+            if (resModelo.data && resModelo.data.length > 0) {
+                setModeloActual(resModelo.data[0].Model);
             }
             
-            // Si NO es polling, reconstruimos el estado editable a partir de lo guardado en CIMA
-            // polling es lo del llamado a la bd para ir calculando la produccion en tiempo real
             if (!isPoll) {
                 const initialEditable = {};
                 const slotsEsperados = generateHourSlots(turno);
@@ -159,14 +173,12 @@ const TablaProdRotorWet = () => {
                     initialEditable[slot] = { perdidas: 0, detalles: [] };
                 });
 
-                const datosGuardados = resGuardado.data || [];
-
-                if (datosGuardados.length > 0) {
-                    datosGuardados.forEach(fila => {
+                if (datosTabla && datosTabla.length > 0) {
+                    datosTabla.forEach(fila => {
                         const slotKey = fila.time_slot;
-                        const p = parseInt(fila.perdidas) || 0;
-                        const o = fila.observaciones || '';
-                        const m = fila.motivo || ''; 
+                        const p = parseInt(fila.Perdidas || fila.perdidas) || 0;
+                        const o = fila.Observaciones || fila.observaciones || '';
+                        const m = fila.Batch || fila.batch || ''; 
                         
                         if (initialEditable[slotKey]) {
                             initialEditable[slotKey].perdidas = p;
@@ -178,11 +190,10 @@ const TablaProdRotorWet = () => {
                         }
                     });
 
-                    // Seleccionar Lider y Supervisor con base en el primer registro guardado
-                    const headerInfo = datosGuardados.find(i => i.supervisor);
+                    const headerInfo = datosTabla.find(i => i.Supervisor || i.supervisor);
                     if (headerInfo) {
-                        setSupervisor(headerInfo.supervisor || '0');
-                        setLider(headerInfo.lider || '0');
+                        setSupervisor(headerInfo.Supervisor || headerInfo.supervisor || '0');
+                        setLider(headerInfo.Lider || headerInfo.lider || '0');
                     }
                 } else {
                     setSupervisor('0'); setLider('0');
@@ -207,27 +218,39 @@ const TablaProdRotorWet = () => {
         if (!isPollingActive) return;
 
         try {
-            const pTabla = axios.get(`http://10.13.225.20:3003/api/rotwet/produccion-real?fecha=${selectedDate}&turno=${selectedShift}`);
-            const pTotal = axios.get(`http://10.13.225.20:3003/api/rotwet/total-dia?fecha=${selectedDate}`);
+            const p1 = axios.get(`http://10.13.225.156:3001/api/produccion-real?fecha=${selectedDate}&turno=3`);
+            const p2 = axios.get(`http://10.13.225.156:3001/api/produccion-real?fecha=${selectedDate}&turno=1`);
+            const p3 = axios.get(`http://10.13.225.156:3001/api/produccion-real?fecha=${selectedDate}&turno=2`);
+            const pModelo = axios.get(`http://10.13.225.156:3001/api/getModeloElectronics`);
+            // const p1 = axios.get(`http://localhost:3001/api/produccion-real?fecha=${selectedDate}&turno=3`);
+            // const p2 = axios.get(`http://localhost:3001/api/produccion-real?fecha=${selectedDate}&turno=1`);
+            // const p3 = axios.get(`http://localhost:3001/api/produccion-real?fecha=${selectedDate}&turno=2`);
+            // const pModelo = axios.get(`http://localhost:3001/api/getModeloElectronics`);
 
-            const [resTabla, resTotal] = await Promise.all([pTabla, pTotal]);
+            const [resT3, resT1, resT2, resModelo] = await Promise.all([p1, p2, p3, pModelo]);
 
-            const { t3, t1, t2 } = resTotal.data.breakdown;
-            setBreakdown({ t3, t1, t2 });
+            const t3Total = resT3.data.reduce((acc, row) => acc + (parseFloat(row.piezas_reales)||0), 0);
+            const t1Total = resT1.data.reduce((acc, row) => acc + (parseFloat(row.piezas_reales)||0), 0);
+            const t2Total = resT2.data.reduce((acc, row) => acc + (parseFloat(row.piezas_reales)||0), 0);
+
+            const newBreakdown = { t3: t3Total, t1: t1Total, t2: t2Total };
+            setBreakdown(newBreakdown);
 
             let diaTotal = 0;
-            if (selectedShift === '3') diaTotal = t3;
-            else if (selectedShift === '1') diaTotal = t3 + t1;
-            else if (selectedShift === '2') diaTotal = t3 + t1 + t2;
+            if (selectedShift === '3') diaTotal = t3Total;
+            else if (selectedShift === '1') diaTotal = t3Total + t1Total;
+            else if (selectedShift === '2') diaTotal = t3Total + t1Total + t2Total;
             setTotalDia(diaTotal);
 
-            const datosTabla = resTabla.data;
+            let datosTabla = [];
+            if (selectedShift === '3') datosTabla = resT3.data;
+            if (selectedShift === '1') datosTabla = resT1.data;
+            if (selectedShift === '2') datosTabla = resT2.data;
             setData(datosTabla);
 
-            const rowConModelo = datosTabla.find(r => r.Modelo && r.Modelo.trim() !== '');
-            if (rowConModelo) {
+            if (resModelo.data && resModelo.data.length > 0) {
                 setModeloActual(prev => {
-                    const newM = rowConModelo.Modelo;
+                    const newM = resModelo.data[0].Model;
                     return newM !== prev ? newM : prev;
                 });
             }
@@ -239,7 +262,7 @@ const TablaProdRotorWet = () => {
 
 
     useEffect(() => {
-        document.title = "Tabla de Producción Rotor Wet";
+        document.title = "Tabla de Producción Electronics";
         if (selectedShift !== '0') { 
             consultarDatos(selectedDate, selectedShift);
         }
@@ -310,7 +333,7 @@ const TablaProdRotorWet = () => {
         const newItem = { 
             minutos: minutos, 
             observacion: newLossObs,
-            motivo: newLossMotivo 
+            motivo: newLossMotivo // Motivo seleccionado
         };
         setTempLossList([...tempLossList, newItem]);
         setNewLossMinutos('');
@@ -373,7 +396,8 @@ const TablaProdRotorWet = () => {
         });
 
         try {
-            await axios.post('http://10.13.225.20:3003/api/rotwet/guardar-reporte', reportData);
+            await axios.post('http://10.13.225.156:3001/api/guardar-reporte', reportData);
+            // await axios.post('http://localhost:3001/api/guardar-reporte', reportData);
             alert('Guardado exitosamente!');
             consultarDatos(selectedDate, selectedShift); 
         } catch (err) {
@@ -382,7 +406,7 @@ const TablaProdRotorWet = () => {
         }
     };
     
-    // logica del apartado visual
+    // --- LÓGICA VISUAL ---
     const getMetaValue = (timeSlot) => {
         const startHour = parseInt(timeSlot.split(':')[0], 10);
         return getMetaPorHoraIndividual(startHour, selectedShift, metaPorHora);
@@ -413,7 +437,7 @@ const TablaProdRotorWet = () => {
         else { alert("Por favor ingresa un número válido mayor a 0"); }
     };
 
-    // --- ADHERENCIA ESCALONADA ---
+    // adherencia progresiva
     const calculateShiftMeta = (shiftId) => {
         const isToday = selectedDate === getFormattedDate();
         if (selectedDate < getFormattedDate()) return getFullShiftMeta(shiftId);
@@ -469,29 +493,34 @@ const TablaProdRotorWet = () => {
     const rawPercentReal = totalMetaTurno > 0 ? (totalReal / totalMetaTurno) : 0;
     const chartPercentReal = Math.min(1, rawPercentReal);
     
-    //logica para las metas del dia
+    // para eevitar contar los turnos en los que no hubo chamba
     const calcularMetaDiaAcumulada = () => {
         let metaAcum = 0;
 
-        //turno 3
+        // TURNO 3 (Inicio del día)
         if (selectedShift === '3') {
+            // Si es mi turno actual sumo mi meta escalonada
             metaAcum += calculateShiftMeta('3');
         } else {
+            // Si es turno pasado 
+            // SOLO SUMAR SI HUBO PRODUCCIÓN (> 0).
+            // Si sacaron 0, asumimos que no trabajaron.
             if (breakdown.t3 > 0) {
                 metaAcum += getFullShiftMeta('3');
             }
         }
 
-        // turno 1
+        // TURNO 1
         if (selectedShift === '1') {
             metaAcum += calculateShiftMeta('1');
         } else if (selectedShift === '2') {
+            // Solo sumar si trabajaron.
             if (breakdown.t1 > 0) {
                 metaAcum += getFullShiftMeta('1');
             }
         }
 
-        // turno 2
+        // TURNO 2
         if (selectedShift === '2') {
             metaAcum += calculateShiftMeta('2');
         }
@@ -500,24 +529,24 @@ const TablaProdRotorWet = () => {
     };
 
     const metaDiaAcumulada = calcularMetaDiaAcumulada();
-    const diaStatusClass = totalDia >= metaDiaAcumulada ? 'status-good-rotwet' : 'status-bad-rotwet';
+    const diaStatusClass = totalDia >= metaDiaAcumulada ? 'status-good' : 'status-bad';
     const percentDia = Math.min(100, (totalDia / (metaDiaAcumulada || 1)) * 100);
     const delta = totalDia - metaDiaAcumulada;
     const deltaSigno = delta > 0 ? "+" : ""; 
     const deltaColor = delta >= 0 ? "#388E3C" : "#D32F2F"; 
 
     return (
-        <div className="bodyTabla-rotwet">
-            <title>Tabla Productividad Rotor Wet</title>
-            <header className="header-rotwet">
-                <img src={logoNidec} alt="Nidec ACIM Logo" className="logoTabla-rotwet" />
-                <h2 className="tituloPrincipal-rotwet">TABLA DE PRODUCTIVIDAD ROTOR WET</h2>
-                <img src={Zero} alt="Zero Productividad" className="logoZero-rotwet" />
+        <div className="bodyTablaProd">
+            <title>Tabla Productividad Electronics</title>
+            <header className="header-prod">
+                <img src={logoNidec} alt="Nidec ACIM Logo" className="logoTablaProd" />
+                <h2 className="tituloPrincipal-prod">TABLA DE PRODUCTIVIDAD ELECTRONICS</h2>
+                <img src={Zero} alt="Zero Productividad" className="logoZero-prod" />
             </header>
 
-            <div className="top-panel-container-rotwet">
-                <div className="panel-left-rotwet">
-                    <section className="datosGenerales-rotwet">
+            <div className="top-panel-container-prod">
+                <div className="panel-left-prod">
+                    <section className="datosGenerales-prod">
                         <table>
                             <tbody>
                                 <tr>
@@ -540,7 +569,7 @@ const TablaProdRotorWet = () => {
                                     <td>
                                         <select value={supervisor} onChange={(e) => setSupervisor(e.target.value)}>
                                             <option value="0" disabled>--Selecciona--</option>
-                                            <option value="Rubén Núñez">Rubén Núñez</option>
+                                            <option value="Alfredo Martinez">Alfredo Martinez</option>
                                         </select>
                                     </td>
                                 </tr>
@@ -549,21 +578,22 @@ const TablaProdRotorWet = () => {
                                     <td>
                                         <select value={lider} onChange={(e) => setLider(e.target.value)}>
                                             <option value="0" disabled>--Selecciona--</option>
-                                            <option value="Alejandro Castillo">Alejandro Castillo</option>
-                                            <option value="Edgar Rodriguez">Edgar Rodriguez</option>
-                                            <option value="Jaime Jiménez">Jaime Jiménez</option>
+                                            <option value="Jose Rojas">Jose Rojas</option>
+                                            <option value="Brenda Barrón">Brenda Barrón</option>
+                                            <option value="Basilia Martin">Basilia Martin</option>
                                         </select>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>Línea:</td>
                                     <td>
-                                        <select value="3" onChange={handleLineChange}>
+                                        <select value="1" onChange={handleLineChange}>
                                             <option value="0">CDU</option>
                                             <option value="1">Electronics</option>
                                             <option value="2">Insinkerator</option>
                                             <option value="3">Rotor Wet</option>
                                             <option value="4">Rotor Ise</option>
+                                            <option value="5">Pre Ensamble</option>
                                         </select>
                                     </td>
                                 </tr>
@@ -572,35 +602,35 @@ const TablaProdRotorWet = () => {
                     </section>
                 </div>
 
-                <div className="panel-right-rotwet">
-                    <div className="medidores-container-rotwet">
-                        <div className="medidor-rotwet">
+                <div className="panel-right-prod">
+                    <div className="medidores-container-prod">
+                        <div className="medidor-prod">
                             <h3>Meta</h3>
-                            <div className="gauge-wrapper-rotwet">
+                            <div className="gauge-wrapper-prod">
                                 <GaugeChart 
                                     id="gauge-meta" nrOfLevels={1} colors={["#1976D2"]} arcWidth={0.3} percent={1} 
                                     textColor="#333" needleColor="#b0b0b0" needleBaseColor="#b0b0b0" hideText={true} 
                                     animate={enableAnimation} 
                                 />
-                                <div className="gauge-value-text-rotwet">{totalMetaTurno}</div>
+                                <div className="gauge-value-text-prod">{totalMetaTurno}</div>
                             </div>
                         </div>
-                        <div className="medidor-rotwet">
+                        <div className="medidor-prod">
                             <h3>Real</h3>
-                            <div className="gauge-wrapper-rotwet">
+                            <div className="gauge-wrapper-prod">
                                 <GaugeChart 
                                     id="gauge-real" nrOfLevels={3} colors={["#EA4228", "#F5CD19", "#5BE12C"]} arcWidth={0.3} percent={chartPercentReal} 
                                     textColor="#333" needleColor="#333" needleBaseColor="#333" hideText={true}
                                     animate={enableAnimation} 
                                 />
-                                <div className="gauge-value-text-rotwet" style={{ color: totalReal >= totalMetaTurno ? '#388E3C' : '#333' }}>
+                                <div className="gauge-value-text-prod" style={{ color: totalReal >= totalMetaTurno ? '#388E3C' : '#333' }}>
                                     {totalReal}
                                 </div>
                             </div>
                         </div>
-                        <div className="medidor-rotwet">
+                        <div className="medidor-prod">
                             <h3>Pérdidas</h3>
-                            <div className="donut-wrapper-rotwet">
+                            <div className="donut-wrapper-prod">
                                 <CircularProgressbar 
                                     value={totalPerdidas} maxValue={totalMetaTurno || 100} text={`${totalPerdidas}`}
                                     styles={buildStyles({ textColor: "#D32F2F", pathColor: "#D32F2F", trailColor: "#eee", textSize: '30px', pathTransitionDuration: 0.5 })}
@@ -608,42 +638,42 @@ const TablaProdRotorWet = () => {
                             </div>
                         </div>
 
-                        <div className="medidor-rotwet-card">
-                            <div className={`card-total-dia-rotwet ${diaStatusClass}`}>
-                                <div className="total-dia-content-wrapper-rotwet">
-                                    <div className="total-dia-left-rotwet">
+                        <div className="medidor-prod-card">
+                            <div className={`card-total-dia-prod ${diaStatusClass}`}>
+                                <div className="total-dia-content-wrapper">
+                                    <div className="total-dia-left">
                                         <h4>Total Día</h4>
-                                        <p className="total-dia-number-rotwet">
+                                        <p className="total-dia-number-prod">
                                             {totalDia} 
                                             <span style={{fontSize:'0.9rem', fontWeight:'normal', color:'#777'}}>/ {metaDiaAcumulada}</span>
                                         </p>
-                                        <div className="delta-container-rotwet" style={{color: deltaColor}}>
+                                        <div className="delta-container" style={{color: deltaColor, fontWeight:'bold', fontSize:'1.1rem', marginTop:'5px'}}>
                                             Delta: {deltaSigno}{delta}
                                         </div>
                                     </div>
-                                    <div className="total-dia-right-breakdown-rotwet">
-                                        <div className="breakdown-item-rotwet">
+                                    <div className="total-dia-right-breakdown">
+                                        <div className="breakdown-item">
                                             <span>T3:</span> <strong>{breakdown.t3}</strong>
                                         </div>
-                                        <div className="breakdown-item-rotwet">
+                                        <div className="breakdown-item">
                                             <span>T1:</span> <strong>{breakdown.t1}</strong>
                                         </div>
-                                        <div className="breakdown-item-rotwet">
+                                        <div className="breakdown-item">
                                             <span>T2:</span> <strong>{breakdown.t2}</strong>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="progress-bar-container-rotwet">
-                                    <div className="progress-bar-fill-rotwet" style={{ width: `${percentDia}%` }}></div>
+                                <div className="progress-bar-container-prod">
+                                    <div className="progress-bar-fill-prod" style={{ width: `${percentDia}%` }}></div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="medidor-rotwet-image">
+                        <div className="medidor-prod-image">
                             <img 
-                                src={diaStatusClass === 'status-good-rotwet' ? ZeroBien : ZeroMal} 
+                                src={diaStatusClass === 'status-good' ? ZeroBien : ZeroMal} 
                                 alt="Estado de Producción" 
-                                className="indicador-imagen-rotwet"
+                                className="indicador-imagen-prod"
                             />
                         </div>
 
@@ -651,8 +681,8 @@ const TablaProdRotorWet = () => {
                 </div>
             </div>
 
-            <section className="contenedorTabla-rotwet">
-                <table className="tablaProduccion-rotwet">
+            <section className="contenedorTabla-prod">
+                <table className="tablaProduccion-prod">
                     <caption>INFORMACIÓN DE PRODUCCIÓN</caption>
                     <thead>
                         <tr>
@@ -690,9 +720,9 @@ const TablaProdRotorWet = () => {
                             }
 
                             if (!isNaN(realNum) && realValDisplay !== '##' && realNum >= meta) {
-                                cellClass = "celda-cumplida-rotwet";
+                                cellClass = "celda-cumplida-prod";
                             } else if (isPastHour) {
-                                cellClass = "celda-no-cumplida-rotwet";
+                                cellClass = "celda-no-cumplida-prod";
                             }
 
                             const obsResumen = (currentEditable.detalles || []).length > 0 
@@ -711,7 +741,7 @@ const TablaProdRotorWet = () => {
                                         <input
                                             type="text"
                                             readOnly 
-                                            className="input-loss-clickable-rotwet"
+                                            className="input-loss-clickable-prod"
                                             style={{ width: '80px', textAlign: 'center', padding: '5px', borderRadius: '4px', border: '1px solid #ccc', cursor: 'pointer' }}
                                             value={currentEditable.perdidas > 0 ? `${currentEditable.perdidas} min` : ''}
                                             onClick={() => openLossModal(timeSlot)}
@@ -722,7 +752,7 @@ const TablaProdRotorWet = () => {
                                         <input
                                             type="text"
                                             readOnly
-                                            className="input-loss-clickable-rotwet"
+                                            className="input-loss-clickable-prod"
                                             style={{ width: '90%', padding: '5px', borderRadius: '4px', border: '1px solid #ccc', cursor: 'pointer' }}
                                             value={obsResumen}
                                             onClick={() => openLossModal(timeSlot)}
@@ -736,31 +766,31 @@ const TablaProdRotorWet = () => {
                 </table>
             </section>
 
-            <div className="div-btn-guardar-rotwet">
-                <button className="btnCambiarMeta-rotwet" onClick={openMetaModal}>Ajustar Meta</button>
-                <button className="btnGuardarTabla-rotwet" onClick={handleGuardar}>Guardar</button>
+            <div className="div-btn-guardar-prod">
+                <button className="btnCambiarMeta-prod" onClick={openMetaModal}>Ajustar Meta</button>
+                <button className="btnGuardarTablaProd" onClick={handleGuardar}>Guardar</button>
             </div>
 
             {isMetaModalOpen && (
-                <div className="modal-overlay-rotwet">
-                    <div className="modal-content-rotwet">
+                <div className="modal-overlay-prod">
+                    <div className="modal-content-prod">
                         <h3>Definir Meta por Hora</h3>
                         <p>Ingresa la nueva cantidad:</p>
-                        <input type="number" className="input-meta-modal-rotwet" value={tempMetaInput} onChange={(e) => setTempMetaInput(e.target.value)} />
-                        <div className="modal-actions-rotwet">
-                            <button className="btn-modal-cancel-rotwet" onClick={closeMetaModal}>Cancelar</button>
-                            <button className="btn-modal-confirm-rotwet" onClick={confirmNewMeta}>Aceptar</button>
+                        <input type="number" className="input-meta-modal-prod" value={tempMetaInput} onChange={(e) => setTempMetaInput(e.target.value)} />
+                        <div className="modal-actions-prod">
+                            <button className="btn-modal-cancel-prod" onClick={closeMetaModal}>Cancelar</button>
+                            <button className="btn-modal-confirm-prod" onClick={confirmNewMeta}>Aceptar</button>
                         </div>
                     </div>
                 </div>
             )}
 
             {isLossModalOpen && (
-                <div className="modal-overlay-rotwet">
-                    <div className="modal-content-large-rotwet">
+                <div className="modal-overlay-prod">
+                    <div className="modal-content-large-prod">
                         <h3>Registro de Eventos: {currentLossSlot}</h3>
                         <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                            <table className="loss-list-table-rotwet">
+                            <table className="loss-list-table-prod">
                                 <thead>
                                     <tr>
                                         <th style={{width: '80px'}}>Minutos</th>
@@ -775,7 +805,7 @@ const TablaProdRotorWet = () => {
                                             <td style={{fontWeight:'bold', color:'#D32F2F'}}>{item.minutos} min</td>
                                             <td>{item.motivo}</td>
                                             <td>{item.observacion}</td>
-                                            <td><button className="btn-delete-loss-rotwet" onClick={() => removeLossItem(idx)}>X</button></td>
+                                            <td><button className="btn-delete-loss-prod" onClick={() => removeLossItem(idx)}>X</button></td>
                                         </tr>
                                     ))}
                                     {tempLossList.length === 0 && (
@@ -784,17 +814,17 @@ const TablaProdRotorWet = () => {
                                 </tbody>
                             </table>
                         </div>
-                        <div className="total-display-rotwet">
+                        <div className="total-display-prod">
                             Total Pérdidas: {tempLossList.reduce((sum, item) => sum + (parseInt(item.minutos)||0), 0)} min
                         </div>
                         
-                        <div className="add-loss-form-rotwet">
-                            <div className="form-group-rotwet">
+                        <div className="add-loss-form-prod">
+                            <div className="form-group-prod">
                                 <label>Minutos:</label>
                                 <input type="number" placeholder="0" style={{width: '80px'}} value={newLossMinutos} onChange={(e) => setNewLossMinutos(e.target.value)} />
                             </div>
                             
-                            <div className="form-group-rotwet">
+                            <div className="form-group-prod">
                                 <label>Motivo:</label>
                                 <select 
                                     style={{width: '150px', padding:'8px', borderRadius:'4px', border:'1px solid #ccc'}}
@@ -832,16 +862,16 @@ const TablaProdRotorWet = () => {
                                 </select>
                             </div>
 
-                            <div className="form-group-rotwet" style={{flex:1}}>
+                            <div className="form-group-prod" style={{flex:1}}>
                                 <label>Descripción:</label>
                                 <input type="text" placeholder="Escribe la causa..." style={{width: '100%'}} value={newLossObs} onChange={(e) => setNewLossObs(e.target.value)} />
                             </div>
-                            <button className="btn-add-loss-rotwet" onClick={addLossItem}>Agregar</button>
+                            <button className="btn-add-loss-prod" onClick={addLossItem}>Agregar</button>
                         </div>
 
-                        <div className="modal-actions-rotwet" style={{marginTop: '10px'}}>
-                            <button className="btn-modal-cancel-rotwet" onClick={closeLossModal}>Cancelar</button>
-                            <button className="btn-modal-confirm-rotwet" onClick={saveLossesFromModal}>Aceptar</button>
+                        <div className="modal-actions-prod" style={{marginTop: '10px'}}>
+                            <button className="btn-modal-cancel-prod" onClick={closeLossModal}>Cancelar</button>
+                            <button className="btn-modal-confirm-prod" onClick={saveLossesFromModal}>Aceptar</button>
                         </div>
                     </div>
                 </div>
@@ -850,4 +880,4 @@ const TablaProdRotorWet = () => {
     );
 }
 
-export default TablaProdRotorWet;
+export default TablaProd;

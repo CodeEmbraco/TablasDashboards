@@ -3,18 +3,20 @@ import { useState } from 'react'
 import { Routes, Route } from "react-router-dom";
 import React from "react";
 import { ProductionProvider } from '@context/ProductionContext'
-import TablaElectronics from './Electronics/TablaElectronics';
-import SelectIdioma from './pages/SelectLanguage';
-import Login from './pages/Login';
-import Menu from './pages/Menu';
-import Dashboard from './pages/Dashboard';
-import TablaProdCdu from './CDU/TablaCDU';
-import TablaProdInsin from './Insinkerator/TablaInsinkerator';
-import TablaProdRotorWet from './RotorWet/TablaRotorWet';
-import TablaProdRotorIse from './RotorIse/TablaRotorISE';
-import TablaEnsamble from './Ensamble/TablaEnsamble';
-import TablaThermo from './Thermofisher/TablaThermo';
-import TablaECMFAN from './ECMFAN/TablaECMFAN';
+import TablaElectronics from './lines/Electronics/TablaElectronics';
+// import SelectIdioma from './pages/deprecated/SelectLanguage';
+// import Login from './pages/deprecated/Login';
+// import Menu from './pages/deprecated/Menu';
+// import Dashboard from './pages/deprecated/Dashboard';
+import TablaProdCdu from './lines/CDU/TablaCDU';
+import TablaProdInsin from './lines/Insinkerator/TablaInsinkerator';
+// import TablaProdRotorWet from './lines/RotorWet/TablaRotorWet';
+// import TablaProdRotorIse from './lines/RotorIse/TablaRotorISE';
+import TablaEnsamble from './lines/Ensamble/TablaEnsamble';
+import TablaThermo from './lines/Thermofisher/TablaThermo';
+import TablaECMFAN from './lines/ECMFAN/TablaECMFAN';
+import GlobalDashboard from './pages/GlobalDashboard';
+
 
 
 function App() {
@@ -27,13 +29,13 @@ function App() {
       <Route path="/TablaEnsamble" element={<TablaEnsamble />} />
       <Route path="/TablaThermo" element={<TablaThermo />} />
       <Route path="/TablaInsin" element={<TablaProdInsin />} />
-      <Route path="/TablaRotorWet" element={<TablaProdRotorWet />} />
-      <Route path="/TablaRotorIse" element={<TablaProdRotorIse />} />
+      {/* <Route path="/TablaRotorWet" element={<TablaProdRotorWet />} />
+      <Route path="/TablaRotorIse" element={<TablaProdRotorIse />} /> */}
       <Route path="/TablaECMFAN" element={<TablaECMFAN />} />
-      <Route path="/ElegirIdioma" element={<SelectIdioma />} />
+      {/* <Route path="/ElegirIdioma" element={<SelectIdioma />} />
       <Route path="/Login" element={<Login />} />
-      <Route path="/Menu" element={<Menu />} />
-      <Route path="/Dashboard" element={<Dashboard />} />
+      <Route path="/Menu" element={<Menu />} /> */}
+      <Route path="/Dashboard" element={<GlobalDashboard />} />
       <Route path="*" element={<TablaElectronics />} />
     </Routes>
     </ProductionProvider>
@@ -41,8 +43,4 @@ function App() {
   )
 }
 
-export default App
-
-/*
-
-*/
+export default App;

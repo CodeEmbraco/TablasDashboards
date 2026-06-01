@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { generateHourSlots, getFormattedDate } from '@utils/dateUtils';
 
-const getStorageKey = (fecha, turno) => `pending_losses_${fecha}_T${turno}`;
+const getStorageKey = (fecha, turno, lineNo) => `pending_losses_${fecha}_T${turno}_L${lineNo}`;
 
 export const useProductionData = (fecha, turno, metaPorHora, apiFunctions, lineNo = null) => {
     const [data, setData] = useState({
@@ -12,7 +12,7 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions, lineN
         loading: true,
         error: null
     }); 
-    const { postReport } = apiFunctions; // Destructure postReport here
+    const { postReport } = apiFunctions;
 
     const fetchAll = useCallback(async (isPoll = false) => {
         if (!isPoll) setData(prev => ({ ...prev, loading: true }));
@@ -27,8 +27,11 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions, lineN
                 apiFunctions.getTotalShiftDelta(fecha, lineNo)
             ]);
 
+// ... código anterior ...
             const slots = generateHourSlots(turno);
-            const localSaved = JSON.parse(localStorage.getItem(getStorageKey(fecha, turno))) || {};
+
+            // Pásale el lineNo a getStorageKey aquí:
+            const localSaved = JSON.parse(localStorage.getItem(getStorageKey(fecha, turno, lineNo))) || {};
 
             const unifiedRows = slots.map(slot => {
                 const hourInt = parseInt(slot.split(':')[0]);
@@ -72,7 +75,7 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions, lineN
 
     // Función para persistir cambios locales del modal
     const saveLocalLoss = (slot, totalMinutos, formattedString, detallesArray) => {
-        const key = getStorageKey(fecha, turno);
+        const key = getStorageKey(fecha, turno, lineNo);
         const currentLocal = JSON.parse(localStorage.getItem(key)) || {};
 
         currentLocal[slot] = {
@@ -82,18 +85,20 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions, lineN
         };
 
         localStorage.setItem(key, JSON.stringify(currentLocal));
-        fetchAll(true); // Refresco silencioso
+        fetchAll(true); 
     };
 
-    // Function to save report data to the database
+        // Function to save report data to the database
     const saveReportToDB = useCallback(async (reportData) => {
         try {
-            await postReport(reportData, lineNo); // Pasar lineNo aquí también
+            await postReport(reportData, lineNo); 
+            localStorage.removeItem(getStorageKey(fecha, turno, lineNo));
+            
         } catch (err) {
             console.error("Error saving report to DB:", err);
-            throw err; // Re-throw to be handled by the component
+            throw err; 
         }
-    }, [postReport, lineNo]);
+    }, [postReport, lineNo, fecha, turno]);
 
     useEffect(() => { // This useEffect should be after saveReportToDB definition if it uses it.
         const isToday = fecha === getFormattedDate();

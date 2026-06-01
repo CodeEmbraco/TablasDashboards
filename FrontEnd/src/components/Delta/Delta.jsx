@@ -9,8 +9,8 @@ const Delta = ({ total, accGoal, status, totalTurno, eficiencia, activeShifts = 
 
     const displayValue = Math.min(Math.max(eficiencia,0), 100);
     
-    console.log('totalTurno content:', totalTurno);
-    console.log('totalTurno length:', totalTurno?.length);
+    // console.log('totalTurno content:', totalTurno);
+    // console.log('totalTurno length:', totalTurno?.length);
     const shifts = [
         {id: '3', label: 'T3', value: totalTurno[2]?.CONTADOR ?? 0},
         {id: '1', label: 'T1', value: totalTurno[0]?.CONTADOR ?? 0},

@@ -1,5 +1,5 @@
 // React & Router
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 
 // Context & Hooks
@@ -55,6 +55,21 @@ const {
         saveReportToDB
     } = useProductionData(selectedDate, selectedShift, lineConfig.defaultMeta, apiConfig, lineNo);
 
+    // Efecto para sincronizar Supervisor y Líder cuando se cargan datos guardados de la DB
+    useEffect(() => {
+        if (tableItems && tableItems.length > 0) {
+            // Buscamos si algún item tiene información de supervisor/líder (proveniente de la consulta SQL con LINEA)
+            const savedData = tableItems.find(item => item.SUPERVISOR && item.SUPERVISOR !== '0');
+            if (savedData) {
+                setSupervisor(savedData.SUPERVISOR);
+                setLider(savedData.LIDER);
+            } else {
+                setSupervisor('0');
+                setLider('0');
+            }
+        }
+    }, [tableItems, lineNo, selectedShift]);
+
     const { metaAcumulada, metaTotalAcumulada, eficiencia, status } = useProductionMetrics(totalDia, config);
 
     // 5. Estados de Interfaz (UI)
@@ -83,14 +98,16 @@ const {
                     reportDataFlat.push({
                         Fecha: selectedDate, Turno: selectedShift, Hora_Slot: item.TIME_SLOT,
                         Supervisor: supervisor, Lider: lider, Modelo: item.MODELO,
-                        Perdidas: det.minutos, Observaciones: det.observacion, Motivo: det.motivo 
+                        Perdidas: det.minutos, Observaciones: det.observacion, Motivo: det.motivo,
+                        Linea: lineNo // Se incluye el parámetro LINEA del resultado de la consulta
                     });
                 });
             } else {
                 reportDataFlat.push({
                     Fecha: selectedDate, Turno: selectedShift, Hora_Slot: item.TIME_SLOT,
                     Supervisor: supervisor, Lider: lider, Modelo: item.MODELO,
-                    Perdidas: 0, Observaciones: '', Motivo: ''
+                    Perdidas: 0, Observaciones: '', Motivo: '',
+                    Linea: lineNo // Se incluye el parámetro LINEA del resultado de la consulta
                 });
             }
         });
