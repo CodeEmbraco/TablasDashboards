@@ -8,11 +8,14 @@ export const useLocalLineConfig = (lineId, initialDefaultMeta) =>{
         const parsed = saved ? JSON.parse(saved) : {};
 
         return {
-            defaultMeta: initialDefaultMeta,
             mealHour: null,
             customMetas: {},
             activeShifts: ['1', '2', '3'],
-            ...parsed
+            ...parsed,
+            // Forzamos el uso de la meta inicial definida en el código (linesConfig.jsx)
+            // para que los cambios del desarrollador tengan efecto inmediato y no se
+            // queden "atrapados" en el localStorage del navegador.
+            defaultMeta: initialDefaultMeta
         };
     });
     

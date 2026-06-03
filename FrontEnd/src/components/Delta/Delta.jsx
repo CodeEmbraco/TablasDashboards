@@ -17,7 +17,7 @@ const Delta = ({ total, accGoal, status, totalTurno, eficiencia, activeShifts = 
         {id: '2', label: 'T2', value: totalTurno[1]?.CONTADOR ?? 0}
     ];
 
-    console.log(shifts);
+    //console.log(shifts);
 
     return (
         <div className='medidor-card' style={{border: `3px solid ${deltaColor}`}}>

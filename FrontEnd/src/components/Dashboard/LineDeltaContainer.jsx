@@ -5,7 +5,7 @@ import { useLocalLineConfig } from '@hooks/useLocalLineConfig';
 import { getFormattedDate, getCurrentShift } from '@utils/dateUtils';
 import { calcularMetaDiaAcumulada } from '@utils/shiftUtils';
 
-const LineDeltaContainer = ({ lineConfig }) => {
+const LineDeltaContainer = ({ lineConfig, isLarge }) => {
     const uniqueLineId = lineConfig.lineNo 
         ? `${lineConfig.id}_${lineConfig.lineNo}` 
         : lineConfig.id;
@@ -106,45 +106,62 @@ const LineDeltaContainer = ({ lineConfig }) => {
         );
     }
 
-    // 2. ESTADO DE ERROR (Mantiene la estructura grid-item ante el error 500)
-    if (prodData.error) {
-        return (
-            <div className="grid-item dashboard-delta-error">
-                <div style={{ fontSize: '40px', marginBottom: '10px' }}>⚠️</div>
-                <div style={{ fontWeight: 'bolder', fontSize: '18px' }}>
-                    Sin conexión a BD
-                </div>
-                <div style={{ marginTop: '5px', fontWeight: 'bold' }}>
-                    {lineConfig.name}
-                </div>
-                <div style={{ fontSize: '12px', marginTop: '15px' }}>
-                    Reintentando en el próximo ciclo...
-                </div>
-            </div>
-        );
-    }
-
     // 3. RENDERIZADO EXITOSO
     return (
-        <div className="grid-item" style={{ borderTop: `8px solid ${deltaColor}` }}>
+        <div className="grid-item" style={{ 
+            borderTop: `8px solid ${deltaColor}`, 
+            height: '100%', 
+            display: 'flex', 
+            flexDirection: 'column',
+            padding: '10px',
+            boxSizing: 'border-box',
+            overflow: 'hidden',
+            position: 'relative' // Necesario para posicionar el spinner de reconexión
+        }}>
+            {/* CAPA DE CARGA POR ERROR: Aparece solo si hay error, permitiendo ver los datos previos de fondo */}
+            {prodData.error && (
+                <div style={{
+                    position: 'absolute',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(255, 255, 255, 0.6)', // Fondo semitransparente
+                    zIndex: 10,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    <div className="spinner"></div>
+                    <div style={{ color: '#666', marginTop: '15px', fontWeight: 'bold', fontSize: '14px' }}>
+                        Error de conexión. Reintentando...
+                    </div>
+                </div>
+            )}
+
             <div style={{
                 textAlign: 'center',
-                fontSize: '20px',
+                fontSize: isLarge ? '26px' : '20px', // Aumentamos levemente el título si es grande
                 fontWeight: 'bold',
                 padding: '5px'
             }}>
                 {lineConfig.name}
             </div>
             
-            <DashboardDelta 
-                total={produccionDiaAjustada} 
-                accGoal={metaAcumulada}
-                eficiencia={eficiencia}
-                activeShifts={config.activeShifts || []}
-                onToggleShift={toggleShift}
-                desgloseTurnos={prodData.desgloseTurnos}
-                imgURL={lineConfig.imgURL}
-            />
+            <div style={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+            }}>
+                <DashboardDelta 
+                    total={produccionDiaAjustada} 
+                    accGoal={metaAcumulada}
+                    eficiencia={eficiencia}
+                    activeShifts={config.activeShifts || []}
+                    onToggleShift={toggleShift}
+                    desgloseTurnos={prodData.desgloseTurnos}
+                    imgURL={lineConfig.imgURL}
+                />
+            </div>
         </div>
     );
 };

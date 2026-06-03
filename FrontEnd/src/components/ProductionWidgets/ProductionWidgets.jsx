@@ -10,8 +10,13 @@ import '@styles/global.css'
 const ProductionWidgets = ({ percent, statusClass, real, totalShift, goal, losses, enableAnimation }) => {
     const statusImage = statusClass === 'bueno' ? ZeroBien : ZeroMal;
     const lossesCircleValue = (( losses - 480)/480)*100 + 100;
-    console.log("lossesCircleValue - ",lossesCircleValue);
-    console.log("percent - ", percent);
+    const GaugePercent = percent > 100 ? 100 : percent;
+
+    //-------------------------------------------------------
+    //DEBUG
+    // console.log("lossesCircleValue - ",lossesCircleValue);
+    //console.log("percent - ", percent);
+    //-------------------------------------------------------
     return (
         <div className="medidores-container" >
             {/* Dona de Meta Acumulada */}
@@ -31,7 +36,7 @@ const ProductionWidgets = ({ percent, statusClass, real, totalShift, goal, losse
                 <div style={{ fontSize: '1.4rem', fontWeight: 'bold', marginTop: '5px' }}>REAL</div>
                 <div className="gauge-wrapper">
                     <GaugeChart 
-                        id="gauge-real" nrOfLevels={3} colors={["#EA4228", "#F5CD19", "#5BE12C"]} arcWidth={0.3} percent={percent/100} 
+                        id="gauge-real" nrOfLevels={3} colors={["#EA4228", "#F5CD19", "#5BE12C"]} arcWidth={0.3} percent={GaugePercent/100} 
                         textColor="#333" needleColor="#333" needleBaseColor="#333" hideText={true}
                         animate={enableAnimation} 
                     />

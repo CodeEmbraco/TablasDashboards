@@ -27,7 +27,7 @@ import LossModal from "@components/Modals/LossModals";
 // Estilos
 import '@styles/global.css';
 
-const TablaThermo = () => {
+const TablaEnsamble = () => {
     const { selectedDate, selectedShift, setSelectedDate, setSelectedShift } = useProduction();
     const lineConfig = LINES_CONFIG.thermo;
 
@@ -54,7 +54,17 @@ const {
         saveReportToDB
     } = useProductionData(selectedDate, selectedShift, lineConfig.defaultMeta, apiConfig);
 
-    const { metaAcumulada, metaTotalAcumulada, eficiencia, status } = useProductionMetrics(totalDia, config);
+    // Calculamos métricas específicas para el turno actual (lo que ven los Widgets)
+    const turnMetrics = useProductionMetrics(totalTurno, config);
+    
+    // Calculamos métricas globales para el día completo (lo que ve el componente Delta)
+    const dayMetrics = useProductionMetrics(totalDia, config);
+
+    //-----
+    //DEBUG
+    // console.log("Prodction Data:\n", tableItems, totalDia, totalTurno, turnoDelta);
+    // console.log("Production Metrics:\n", metaAcumulada, metaTotalAcumulada, eficiencia, status);
+    //-----
 
     // 5. Estados de Interfaz (UI)
     const [isManualOpen, setIsManualOpen] = useState(false);
@@ -103,11 +113,25 @@ const {
         }
     };
 
-    if (loading) return <div className="loading-screen"><p>Cargando información de producción...</p></div>;
-    if (error) return <div className="error-screen"><p>Error: {error}</p></div>;
+ // Renderizado alternativo SÓLO si es la primera carga y no hay datos en absoluto
+    if (loading && tableItems.length === 0) {
+        return <div className="loading-screen"><p>Cargando información de producción</p></div>;
+    }
 
     return (
         <div className="bodyTabla">
+            {/* NOTIFICACIONES DISCRETAS (FLOTANTES) */}
+            {loading && (
+                <div className="discreet-notification loading-toast">
+                    <span className="spinner-mini"></span> Sincronizando datos...
+                </div>
+            )}
+            
+            {error && (
+                <div className="discreet-notification error-toast">
+                    ⚠️ Conexión inestable. Mostrando datos locales.
+                </div>
+            )}
             <Header line={lineConfig.name}/>
 
             <div className="top-panel-container">
@@ -167,9 +191,9 @@ const {
                 </div>
 
                 <ProductionWidgets 
-                    percent={eficiencia}
-                    statusClass={status} 
-                    goal={metaAcumulada} 
+                    percent={turnMetrics.eficiencia}
+                    statusClass={turnMetrics.status} 
+                    goal={turnMetrics.metaAcumulada} 
                     real={totalTurno} 
                     losses={tableItems.reduce((acc, item) => acc + item.MINUTOS_PERDIDA, 0)} 
                     enableAnimation={true}
@@ -178,10 +202,10 @@ const {
                 <div style={{display:'flex', flexDirection:'column', gap:'20px'}}>
                     <Delta 
                         total={totalDia} 
-                        accGoal={metaTotalAcumulada} 
-                        status={status}
+                        accGoal={dayMetrics.metaTotalAcumulada} 
+                        status={dayMetrics.status}
                         totalTurno={turnoDelta}
-                        eficiencia={eficiencia}
+                        eficiencia={dayMetrics.eficiencia}
                         activeShifts={config.activeShifts}
                         onToggleShift={toggleShift}
                     />
@@ -222,4 +246,4 @@ const {
     );
 }
 
-export default TablaThermo;
+export default TablaEnsamble;

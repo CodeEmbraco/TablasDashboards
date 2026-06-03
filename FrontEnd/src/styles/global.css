@@ -2,26 +2,31 @@
     --nidec-lightgreen : #009b4a;
     --nidec-orange : #ea5a00;
     --embraco-teal : #008791;
-    --warning : #
+    --header-border : #fff;
+    --warning-message : #555555;
 }
 
 .bodyTabla {
     font-family: 'Poppins', sans-serif;
     background-color: #ffffff;
     color: #222;
-    min-height: 100vh;
-    width: 100%;
-    overflow: auto;
+    /* min-height: 100vh; */
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+    width: auto;
+    overflow: hidden;
 }
 
 .header {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 15px 0;
-    border-bottom: 3px solid var(--embraco-teal);
-    background-color: #f7f7f7;
+    padding: 20px 5px;
+    border-bottom: 3px solid var(--header-border);
+    background-color: var(--embraco-teal);
     position: relative;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
 }
 
 .logoTabla {
@@ -44,28 +49,31 @@
     color: #000000;
     letter-spacing: 2px;
     text-align: center;
-    border-bottom: 3px solid #008791;
+    /* border-bottom: 5px solid var(--nidec-lightgreen); */
+    border-bottom: 3px solid var(--header-border);
     display: inline-block;
     padding-bottom: 6px;
     margin: 0;
+    color: #fff
 }
 
 .lineSelect { 
     padding: 5px;
     border-radius: 4px;
     border: 1px solid #ccc;
+    background-color: var(--embraco-teal);
  }
 
 /* LAYOUT SUPERIOR */
 .top-panel-container {
     display: flex;
-    justify-content: flex-start; 
+    justify-content:space-around; 
     align-items: center; 
     width: 98%;
     margin: 10px auto 10px auto; 
     margin-left: 20px; 
     flex-wrap: nowrap;
-    gap: 30px; 
+    gap: 20px; 
     overflow-x: fixed;
 }
 
@@ -85,6 +93,22 @@
     display: flex;
     justify-content: flex-start;
     margin-bottom: 0;
+    background-color: var(--embraco-teal);
+    border-radius: 3px;
+    box-shadow: 0 6px 6px rgba(0,0,0,0.25);
+}
+
+.datosGenerales input, 
+.datosGenerales select {
+    padding: 6px 8px;
+    border-radius: 5px;
+    border: 2px solid;
+    width: 200px;
+    background-color: var(--embraco-teal);
+    color: #fff;
+    font-size: 1rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: bold;
 }
 
 .datosGenerales table {
@@ -96,11 +120,11 @@
     padding: 3px 5px;
     font-weight: 700;
     font-size: 1rem;
-    color: #222;
+    color: #fff;
     text-align: right;
 }
 
-.datosGenerales input, 
+/* .datosGenerales input, 
 .datosGenerales select {
     padding: 6px 8px;
     border-radius: 5px;
@@ -108,7 +132,8 @@
     background-color: #fff;
     width: 180px; 
     font-size: 0.95rem;
-}
+
+} */
 
 
 /* INDICADORES */
@@ -329,17 +354,17 @@
 
 .btn-manual{
     background-color: #ffffff;
-    color: #008791;
+    color: var(--nidec-orange);
     padding: 10px;
     cursor: pointer; 
     border-radius:12px; 
-    border-color:#008791;
+    border-color:var(--nidec-orange);
     font-weight:bold;
     font-size:large;
 }
 
 .btn-manual:hover{
-    background-color: #008791;
+    background-color: var(--nidec-orange);
     color: #ffffff;
     transition: 0.3s;
 }
@@ -375,9 +400,9 @@
 
 /* TABLA Y RESTO DEL CSS */
 .contenedorTabla { display: flex; justify-content: center; }
-.tablaProduccion { margin: 0 auto 30px auto; border-collapse: collapse; width: 90%; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-.tablaProduccion caption { font-size: 1.3rem; font-weight: 700; color: #008791; margin-bottom: 10px; letter-spacing: 1px; caption-side: top; text-align: center; }
-.tablaProduccion th { background-color: #008791; color: white; padding: 12px; font-weight: 600; border: 1px solid #0b6b3a; font-size: 1rem; }
+.tablaProduccion { margin: 0 auto 30px auto; border-collapse: collapse; width: 90%; box-shadow: 0 4px 12px #00000014; }
+.tablaProduccion caption { font-size: 1.3rem; font-weight: 700; color: var(--embraco-teal); margin-bottom: 10px; letter-spacing: 1px; caption-side: top; text-align: center; }
+.tablaProduccion th { background-color: var(--embraco-teal); color: white; padding: 12px; font-weight: 600; border: 2px solid #e0e0e0 ; font-size: 1rem; }
 .tablaProduccion td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 0.95rem; }
 .tablaProduccion tr:nth-child(even) { background-color: #f2f2f2; }
 .tablaProduccion tr:hover { background-color: #e9f5ec; transition: 0.3s; }
@@ -589,7 +614,7 @@
 .grid-item {
   background: white;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #aaa;
   display: flex;
   flex-direction: column;
   min-height: 280px;
@@ -639,8 +664,11 @@
 
 .total-dia-icon{
     width: 250px;
-    height: 250px; 
-    object-fit: scale-down; 
+    height: 250px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
 }
 
 .dashboard-delta-card {
@@ -655,8 +683,8 @@
 }
 
 .dashboard-delta-error{
-    border-top: 8px solid var(--embraco-teal);
-    background-color: color-mix(in srgb,var(--embraco-teal), #fff 40%);
+    border-top: 8px solid var(--warning-message);
+    background-color: color-mix(in srgb,var(--warning-message), #fff 40%);
     color: #fff;
     display: flex; 
     flex-direction: column; 
@@ -764,36 +792,157 @@
     animation: girar 1s linear infinite;
 }
 
-/* MODO QUIOSCO - FONDO GRIS CLARO */
+/* MODO QUIOSCO - LAYOUT */
 .global-dashboard-kiosk {
-    background-color: #e0e0e0; /* Gris claro solicitado */
+    background-color: #fff; 
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    font-family: 'Poppins', sans-serif;
 }
 
-/* ANIMACIÓN: DESLIZAMIENTO VERTICAL HACIA ABAJO (Delta Grande) */
-.slide-down-animation {
-    animation: slideDown 1s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+/* ANIMACIÓN 1: DESLIZAMIENTO VERTICAL HACIA ARRIBA (Deltas Grandes) */
+.slide-up-animation {
+    animation: slideUp 1s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
     height: 100%;
 }
 
-@keyframes slideDown {
-    0% { transform: translateY(-100%); opacity: 0; }
+@keyframes slideUp {
+    0% { transform: translateY(100%); opacity: 0; }
     100% { transform: translateY(0); opacity: 1; }
 }
 
-/* ANIMACIÓN: SCROLL HORIZONTAL CONTINUO A LA DERECHA (Deltas Pequeñas) */
-.marquee-track-right {
+/* ANIMACIÓN 2: SCROLL HORIZONTAL CONTINUO A LA IZQUIERDA (Deltas Pequeñas) */
+.marquee-track-left {
     display: flex;
     gap: 20px;
     height: 100%;
-    width:1250px;
-    /* Comienza a la mitad (oculto hacia la izquierda) y viaja a 0 (derecha) */
-    animation: scrollRight 60s linear infinite; 
+    width: max-content;
+    /* Inicia en 0 y viaja hacia la izquierda hasta la mitad exacta de la pista */
+    animation: scrollLeft 60s linear infinite; 
 }
 
-@keyframes scrollRight {
-    0% { transform: translateX(calc(-50% - 10px)); }
-    100% { transform: translateX(0); }
+@keyframes scrollLeft {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(calc(-50% - 10px)); }
+}
+
+/* Contenedor base de las alertas discretas */
+.discreet-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: fadeIn 0.3s ease;
+}
+
+/* Alerta de Carga */
+.loading-toast {
+    background-color: #e3f2fd;
+    color: #0d47a1;
+    border-left: 4px solid #1976d2;
+}
+
+/* Alerta de Error */
+.error-toast {
+    background-color: #ffebee;
+    color: #c62828;
+    border-left: 4px solid #d32f2f;
+}
+
+/* Spinner animado pequeño */
+.spinner-mini {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #1976d2;
+    border-bottom-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
+    animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================
+   ESTILOS PARA LA PANTALLA DE CARGA INICIAL
+   ========================================== */
+
+/* Contenedor principal que ocupa toda la pantalla */
+.loading-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100vh; /* Ocupa el 100% de la ventana del navegador */
+    background-color: #f4f6f9; /* Un fondo gris claro limpio e industrial */
+    gap: 24px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10000; /* Asegura que cubra todo en la primera carga */
+}
+
+/* El Spinner (Generado dinámicamente desde CSS) */
+.loading-screen::before {
+    content: "";
+    width: 60px;
+    height: 60px;
+    border: 5px solid #e2e8f0; /* Color del carril de fondo */
+    border-top: 5px solid var(--nidec-orange); /* Color del spinner */
+    border-radius: 50%;
+    animation: spin-loader 1s linear infinite;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Estilo del texto "Cargando información de producción..." */
+.loading-screen p {
+    color: #4a5568;
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    margin: 0;
+    font-family: system-ui, -apple-system, sans-serif;
+    animation: pulse-text 1.8s ease-in-out infinite; /* Suave efecto de respiración */
+}
+
+/* ------------------------------------------
+   ANIMACIONES
+   ------------------------------------------ */
+
+/* Giro de 360 grados para el spinner */
+@keyframes spin-loader {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Efecto de pulso atenuado para el texto */
+@keyframes pulse-text {
+    0%, 100% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
 }

@@ -26,7 +26,7 @@ const LineSelector = ({currentLineId}) => {
         <select 
             value={currentLineId} 
             onChange={handleChange} 
-            className='lineSelect'
+            // className='lineSelect'
         >
             {LINES.map(line => (
                 <option key={line.id} value={line.id}>

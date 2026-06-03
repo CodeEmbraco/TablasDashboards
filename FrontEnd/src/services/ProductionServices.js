@@ -39,7 +39,7 @@ const productionService =  {
         if (lineNo) params.lineNo = lineNo;
         const response = await api.get(`/${lineID}/reports`, { params });
         //DEBUG
-        console.log("QUE ES ESTO!?",response.data);
+        //console.log("QUE ES ESTO!?",response.data);
         return response.data;
     },
     

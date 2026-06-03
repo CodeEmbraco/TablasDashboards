@@ -150,7 +150,7 @@ router.post("/save", async(req, res) =>{
         res.status(200).json({ message: "Reporte guardado con desglose correctamente." });
 
     } catch (err) {
-        console.error("Error al guardar el reporte Ensamble:", err);
+        console.error("Error al guardar el reporte Electronics:", err);
         res.status(500).json({ error: "Error interno del servidor al guardar." });
     } finally {
         if (poolCIMA) {

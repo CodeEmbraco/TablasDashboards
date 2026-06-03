@@ -46,11 +46,15 @@ const Delta = ({ total, accGoal, eficiencia, activeShifts = [], onToggleShift, d
                     Delta: {deltaSign}{parseInt(deltaValue)}
                 </div>
             </div>
-            <div>
+            <div className='total-dia-icon'>
                 <img 
                     src={imgURL ? imgURL : zero} 
-                    alt="Line Icon" 
-                    className="total-dia-icon" 
+                    alt="Line Icon"
+                    style={{
+                        maxWidth: '100%', 
+                        maxHeight: '100%', 
+                        objectFit: 'contain' // LA MAGIA: Ajusta la imagen sin estirarla
+                    }}
                 />
             </div>
             <div className='turnos-breakdown-dashboard-delta'>
@@ -83,7 +87,7 @@ const Delta = ({ total, accGoal, eficiencia, activeShifts = [], onToggleShift, d
                                 }}>
                                 </div>
                             </div>
-                            <strong style={{ minWidth: '50px', textAlign: 'right', color: '#333' }}>{s.value}</strong>
+                            <strong style={{ minWidth: '25px', textAlign: 'center', color: '#333' }}>{s.value}</strong>
                         </div>
                     );
                 })}

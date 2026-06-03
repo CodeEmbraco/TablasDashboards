@@ -4,7 +4,7 @@ import electronicsImg from '@assets/materials/electronics.png';
 import insinkeratorImg from '@assets/materials/insinkerator.png';
 import ecmfanImg from '@assets/materials/ecmfan.png';
 //TODO: conseguir una imagen de thermofisher
-// import thermoImg from '@assets/materials/thermo.png';
+import thermoImg from '@assets/materials/thermo.png';
 //?Rotores se dejan on hold por el momento
 // import rotoriseImg from '@assets/materials/rotorise.png';
 // import rotorwetImg from '@assets/materials/rotorwet.png';
@@ -32,14 +32,14 @@ export const LINES_CONFIG = {
         defaultMeta: 3,
         supervisors: ["Pablo Muñoz"],
         leaders: ["Jesús Hernández", "Jose Vasquez"],
-        //imgURL: thermoImg
+        imgURL: thermoImg
     },
     electronics:{
         name: "ELECTRONICS",
         id: "electronics",
         defaultMeta: 180,
         supervisors: ["Alfredo Martínez"],
-        leaders: ["Jose Rojas", "Brenda Barrón", "Basilia Martin"],
+        leaders: ["Brenda Barrón", "Basilia Martin"],
         imgURL: electronicsImg
     },
     insinkerator:{
@@ -47,7 +47,7 @@ export const LINES_CONFIG = {
         id: "insi",
         defaultMeta: 140,
         supervisors: ["Hugo Zapata"],
-        leaders: ["Cesar Rangel", "Jorge Carrizales", "Gerardo Sánchez", "Rosa Navarro"],
+        leaders: ["Cesar Rangel", "Jorge Carrizales", "Gerardo Sánchez", "Rosa Navarro", "Juan Flores", "Patricio Rico", "Eva Morales", "Jesús Arias"],
         imgURL: insinkeratorImg
     },
     // rotorise:{
