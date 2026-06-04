@@ -24,7 +24,7 @@
     justify-content: center;
     padding: 20px 5px;
     border-bottom: 3px solid var(--header-border);
-    background-color: var(--embraco-teal);
+    background-color: var(--nidec-lightgreen);
     position: relative;
     box-shadow: 0 4px 6px rgba(0,0,0,0.15);
 }
@@ -61,7 +61,7 @@
     padding: 5px;
     border-radius: 4px;
     border: 1px solid #ccc;
-    background-color: var(--embraco-teal);
+    background-color: var(--nidec-lightgreen);
  }
 
 /* LAYOUT SUPERIOR */
@@ -93,8 +93,9 @@
     display: flex;
     justify-content: flex-start;
     margin-bottom: 0;
-    background-color: var(--embraco-teal);
-    border-radius: 3px;
+    /* background-color: var(--nidec-lightgreen); */
+    border: 2px solid var(--nidec-lightgreen);
+    border-radius: 5px;
     box-shadow: 0 6px 6px rgba(0,0,0,0.25);
 }
 
@@ -104,7 +105,7 @@
     border-radius: 5px;
     border: 2px solid;
     width: 200px;
-    background-color: var(--embraco-teal);
+    background-color: var(--nidec-lightgreen);
     color: #fff;
     font-size: 1rem;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -120,21 +121,13 @@
     padding: 3px 5px;
     font-weight: 700;
     font-size: 1rem;
-    color: #fff;
+    color: #000;
     text-align: right;
 }
 
-/* .datosGenerales input, 
-.datosGenerales select {
-    padding: 6px 8px;
-    border-radius: 5px;
-    border: 1.5px solid #ccc;
-    background-color: #fff;
-    width: 180px; 
-    font-size: 0.95rem;
-
-} */
-
+.datosGenerales option {
+    font-weight : bold;
+}
 
 /* INDICADORES */
 
@@ -401,8 +394,8 @@
 /* TABLA Y RESTO DEL CSS */
 .contenedorTabla { display: flex; justify-content: center; }
 .tablaProduccion { margin: 0 auto 30px auto; border-collapse: collapse; width: 90%; box-shadow: 0 4px 12px #00000014; }
-.tablaProduccion caption { font-size: 1.3rem; font-weight: 700; color: var(--embraco-teal); margin-bottom: 10px; letter-spacing: 1px; caption-side: top; text-align: center; }
-.tablaProduccion th { background-color: var(--embraco-teal); color: white; padding: 12px; font-weight: 600; border: 2px solid #e0e0e0 ; font-size: 1rem; }
+.tablaProduccion caption { font-size: 1.3rem; font-weight: 700; color: var(--nidec-lightgreen); margin-bottom: 10px; letter-spacing: 1px; caption-side: top; text-align: center; }
+.tablaProduccion th { background-color: var(--nidec-lightgreen); color: white; padding: 12px; font-weight: 600; border: 2px solid #e0e0e0 ; font-size: 1rem; }
 .tablaProduccion td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 0.95rem; }
 .tablaProduccion tr:nth-child(even) { background-color: #f2f2f2; }
 .tablaProduccion tr:hover { background-color: #e9f5ec; transition: 0.3s; }

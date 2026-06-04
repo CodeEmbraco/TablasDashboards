@@ -24,7 +24,7 @@ export const sqlConfig = {
     database: process.env.MSSQL_DATABASE,
     server: process.env.MSSQL_SERVER,
     pool: {
-        max: 10,
+        max: 20,
         min: 0,
         idleTimeoutMillis: 30000
     },
@@ -41,7 +41,7 @@ export const sqlConfigCIMA = {
     database: process.env.CIMA_DATABASE,
     server: process.env.CIMA_SERVER,
     pool: {
-        max: 10,
+        max: 20,
         min: 0,
         idleTimeoutMillis: 30000
     },
@@ -58,7 +58,7 @@ export const sqlConfigINSI = {
     database: process.env.INSI_DATABASE,
     server: process.env.INSI_SERVER,
     pool: {
-        max: 10,
+        max: 20,
         min: 0,
         idleTimeoutMillis: 30000
     },
@@ -75,7 +75,7 @@ export const sqlConfigFAN = {
     database: process.env.FAN_DATABASE,
     server: process.env.FAN_SERVER,
     pool: {
-        max: 10,
+        max: 20,
         min: 0,
         idleTimeoutMillis: 30000
     },

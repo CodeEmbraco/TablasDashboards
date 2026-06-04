@@ -25,7 +25,7 @@ const GlobalDashboard = () => {
         if (lineasProcesadas.length === 0) return;
         const interval = setInterval(() => {
             setActiveIndex((prevIndex) => (prevIndex + 2) % lineasProcesadas.length);
-        }, 20000); 
+        }, 60 * 1000); 
 
         return () => clearInterval(interval);
     }, [lineasProcesadas.length]);
@@ -33,7 +33,11 @@ const GlobalDashboard = () => {
     // Extraer las dos líneas enfocadas correspondientes
     const focusedLine1 = lineasProcesadas[activeIndex];
     // Aseguramos que si estamos en la última línea impar, la segunda compañera sea la número 0
-    const focusedLine2 = lineasProcesadas[(activeIndex + 1) % lineasProcesadas.length];
+    const nextIndex = (activeIndex + 1) % lineasProcesadas.length;
+    const focusedLine2 = lineasProcesadas[nextIndex];
+
+    // Filtrar las líneas para el carrusel inferior (excluir las que tienen el focus arriba)
+    const lineasCarousel = lineasProcesadas.filter((_, idx) => idx !== activeIndex && idx !== nextIndex);
 
     const cardStyleSmall = { flex: '0 0 auto', weight:'600px', height: '100%' };
 
@@ -46,7 +50,7 @@ const GlobalDashboard = () => {
                     display: 'flex', 
                     flexDirection: 'column', 
                     gap: '20px', 
-                    padding: '10px', 
+                    // padding: '10px', 
                     boxSizing: 'border-box', 
                     overflow: 'hidden',
                     justifyContent: 'center',
@@ -54,7 +58,7 @@ const GlobalDashboard = () => {
                 }}>
                 
                 {/* SECCIÓN SUPERIOR: 2 DELTAS GRANDES (60%) */}
-                <div style={{ flex: '0 0 60%', display: 'flex', gap: '20px', overflow: 'hidden' }}>
+                <div style={{ flex: '0 0 60%', display: 'flex', gap: '20px', padding: '10px',  overflow: 'hidden' }}>
                     
                     {/* Primera Delta Enfocada */}
                     {focusedLine1 && (
@@ -72,18 +76,18 @@ const GlobalDashboard = () => {
                 </div>
 
                 {/* SECCIÓN INFERIOR: CARRUSEL HACIA LA IZQUIERDA (40%) */}
-                <div style={{ flex: '0 0 calc(40% - 20px)', overflow: 'hidden', position: 'relative' }}>
+                <div style={{ flex: '0 0 calc(40% - 20px)', paddingBottom:'10px', overflow: 'hidden', position: 'relative' }}>
                     <div className="marquee-track-left">
                         
                         {/* Bloque Original de todas las líneas */}
-                        {lineasProcesadas.map((lineaConfig, idx) => (
+                        {lineasCarousel.map((lineaConfig, idx) => (
                             <div key={`bot1_${lineaConfig.id}_${lineaConfig.lineNo || '0'}_${idx}`} style={cardStyleSmall}>
                                 <LineDeltaContainer lineConfig={lineaConfig} isLarge={false} />
                             </div>
                         ))}
                         
                         {/* Bloque Duplicado para efecto infinito */}
-                        {lineasProcesadas.map((lineaConfig, idx) => (
+                        {lineasCarousel.map((lineaConfig, idx) => (
                             <div key={`bot2_${lineaConfig.id}_${lineaConfig.lineNo || '0'}_${idx}`} style={cardStyleSmall}>
                                 <LineDeltaContainer lineConfig={lineaConfig} isLarge={false} />
                             </div>

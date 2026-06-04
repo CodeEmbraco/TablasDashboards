@@ -1,6 +1,5 @@
 // React & Router
 import React, { useState, useMemo, useEffect } from "react";
-import { useNavigate } from 'react-router-dom';
 
 // Context & Hooks
 import { useProduction } from '@context/ProductionContext';
@@ -145,8 +144,8 @@ const {
                     ⚠️ Conexión inestable. Mostrando datos locales.
                 </div>
             )}
-            <Header line={lineConfig.name}/>
-
+            {/* <Header line={lineConfig.name}/> */}
+            <Header line={`${lineConfig.name} - L${lineNo}`}/>
             <div className="top-panel-container">
                 <div className="panel-left">
                     <section className="datosGenerales">
@@ -169,7 +168,7 @@ const {
                                             value={selectedShift} 
                                             onChange={(e) => setSelectedShift(e.target.value)}
                                         >
-                                            <option value="0" disabled>--Selecciona--</option>
+                                            {/* <option value="0" disabled>--Selecciona--</option> */}
                                             <option value="1">1</option>
                                             <option value="2">2</option>
                                             <option value="3">3</option>

@@ -15,7 +15,7 @@ const Header = ({line}) =>{
                     <h2 className="tituloPrincipal">LINEAS DE PRODUCCION: GA COLD MX</h2>
                 )
             }
-            {/* <img src={Zero} alt="Zero Productividad" className="logoZero" /> */}
+            <img src={Zero} alt="Zero Productividad" className="logoZero" />
         </header>
     );
 };

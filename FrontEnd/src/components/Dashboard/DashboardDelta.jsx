@@ -6,7 +6,8 @@ const Delta = ({ total, accGoal, eficiencia, activeShifts = [], onToggleShift, d
     const deltaSign = deltaValue >= 0 ? "+" : "";
 
     // Lógica de color: Verde (>=100%), Amarillo (90-99%), Rojo (<90%)
-    const deltaColor = eficiencia >= 100 ? '#4caf50' : (eficiencia >= 90 ? '#fbc02d' : '#ea5a00');
+    // Si no hay turnos activos, forzamos gris para no mostrar un estado "crítico" erróneo
+    const deltaColor = activeShifts.length === 0 ? '#4caf50' : (eficiencia >= 100 ? '#4caf50' : (eficiencia >= 90 ? '#fbc02d' : '#ea5a00'));
 
     const displayValue = Math.min(Math.max(eficiencia,0), 100);
     

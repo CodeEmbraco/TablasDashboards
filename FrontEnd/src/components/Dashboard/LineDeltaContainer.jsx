@@ -27,6 +27,7 @@ const LineDeltaContainer = ({ lineConfig, isLarge }) => {
 
     useEffect(() => {
         let isMounted = true;
+        let timeoutId = null;
 
         const fetchData = async () => {
             try {
@@ -46,21 +47,24 @@ const LineDeltaContainer = ({ lineConfig, isLarge }) => {
                         loading: false,
                         error: null
                     });
+                    // ÉXITO: Programamos la siguiente actualización normal en 60 segundos
+                    timeoutId = setTimeout(fetchData, 60000);
                 }
             } catch (error) {
                 console.error(`Error al cargar datos para ${lineConfig.name}:`, error);
                 if (isMounted) {
                     setProdData(prev => ({ ...prev, loading: false, error: 'Error de conexión' }));
+                    // ERROR: Iniciamos un ciclo de reintento rápido (10 segundos)
+                    timeoutId = setTimeout(fetchData, 10000);
                 }
             }
         };
 
         fetchData();
-        const intervalId = setInterval(fetchData, 60000);
 
         return () => {
             isMounted = false;
-            clearInterval(intervalId);
+            if (timeoutId) clearTimeout(timeoutId);
         };
     }, [lineConfig.id, lineConfig.lineNo, today, turnoActual]);
 
@@ -85,7 +89,9 @@ const LineDeltaContainer = ({ lineConfig, isLarge }) => {
     );
     
     const eficiencia = metaAcumulada > 0 ? (produccionDiaAjustada / metaAcumulada) * 100 : 0;
-    const deltaColor = eficiencia >= 100 ? '#4caf50' : (eficiencia >= 90 ? '#fbc02d' : '#ea5a00');
+
+    const noShiftsActive = config.activeShifts.length === 0;
+    const deltaColor = noShiftsActive ? '#4caf50' : (eficiencia >= 100 ? '#4caf50' : (eficiencia >= 90 ? '#fbc02d' : '#ea5a00'));
 
     // 1. ESTADO DE CARGA (Mantiene la estructura grid-item)
     if (prodData.loading) {
@@ -99,7 +105,9 @@ const LineDeltaContainer = ({ lineConfig, isLarge }) => {
                 minHeight: '280px'
             }}>
                 <div className="spinner"></div>
-                <div style={{ color: '#888', marginTop: '15px', fontWeight: 'bold' }}>
+                <div style={{ color: '#888', marginTop: '15px', fontWeight: 'bold',
+                    width : isLarge ? '100%' : '600px'
+                }}>
                     Conectando con {lineConfig.name}...
                 </div>
             </div>
@@ -110,6 +118,7 @@ const LineDeltaContainer = ({ lineConfig, isLarge }) => {
     return (
         <div className="grid-item" style={{ 
             borderTop: `8px solid ${deltaColor}`, 
+            // borderRight: `8px solid ${deltaColor}`, 
             height: '100%', 
             display: 'flex', 
             flexDirection: 'column',
@@ -118,22 +127,20 @@ const LineDeltaContainer = ({ lineConfig, isLarge }) => {
             overflow: 'hidden',
             position: 'relative' // Necesario para posicionar el spinner de reconexión
         }}>
-            {/* CAPA DE CARGA POR ERROR: Aparece solo si hay error, permitiendo ver los datos previos de fondo */}
+            {/* INDICADOR DE REINTENTO: Spinner en la esquina superior derecha si falla la conexión */}
             {prodData.error && (
-                <div style={{
+                <div title="Sin conexión - Reintentando..." style={{
                     position: 'absolute',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(255, 255, 255, 0.6)', // Fondo semitransparente
-                    zIndex: 10,
+                    top: '10px',
+                    right: '10px',
+                    zIndex: 100,
                     display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center'
+                    backgroundColor: 'white',
+                    borderRadius: '50%',
+                    padding: '4px',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                 }}>
-                    <div className="spinner"></div>
-                    <div style={{ color: '#666', marginTop: '15px', fontWeight: 'bold', fontSize: '14px' }}>
-                        Error de conexión. Reintentando...
-                    </div>
+                    <div className="spinner" style={{ width: '18px', height: '18px', borderWidth: '3px', borderLeftColor: '#d32f2f' }}></div>
                 </div>
             )}
 
