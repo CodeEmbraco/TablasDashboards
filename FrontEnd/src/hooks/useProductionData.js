@@ -35,7 +35,11 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions, lineN
 
             const unifiedRows = slots.map(slot => {
                 const hourInt = parseInt(slot.split(':')[0]);
-                const prodRow = dataByHour.find(p => Number(p.Hora || p.hora) === hourInt) || {};
+                const prodRow = dataByHour.find(p => {
+                    const h = p.Hora ?? p.hora ?? p.HoraBD;
+                    return (h !== undefined && Number(h) === hourInt) || p.time_slot === slot;
+                }) || {};
+
                 const localChange = localSaved[slot];
 
                 const dbLosses = reporteDia.filter(r => (r.time_slot || r.Hora_Slot || r.hora_slot) === slot);
