@@ -1,8 +1,7 @@
 import express from "express";
 import axios from 'axios';
 import sql from "mssql";
-import { sqlConfigCIMA } from "../config/dbConnections.js"
-
+import { poolCIMA } from '../config/dbConnections.js';
 const router = express.Router();
 
 //? ----------------------
@@ -41,13 +40,11 @@ router.get("/register_data", async (req, res) => {
         turno = 3; // 11:00 PM - 5:59 AM
     }
 
-    //*Abrimos una conexion con CIMA
-    let pool = await sql.connect(sqlConfigCIMA);
     try {
         //*Comprobamos que datos estamos recibiendo del Front
         console.log("counter:\t", counter,"\n","product_id:\t", product_id, "\n","fecha:\t", queryDate,"\n","turno:\t", turno);
         //*Mandaremos el contador, el modelo/product id, la hora de la consulta se hara directamente en el insert
-        const result = await pool.request()
+        const result = await poolCIMA.request()
         .input("COUNTER", sql.Int, counter)
         .input("PRODUCT_ID", sql.VarChar, product_id)
         .input("FECHA", sql.Date, queryDate)
@@ -59,60 +56,93 @@ router.get("/register_data", async (req, res) => {
     catch(err){
         console.error("Error al conectar con SQL Server:", err);
         res.status(500).json({ success: false, message: 'An internal server error occurred' });
-    }finally {
-        if (pool) {
-            await pool.close();
-        }
     }
 });
 
 router.get("/get_cima_data", async (req, res) => {
-    //*Abrimos una conexion con CIMA
-    let pool = await sql.connect(sqlConfigCIMA);
     try {
         //*Se hace la consulta de la info de la tabla de registros de Pre-Ensamble
-        const result = await pool.request().execute("preEnsam_sp_query");
+        const result = await poolCIMA.request().execute("preEnsam_sp_query");
 
         res.json(result.recordset);
     } catch (error) {
         res.status(500).send('Error al obtener los datos');
-    }finally {
-        if (pool) {
-            await pool.close();
-        }
     }
 });
 
 router.get("/hourly", async (req, res) => {
     const {fecha, turno} = req.query;
-    //*Abrimos una conexion con CIMA
-    let pool = await sql.connect(sqlConfigCIMA);
+
+    //DEBUG---------------
+    // console.log("Entre a hourly!");
+    // console.log("fecha:\t", fecha,"\nturno:\t", turno);
+    //--------------------
     try {
         //*Se hace la consulta de la info de la tabla de registros de Pre-Ensamble
-        const result = await pool.request()
+        const hourly_production = await poolCIMA.request()
         .input("FECHA", sql.Date, fecha)
         .input("TURNO", sql.Int, turno)
         .execute("preEnsam_sp_prodByHour");
 
-        res.json(result.recordset);
+        //DEBUG---------------
+        // console.log("Pasó la consulta de ensamble!");
+        //--------------------
+
+        const hourly_goals = await poolCIMA.request()
+        .input("LineId", sql.VarChar(20), "preensamble")
+        .input("Fecha", sql.Date, fecha)
+        .input("Turno", sql.Int, turno)
+        .execute("SP_OBTENER_METAS_EFECTIVAS");
+
+        //DEBUG---------------
+        //console.log("Pasó la consulta de metas!");
+        //-------
+        
+        const production_data = hourly_production.recordset;
+        const goals_data = hourly_goals.recordset;
+        
+        //DEBUG---------------
+        // console.log("production_data!\n", production_data);
+        // console.log("goals_data!\n",goals_data);
+        //--------------------
+
+        const final_result = goals_data.map(m =>{
+            const HoraInicioSlot = parseInt(m.Hora_Slot.split(':')[0], 10);
+            const ProduccionDeEstaHora = production_data.find(p => p.Hora === HoraInicioSlot);
+
+            //DEBUG---------------
+            // console.log("HoraInicioSlot!", HoraInicioSlot);
+            // console.log("ProduccionDeEstaHora!",ProduccionDeEstaHora);
+            // console.log("MetaEfectiva!",m.MetaEfectiva);
+            // console.log("---------------------------------")
+            //--------------------
+            
+            return {
+                Hora: HoraInicioSlot,
+                ProduccionTotal: ProduccionDeEstaHora ? ProduccionDeEstaHora.ProduccionTotal : 0, 
+                Modelos: ProduccionDeEstaHora ? ProduccionDeEstaHora.Modelos : "",
+                MetaEfectiva: m.MetaEfectiva,
+            };
+        });
+
+        //DEBUG---------------
+        //console.log("Final Result, hourly:  \n", final_result);
+        //--------------------
+        
+        res.json(final_result);
 
     } catch (error) {
+        console.error(error);
         res.status(500).send('Error al obtener los datos');
-    }finally {
-        if (pool) {
-            await pool.close();
-        }
     }
 });
 
 
 router.get("/total-day", async (req, res) => {
     const {fecha} = req.query;
-    //*Abrimos una conexion con CIMA
-    let pool = await sql.connect(sqlConfigCIMA);
     try {
         //*Se hace la consulta de la info de la tabla de registros de Pre-Ensamble
-        const result = await pool.request()
+        const result = await poolCIMA.request()
         .input("FECHA", sql.Date, fecha)
         .execute("preEnsam_sp_totalProdByDate");
 
@@ -121,54 +151,65 @@ router.get("/total-day", async (req, res) => {
 
     } catch (error) {
         res.status(500).send('Error al obtener los datos');
-    }finally {
-        if (pool) {
-            await pool.close();
-        }
     }
 });
 
 router.get("/total-shift", async (req, res) => {
     const { fecha } = req.query;
-    let pool;
 
     try {
-        pool = await sql.connect(sqlConfigCIMA);
+        const conexionCIMA = await poolCIMA;
 
-        const result = await pool.request()
+        // 1. Obtener producción real por turno
+        const result = await conexionCIMA.request()
             .input("FECHA", sql.Date, fecha)
             .execute("preEnsam_sp_queryByDateAndShift");
-
         const rows = result.recordset;
 
+        // 2. Obtener las metas de todos los turnos para esa fecha
         const turnosRequeridos = [1, 2, 3];
-        const dataFinal = turnosRequeridos.map(idTurno => {
-            // Buscamos si el turno existe en los resultados de la DB
+        
+        const dataFinal = await Promise.all(turnosRequeridos.map(async (idTurno) => {
+            // Consulta las metas para este turno específico
+            const metas = await poolCIMA.request()
+                .input("LineId", sql.VarChar(20), "preensamble")
+                .input("Fecha", sql.Date, fecha)
+                .input("Turno", sql.Int, idTurno)
+                .execute("SP_OBTENER_METAS_EFECTIVAS");
+
+            // Sumamos las metas de todas las horas de este turno
+            const totalMetaTurno = metas.recordset.reduce((acc, curr) => acc + (curr.MetaEfectiva || 0), 0);
+
+            // Buscamos producción real
             const registro = rows.find(r => r.TURNO === idTurno);
 
-            // Si existe, lo usamos. Si no, creamos el objeto con CONTADOR 0
-            return registro ? registro : { CONTADOR: 0, TURNO: idTurno };
-        });
+            //--DEBUG------------------------
+            //console.log("TURNO: ",idTurno,"| CONTADOR:", registro.CONTADOR, "| META: ", totalMetaTurno);
+            //-------------------------------
+
+            return {
+                TURNO: idTurno,
+                CONTADOR: registro ? registro.CONTADOR : 0,
+                MetaEfectivaTurno: totalMetaTurno // Nueva columna con la meta sumada
+            };
+        }));
+
+        //--DEBUG------------------------
+        //console.log("dataFinal: ", dataFinal);
+        //-------------------------------
 
         res.json(dataFinal);
 
     } catch (error) {
-        console.error(error);
+        console.error("Error en /total-shift:", error);
         res.status(500).send('Error al obtener los datos');
-    } finally {
-        if (pool) {
-            await pool.close();
-        }
     }
 });
 
 router.get("/shift", async(req,res) => {
     const { fecha, turno } = req.query;
-    //console.log("^backend^ fecha: ", fecha, "\nturno: ", turno);
-    let pool;
     try{
-        pool = await sql.connect(sqlConfigCIMA);
-        const result = await pool.request()
+        const result = await poolCIMA.request()
         .input("FECHA", sql.Date, fecha)
         .input("TURNO", sql.Int, turno)
         .execute("preEnsam_sp_ShiftTotalByDate");
@@ -180,23 +221,15 @@ router.get("/shift", async(req,res) => {
         console.log(err);
         res.status(500).send('Error al obtener los datos');
     }
-    finally{
-        if(pool){
-            await pool.close;
-        }
-    }
 });
 
 router.post("/save", async(req, res) =>{
-    let poolCIMA;
     try {
         const reportData = req.body;
 
         if (!Array.isArray(reportData) || reportData.length === 0) {
             return res.status(400).json({ error: "Datos de reporte inválidos o vacíos." });
         }
-
-        poolCIMA = new sql.ConnectionPool(sqlConfigCIMA);
         await poolCIMA.connect();
 
         const dataPorHora = {};
@@ -259,13 +292,7 @@ router.get("/reports", async (req, res) => {
     if (!fecha || !turno) {
         return res.status(400).json({ error: "Faltan parámetros fecha o turno" });
     }
-
-    let poolCIMA;
-
     try {
-        poolCIMA = new sql.ConnectionPool(sqlConfigCIMA);
-        await poolCIMA.connect();
-
         const query = `
             SELECT
                 HORA as time_slot,
@@ -291,10 +318,6 @@ router.get("/reports", async (req, res) => {
     } catch (err) {
         console.error("Error al consultar historial Pre-Ensamble:", err);
         res.status(500).json({ error: "Error al consultar la base de datos CIMA." });
-    } finally {
-        if (poolCIMA) {
-            await poolCIMA.close();
-        }
     }
 });
 

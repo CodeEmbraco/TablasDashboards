@@ -2,7 +2,7 @@ import React from 'react';
 import ProductionRow from "@components/ProductionRow/ProductionRow";
 import '@styles/global.css';
 
-const ProductionTable = ({ items, onOpenModal, caption, localConfig, onUpdateMeta, onSetMeal }) => {
+const ProductionTable = ({ items, onOpenModal, caption, localConfig, onSetMeal }) => {
     console.log("localConfig", localConfig);
     return (
         <section className="contenedorTabla">
@@ -23,12 +23,10 @@ const ProductionTable = ({ items, onOpenModal, caption, localConfig, onUpdateMet
                     {items.length > 0 ? (
                         items.map((row) => (
                             <ProductionRow 
-                                key={row.TIME_SLOT} 
+                                key={row.HORA} 
                                 row={row}
                                 onOpenModal={onOpenModal}
-                                isMealHour={localConfig.mealHour === row.TIME_SLOT}
-                                customMeta={localConfig.customMetas[row.TIME_SLOT]}
-                                onUpdateMeta={onUpdateMeta}
+                                isMealHour={localConfig.mealHour === row.HORA}
                                 onSetMeal={onSetMeal}
                             />
                         ))

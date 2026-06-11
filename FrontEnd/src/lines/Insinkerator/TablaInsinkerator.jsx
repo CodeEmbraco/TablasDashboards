@@ -47,7 +47,8 @@ const {
         tableItems, 
         totalDia,  
         totalTurno,
-        turnoDelta,
+        metaTurnoDB,
+        totalDelta,
         loading, 
         error, 
         saveLocalLoss,
@@ -70,10 +71,10 @@ const {
     }, [tableItems, lineNo, selectedShift]);
 
     // Calculamos métricas específicas para el turno actual (lo que ven los Widgets)
-    const turnMetrics = useProductionMetrics(totalTurno, config);
+    const turnMetrics = useProductionMetrics(totalTurno, config, metaTurnoDB, totalDelta);
     
     // Calculamos métricas globales para el día completo (lo que ve el componente Delta)
-    const dayMetrics = useProductionMetrics(totalDia, config);
+    const dayMetrics = useProductionMetrics(totalDia, config, null, totalDelta);
 
 
     // 5. Estados de Interfaz (UI)
@@ -226,7 +227,7 @@ const {
                         total={totalDia} 
                         accGoal={dayMetrics.metaTotalAcumulada} 
                         status={dayMetrics.status}
-                        totalTurno={turnoDelta}
+                        totalTurno={totalDelta}
                         eficiencia={dayMetrics.eficiencia}
                         activeShifts={config.activeShifts}
                         onToggleShift={toggleShift}

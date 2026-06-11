@@ -3,7 +3,6 @@ import cduImg from '@assets/materials/cdu.png';
 import electronicsImg from '@assets/materials/electronics.png';
 import insinkeratorImg from '@assets/materials/insinkerator.png';
 import ecmfanImg from '@assets/materials/ecmfan.png';
-//TODO: conseguir una imagen de thermofisher
 import thermoImg from '@assets/materials/thermo.png';
 //?Rotores se dejan on hold por el momento
 // import rotoriseImg from '@assets/materials/rotorise.png';

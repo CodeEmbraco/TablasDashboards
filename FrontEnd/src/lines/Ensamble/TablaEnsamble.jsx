@@ -31,7 +31,8 @@ const TablaEnsamble = () => {
     const { selectedDate, selectedShift, setSelectedDate, setSelectedShift } = useProduction();
     const lineConfig = LINES_CONFIG.preensamble;
 
-    const { config, setMealHour, setCustomMeta, toggleShift} = useLocalLineConfig(lineConfig.id, lineConfig.defaultMeta);
+    // const { config, setMealHour, toggleShift} = useLocalLineConfig(lineConfig.id, lineConfig.defaultMeta);
+    const { config, setMealHour} = useLocalLineConfig(lineConfig.id, lineConfig.defaultMeta);
 
     const apiConfig = useMemo(() => ({
         // Agregamos el argumento 'ln' (lineNo) a cada función para que el hook pueda pasarlo
@@ -40,30 +41,38 @@ const TablaEnsamble = () => {
         getTotalShiftDelta: (date, ln) => productionService.getTotalShiftDelta(lineConfig.id, date, ln),
         getReport: (date, shift, ln) => productionService.getLossReports(lineConfig.id, date, shift, ln),
         postReport: (reportData, ln) => productionService.saveReport(lineConfig.id, reportData, ln),
-        getTotalDate: (date, ln) => productionService.getTotalDate(lineConfig.id, date, ln)
+        getTotalDate: (date, ln) => productionService.getTotalDate(lineConfig.id, date, ln),
+        getShiftsStatus: (date, ln) => productionService.getShiftsStatus(lineConfig.id, date, ln),
+        postShiftToggle: (date, shift, shiftStatus, ln) => productionService.shiftToggleStatus(lineConfig.id, date, shift, shiftStatus, ln)      
     }), [lineConfig.id]);
 
 const { 
         tableItems, 
         totalDia,  
         totalTurno,
-        turnoDelta,
+        totalDelta,
+        metaTurnoDB,
+        metaProgresiva,
+        shiftsStatus,
         loading, 
         error, 
+        toggleShiftDB,
         saveLocalLoss,
-        saveReportToDB
+        saveReportToDB,
+        fetchAll
     } = useProductionData(selectedDate, selectedShift, lineConfig.defaultMeta, apiConfig);
 
     // Calculamos métricas específicas para el turno actual (lo que ven los Widgets)
-    const turnMetrics = useProductionMetrics(totalTurno, config);
+    const turnMetrics = useProductionMetrics(totalTurno, config, metaTurnoDB);
     
     // Calculamos métricas globales para el día completo (lo que ve el componente Delta)
-    const dayMetrics = useProductionMetrics(totalDia, config);
+    const dayMetrics = useProductionMetrics(totalDia, config, metaTurnoDB);
 
     //-----
     //DEBUG
     // console.log("Prodction Data:\n", tableItems, totalDia, totalTurno, turnoDelta);
     // console.log("Production Metrics:\n", metaAcumulada, metaTotalAcumulada, eficiencia, status);
+    //console.log("metaTurnoDB:",metaTurnoDB)
     //-----
 
     // 5. Estados de Interfaz (UI)
@@ -74,6 +83,7 @@ const {
     const [lider, setLider] = useState('0');
 
     // 6. Manejadores de Eventos
+
     const handleSaveFromModal = (totalMins, formattedObs, detailsArray) => {
         saveLocalLoss(currentLossSlot, totalMins, formattedObs, detailsArray);
         setIsLossModalOpen(false);
@@ -193,7 +203,7 @@ const {
                 <ProductionWidgets 
                     percent={turnMetrics.eficiencia}
                     statusClass={turnMetrics.status} 
-                    goal={turnMetrics.metaAcumulada} 
+                    goal={metaProgresiva} 
                     real={totalTurno} 
                     losses={tableItems.reduce((acc, item) => acc + item.MINUTOS_PERDIDA, 0)} 
                     enableAnimation={true}
@@ -204,10 +214,10 @@ const {
                         total={totalDia} 
                         accGoal={dayMetrics.metaTotalAcumulada} 
                         status={dayMetrics.status}
-                        totalTurno={turnoDelta}
+                        totalTurno={totalDelta}
                         eficiencia={dayMetrics.eficiencia}
-                        activeShifts={config.activeShifts}
-                        onToggleShift={toggleShift}
+                        activeShifts={shiftsStatus}
+                        onToggleShift={toggleShiftDB}
                     />
                     <button onClick={() => setIsManualOpen(true)} className="btn-manual">Manual de Uso</button>
                 </div>
@@ -221,7 +231,6 @@ const {
                 }}
                 caption="INFORMACIÓN DE PRODUCCIÓN"
                 localConfig={config} 
-                onUpdateMeta={setCustomMeta}
                 onSetMeal={setMealHour}
             />
 

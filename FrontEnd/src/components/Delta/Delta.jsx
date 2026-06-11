@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Delta = ({ total, accGoal, status, totalTurno, eficiencia, activeShifts = [], onToggleShift}) => {
+const Delta = ({ total, accGoal, totalTurno, eficiencia, activeShifts = [], onToggleShift}) => {
     const deltaValue = total - accGoal;
     const deltaSign = deltaValue >= 0 ? "+" : "";
 
@@ -41,29 +41,36 @@ const Delta = ({ total, accGoal, status, totalTurno, eficiencia, activeShifts = 
             </div>
             <div className='vertical-div'></div>
             <div className='total-dia-right-breakdown'>
-                    {shifts.map((s) => {
-                        const isActive = activeShifts.includes(s.id);
-                        return (
-                            <div 
-                                key={s.id} 
-                                onClick={() => onToggleShift(s.id)}
-                                style={{ 
-                                    display: 'flex', justifyContent: 'space-between', fontSize: '1rem',
-                                    cursor: 'pointer', opacity: isActive ? 1 : 0.4,
-                                    textDecoration: isActive ? 'none' : 'line-through' 
-                                }}
-                                title={isActive ? "Turno activo (Click para desactivar)" : "Turno inactivo (Click para activar)"}
-                            >
-                                <span style={{ fontWeight: 'bold', color: isActive ? '#6e6e6e' : '#888888' }}>
-                                    {/* Punto de color de estado */}
-                                    <span style={{ marginRight: '5px', color: isActive ? '#4caf50' : '#727272' }}>●</span>
-                                    {s.label}:
-                                </span>
-                                <strong style={{ marginLeft: '10px', color: '#333' }}>{s.value}</strong>
-                            </div>
-                        );
-                    })}
-                </div>
+                {shifts.map((s) => {
+                    // 1. Buscamos el estado del turno en el arreglo que viene de la BD
+                    // Aseguramos comparar como string ya que viene como INT desde SQL
+                    const statusDB = activeShifts.find(shift => String(shift.Turno) === String(s.id));
+                    
+                    // 2. Si existe en la BD evaluamos su estado, si no hay registro asumimos true (por defecto)
+                    const isActive = statusDB ? Boolean(statusDB.Activo) : true;
+
+                    return (
+                        <div 
+                            key={s.id} 
+                            // 3. Pasamos el ID del turno y su estado ACTUAL a la función
+                            onClick={() => onToggleShift(s.id, isActive)}
+                            style={{ 
+                                display: 'flex', justifyContent: 'space-between', fontSize: '1rem',
+                                cursor: 'pointer', opacity: isActive ? 1 : 0.4,
+                                textDecoration: isActive ? 'none' : 'line-through' 
+                            }}
+                            title={isActive ? "Turno activo (Click para desactivar)" : "Turno inactivo (Click para activar)"}
+                        >
+                            <span style={{ fontWeight: 'bold', color: isActive ? '#6e6e6e' : '#888888' }}>
+                                {/* Punto de color de estado */}
+                                <span style={{ marginRight: '5px', color: isActive ? '#4caf50' : '#727272' }}>●</span>
+                                {s.label}:
+                            </span>
+                            <strong style={{ marginLeft: '10px', color: '#333' }}>{s.value}</strong>
+                        </div>
+                    );
+                })}
+            </div>
         </div>
             <div className="progressBar-container">
                 <div className="progressBar" style={{ width: `${displayValue}%`, backgroundColor: deltaColor  }}></div>

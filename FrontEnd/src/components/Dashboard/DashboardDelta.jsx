@@ -69,7 +69,7 @@ const Delta = ({ total, accGoal, eficiencia, activeShifts = [], onToggleShift, d
                                 display: 'flex', 
                                 alignItems: 'center', 
                                 justifyContent: 'space-between', 
-                                fontSize: '1rem',
+                                fontSize: '1.3rem',
                                 cursor: 'pointer', opacity: isActive ? 1 : 0.4,
                                 textDecoration: isActive ? 'none' : 'line-through',
                                 paddingBlock: '3px' 

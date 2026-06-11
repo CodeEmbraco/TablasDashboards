@@ -48,7 +48,30 @@ const productionService =  {
         if (lineNo) params.lineNo = lineNo;
         const response = await api.post(`/${lineID}/save`, reportData, { params });
         return response.data;
+    },
+
+    getShiftsStatus: async (lineId, fecha, lineNo = null) => {
+        const params = { fecha: fecha, lineId: lineId };
+        if (lineNo) params.lineNo = lineNo;
+        const response = await api.get(`shifts/shift-status`, { params });
+        return response.data;
+    },
+
+    shiftToggleStatus: async (lineId, fecha, turno, nuevoEstado, lineNo = null) => {
+    try {
+        const response = await api.post('shifts/shift-toggle', {
+            fecha: fecha,
+            lineId: lineId,
+            turno: turno,
+            nuevoEstado: nuevoEstado,
+            lineNo: lineNo
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error al actualizar el estado del turno en la BD:", error);
+        throw error;
     }
+}
 } ;
 
 export default productionService;
