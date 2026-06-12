@@ -1,7 +1,6 @@
 import express from "express";
 import sql from "mssql";
-import { sqlConfigCIMA } from "../config/dbConnections.js";
-import { mysqlPool } from "../config/dbConnections.js";
+import { mysqlPool, poolCIMA } from "../config/dbConnections.js";
 
 const router = express.Router();
 /**
@@ -16,14 +15,38 @@ router.get('/hourly', async (req, res) => {
     }
 
     try {
-        // En MySQL, los Stored Procedures se ejecutan con CALL
-        const [result] = await mysqlPool.query('CALL ELECTRO_HOURLY(?, ?)', [fecha, turno]);
+        // 1. Obtener la producción real desde MySQL
+        const [mysqlResult] = await mysqlPool.query('CALL ELECTRO_HOURLY(?, ?)', [fecha, turno]);
+        // Recuerda que MySQL devuelve la data dentro del primer arreglo cuando usas CALL
+        const production_data = mysqlResult[0]; 
+
+        const hourly_goals = await poolCIMA.request()
+            .input("LineId", sql.VarChar(20), "electronics")
+            .input("Fecha", sql.Date, fecha)
+            .input("Turno", sql.Int, turno)
+            .execute("SP_OBTENER_METAS_EFECTIVAS");
+
+        const goals_data = hourly_goals.recordset;
+
+        const final_result = goals_data.map(m => {
+            const HoraInicioSlot = parseInt(m.Hora_Slot.split(':')[0], 10);
         
-        // MySQL devuelve un array de arrays para los SPs; las filas reales están en la primera posición
-        res.json(result[0]);
+            const ProduccionDeEstaHora = production_data.find(p => p.Hora === HoraInicioSlot);
+
+            return {
+                Hora: HoraInicioSlot,
+                ProduccionTotal: ProduccionDeEstaHora ? ProduccionDeEstaHora.ProduccionTotal : 0, 
+                Modelos: ProduccionDeEstaHora ? ProduccionDeEstaHora.Modelos : "",
+                MetaEfectiva: m.MetaEfectiva,
+            };
+        });
+
+        // 4. Enviar el resultado unificado al frontend
+        res.json(final_result);
+
     } catch (error) {
-        console.error('Error en /hourly:', error);
-        res.status(500).json({ error: 'Error interno del servidor al consultar la producción por hora' });
+        console.error('Error en /hourly (MySQL + SQL Server):', error);
+        res.status(500).json({ error: 'Error interno del servidor al consultar la producción y metas por hora' });
     }
 });
 
@@ -61,10 +84,35 @@ router.get('/total-shift', async (req, res) => {
     }
 
     try {
-        const [result] = await mysqlPool.query('CALL ELECTRO_TOTALSHIFT(?)', [fecha]);
-        res.json(result[0]);
+        // 1. Obtener producción real por turno desde MySQL
+        const [mysqlResult] = await mysqlPool.query('CALL ELECTRO_TOTALSHIFT(?)', [fecha]);
+        const production_data = mysqlResult[0]; 
+
+        const turnosRequeridos = [1, 2, 3];
+        
+        const dataFinal = await Promise.all(turnosRequeridos.map(async (idTurno) => {
+            const metas = await poolCIMA.request()
+                .input("LineId", sql.VarChar(20), "electronics")
+                .input("Fecha", sql.Date, fecha)
+                .input("Turno", sql.Int, idTurno)
+                .execute("SP_OBTENER_METAS_EFECTIVAS");
+
+            const totalMetaTurno = metas.recordset.reduce((acc, curr) => acc + (curr.MetaEfectiva || 0), 0);
+
+            const registro = production_data.find(r => r.TURNO === idTurno);
+
+            return {
+                TURNO: idTurno,
+                CONTADOR: registro ? registro.CONTADOR : 0,
+                MetaEfectivaTurno: totalMetaTurno
+            };
+        }));
+        
+        // 3. Enviar el resultado unificado
+        res.json(dataFinal);
+
     } catch (error) {
-        console.error('Error en /total-shift:', error);
+        console.error('Error en /total-shift (MySQL + SQL Server):', error);
         res.status(500).json({ error: 'Error interno del servidor al consultar los totales por turno' });
     }
 });
@@ -90,20 +138,16 @@ router.get('/shift', async (req, res) => {
 });
 
 router.post("/save", async(req, res) =>{
-    let poolCIMA;
     try {
         const reportData = req.body;
         //----------------------
         //DEBUG
-        console.log("Que recibimos, Electronics?", reportData);
+        //console.log("Que recibimos, Electronics?", reportData);
         //----------------------
 
         if (!Array.isArray(reportData) || reportData.length === 0) {
             return res.status(400).json({ error: "Datos de reporte inválidos o vacíos." });
         }
-
-        poolCIMA = new sql.ConnectionPool(sqlConfigCIMA);
-        await poolCIMA.connect();
 
         const dataPorHora = {};
 
@@ -152,10 +196,6 @@ router.post("/save", async(req, res) =>{
     } catch (err) {
         console.error("Error al guardar el reporte Electronics:", err);
         res.status(500).json({ error: "Error interno del servidor al guardar." });
-    } finally {
-        if (poolCIMA) {
-            await poolCIMA.close();
-        }
     }
 });
 
@@ -166,12 +206,7 @@ router.get("/reports", async (req, res) => {
         return res.status(400).json({ error: "Faltan parámetros fecha o turno" });
     }
 
-    let poolCIMA;
-
     try {
-        poolCIMA = new sql.ConnectionPool(sqlConfigCIMA);
-        await poolCIMA.connect();
-
         const query = `
             SELECT
                 HORA as time_slot,
@@ -197,10 +232,6 @@ router.get("/reports", async (req, res) => {
     } catch (err) {
         console.error("Error al consultar historial Electronics:", err);
         res.status(500).json({ error: "Error al consultar la base de datos CIMA." });
-    } finally {
-        if (poolCIMA) {
-            await poolCIMA.close();
-        }
     }
 });
 

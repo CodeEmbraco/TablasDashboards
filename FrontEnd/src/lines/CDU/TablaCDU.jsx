@@ -1,5 +1,5 @@
 // React & Router
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 
 // Context & Hooks
@@ -27,11 +27,38 @@ import LossModal from "@components/Modals/LossModals";
 // Estilos
 import '@styles/global.css';
 
-const TablaEnsamble = () => {
+const TablaCDU = () => {
     const { selectedDate, selectedShift, setSelectedDate, setSelectedShift } = useProduction();
     const lineConfig = LINES_CONFIG.cdu;
 
-    const { config, setMealHour, setCustomMeta, toggleShift} = useLocalLineConfig(lineConfig.id, lineConfig.defaultMeta);
+    // const { config, setMealHour, toggleShift} = useLocalLineConfig(lineConfig.id, lineConfig.defaultMeta);
+    const { config, setMealHour} = useLocalLineConfig(lineConfig.id, lineConfig.defaultMeta);
+
+    // Estado para la configuración dinámica recuperada de la base de datos
+    const [dynamicConfig, setDynamicConfig] = useState({
+        name: "",
+        supervisors: [],
+        leaders: []
+    });
+
+    // Carga de configuración dinámica (Nombre de línea y Personal)
+    useEffect(() => {
+        const fetchLineInfo = async () => {
+            try {
+                const data = await productionService.getLinesConfig(lineConfig.id);
+                if (data && data.length > 0) {
+                    setDynamicConfig({
+                        name: data[0].Nombre,
+                        supervisors: [...new Set(data.filter(d => d.Rol?.toLowerCase() === 'supervisor').map(d => d.Trabajador))],
+                        leaders: [...new Set(data.filter(d => d.Rol?.toLowerCase() === 'team leader' || d.Rol?.toLowerCase() === 'lider').map(d => d.Trabajador))]
+                    });
+                }
+            } catch (err) {
+                console.error("Error al cargar configuración de línea:", err);
+            }
+        };
+        fetchLineInfo();
+    }, [lineConfig.id]);
 
     const apiConfig = useMemo(() => ({
         // Agregamos el argumento 'ln' (lineNo) a cada función para que el hook pueda pasarlo
@@ -40,30 +67,50 @@ const TablaEnsamble = () => {
         getTotalShiftDelta: (date, ln) => productionService.getTotalShiftDelta(lineConfig.id, date, ln),
         getReport: (date, shift, ln) => productionService.getLossReports(lineConfig.id, date, shift, ln),
         postReport: (reportData, ln) => productionService.saveReport(lineConfig.id, reportData, ln),
-        getTotalDate: (date, ln) => productionService.getTotalDate(lineConfig.id, date, ln)
+        getTotalDate: (date, ln) => productionService.getTotalDate(lineConfig.id, date, ln),
+        getShiftsStatus: (date, ln) => productionService.getShiftsStatus(lineConfig.id, date, ln),
+        postShiftToggle: (date, shift, shiftStatus, ln) => productionService.shiftToggleStatus(lineConfig.id, date, shift, shiftStatus, ln)      
     }), [lineConfig.id]);
 
 const { 
         tableItems, 
         totalDia,  
         totalTurno,
-        turnoDelta,
+        totalDelta,
+        metaTurnoDB,
+        metaProgresiva,
+        shiftsStatus,
         loading, 
         error, 
+        toggleShiftDB,
         saveLocalLoss,
-        saveReportToDB
+        saveReportToDB,
+        fetchAll
     } = useProductionData(selectedDate, selectedShift, lineConfig.defaultMeta, apiConfig);
 
-    // Calculamos métricas específicas para el turno actual (lo que ven los Widgets)
-    const turnMetrics = useProductionMetrics(totalTurno, config);
+// Calculamos métricas específicas para el turno actual (lo que ven los Widgets)
+    const turnMetrics = useProductionMetrics(
+        totalTurno,       // CORREGIDO: Usar totalTurno para reflejar la eficiencia del turno actual
+        config,           // localConfig
+        metaTurnoDB,      // dbMetaTurno
+        [],               // allShiftsData
+        shiftsStatus      // CORREGIDO: Proveer el estatus real de los turnos desde la base de datos
+    );
     
     // Calculamos métricas globales para el día completo (lo que ve el componente Delta)
-    const dayMetrics = useProductionMetrics(totalDia, config);
+    const dayMetrics = useProductionMetrics(
+        totalDia,         // Valor real acumulado del día
+        config,           // localConfig
+        null,             // CORREGIDO: Pasar null para obligar a calcular el acumulado diario progresivo
+        [],               // allShiftsData
+        shiftsStatus      // CORREGIDO: Proveer el estatus real de los turnos desde la base de datos
+    );
 
     //-----
     //DEBUG
     // console.log("Prodction Data:\n", tableItems, totalDia, totalTurno, turnoDelta);
     // console.log("Production Metrics:\n", metaAcumulada, metaTotalAcumulada, eficiencia, status);
+    //console.log("metaTurnoDB:",metaTurnoDB)
     //-----
 
     // 5. Estados de Interfaz (UI)
@@ -73,7 +120,23 @@ const {
     const [supervisor, setSupervisor] = useState('0');
     const [lider, setLider] = useState('0');
 
+    // Efecto para sincronizar Supervisor y Líder cuando se cargan datos guardados de la DB
+    useEffect(() => {
+        if (tableItems && tableItems.length > 0) {
+            // Buscamos si algún item tiene información de supervisor/líder
+            const savedData = tableItems.find(item => item.SUPERVISOR && item.SUPERVISOR !== '0');
+            if (savedData) {
+                setSupervisor(savedData.SUPERVISOR);
+                setLider(savedData.LIDER);
+            } else {
+                setSupervisor('0');
+                setLider('0');
+            }
+        }
+    }, [tableItems, selectedShift]);
+
     // 6. Manejadores de Eventos
+
     const handleSaveFromModal = (totalMins, formattedObs, detailsArray) => {
         saveLocalLoss(currentLossSlot, totalMins, formattedObs, detailsArray);
         setIsLossModalOpen(false);
@@ -113,7 +176,7 @@ const {
         }
     };
 
-     // Renderizado alternativo SÓLO si es la primera carga y no hay datos en absoluto
+ // Renderizado alternativo SÓLO si es la primera carga y no hay datos en absoluto
     if (loading && tableItems.length === 0) {
         return <div className="loading-screen"><p>Cargando información de producción</p></div>;
     }
@@ -132,7 +195,7 @@ const {
                     ⚠️ Conexión inestable. Mostrando datos locales.
                 </div>
             )}
-            <Header line={lineConfig.name}/>
+            <Header line={dynamicConfig.name || 'Cargando...'}/>
 
             <div className="top-panel-container">
                 <div className="panel-left">
@@ -168,7 +231,7 @@ const {
                                     <td>
                                         <select value={supervisor} onChange={(e) => setSupervisor(e.target.value)}>
                                             <option value="0" disabled>--Selecciona--</option>
-                                            {lineConfig.supervisors.map(s => <option key={s} value={s}>{s}</option>)}
+                                            {dynamicConfig.supervisors.map(s => <option key={s} value={s}>{s}</option>)}
                                         </select>
                                     </td>
                                 </tr>
@@ -177,7 +240,7 @@ const {
                                     <td>
                                         <select value={lider} onChange={(e) => setLider(e.target.value)}>
                                             <option value="0" disabled>--Selecciona--</option>
-                                            {lineConfig.leaders.map(l => <option key={l} value={l}>{l}</option>)}
+                                            {dynamicConfig.leaders.map(l => <option key={l} value={l}>{l}</option>)}
                                         </select>
                                     </td>
                                 </tr>
@@ -193,21 +256,21 @@ const {
                 <ProductionWidgets 
                     percent={turnMetrics.eficiencia}
                     statusClass={turnMetrics.status} 
-                    goal={turnMetrics.metaAcumulada} 
+                    goal={turnMetrics.metaAcumulada}
                     real={totalTurno} 
                     losses={tableItems.reduce((acc, item) => acc + item.MINUTOS_PERDIDA, 0)} 
                     enableAnimation={true}
-                /> 
+                />
 
                 <div style={{display:'flex', flexDirection:'column', gap:'20px'}}>
                     <Delta 
                         total={totalDia} 
                         accGoal={dayMetrics.metaTotalAcumulada} 
                         status={dayMetrics.status}
-                        totalTurno={turnoDelta}
+                        totalTurno={totalDelta}
                         eficiencia={dayMetrics.eficiencia}
-                        activeShifts={config.activeShifts}
-                        onToggleShift={toggleShift}
+                        activeShifts={shiftsStatus}
+                        onToggleShift={toggleShiftDB}
                     />
                     <button onClick={() => setIsManualOpen(true)} className="btn-manual">Manual de Uso</button>
                 </div>
@@ -221,7 +284,6 @@ const {
                 }}
                 caption="INFORMACIÓN DE PRODUCCIÓN"
                 localConfig={config} 
-                onUpdateMeta={setCustomMeta}
                 onSetMeal={setMealHour}
             />
 
@@ -246,4 +308,4 @@ const {
     );
 }
 
-export default TablaEnsamble;
+export default TablaCDU;

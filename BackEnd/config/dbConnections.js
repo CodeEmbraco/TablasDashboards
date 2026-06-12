@@ -87,17 +87,27 @@ export const sqlConfigFAN = {
 
 
 // SQLite for Rotor Wet and Rotor Insinkerator
-const dbPathLiteWetISE = 'C:/Users/jorgeb03/Documents/Proyectos/PlataformaProduccion v3 - local/dbRotorWet.sqlite3';
-export const dbSQLiteWetISE = new sqlite.Database(dbPathLiteWetISE, (err) => {
-    if (err) {
-        console.error("Error al conectar con SQLite (Rotor Wet/ISE):", err.message);
-    } else {
-        console.log("Conectado exitosamente al archivo SQLite local (Rotor Wet/ISE).");
-    }
-});
+// const dbPathLiteWetISE = 'C:/Users/jorgeb03/Documents/Proyectos/PlataformaProduccion v3 - local/dbRotorWet.sqlite3';
+// export const dbSQLiteWetISE = new sqlite.Database(dbPathLiteWetISE, (err) => {
+//     if (err) {
+//         console.error("Error al conectar con SQLite (Rotor Wet/ISE):", err.message);
+//     } else {
+//         console.log("Conectado exitosamente al archivo SQLite local (Rotor Wet/ISE).");
+//     }
+// });
 
-// Export a function to close SQLite connections if needed
-export const closeSqliteConnections = () => {
-    dbSQLite.close((err) => { if (err) console.error("Error closing Insinkerator SQLite DB:", err.message); else console.log("Insinkerator SQLite DB closed."); });
-    dbSQLiteWetISE.close((err) => { if (err) console.error("Error closing Rotor Wet/ISE SQLite DB:", err.message); else console.log("Rotor Wet/ISE SQLite DB closed."); });
-};
+// // Export a function to close SQLite connections if needed
+// export const closeSqliteConnections = () => {
+//     dbSQLite.close((err) => { if (err) console.error("Error closing Insinkerator SQLite DB:", err.message); else console.log("Insinkerator SQLite DB closed."); });
+//     dbSQLiteWetISE.close((err) => { if (err) console.error("Error closing Rotor Wet/ISE SQLite DB:", err.message); else console.log("Rotor Wet/ISE SQLite DB closed."); });
+// };
+
+const poolCIMAInstance = new sql.ConnectionPool(sqlConfigCIMA);
+const poolINSIInstance = new sql.ConnectionPool(sqlConfigINSI);
+const poolFANInstance = new sql.ConnectionPool(sqlConfigFAN);
+const poolPLISInstance = new sql.ConnectionPool(sqlConfig);
+
+export const poolCIMA = await poolCIMAInstance.connect();
+export const poolINSI = await poolINSIInstance.connect();
+export const poolFAN = await poolFANInstance.connect();
+export const poolPLIS = await poolPLISInstance.connect();

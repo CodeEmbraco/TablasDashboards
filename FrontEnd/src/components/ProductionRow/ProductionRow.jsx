@@ -45,7 +45,7 @@ const ProductionRow = ({ row, onOpenModal, isMealHour, customMeta, onUpdateMeta,
         <tr>
             {/* COLUMNA 1: HORA (Clickable para comida) */}
             <td 
-                onClick={() => onSetMeal(row.TIME_SLOT)}
+                onClick={() => onSetMeal(row.HORA)}
                 title="Clic para marcar hora de comida"
                 style={{ cursor: 'pointer' }}
             >
@@ -57,7 +57,7 @@ const ProductionRow = ({ row, onOpenModal, isMealHour, customMeta, onUpdateMeta,
                     fontWeight: 'bold', 
                     color: '#555' 
                 }}>
-                    {formatHourRange(row.HORA)}
+                    {row.HORA}
                     {isMealHour && (
                         <div style={{border: "2px solid #39bc4d" , borderRadius: "5px", justifyContent: "space-between", paddingInline:"5px", paddingBlockStart:"2px"}}>
                         <Utensils size={20} color="#39bc4d" strokeWidth={4} />
@@ -68,7 +68,8 @@ const ProductionRow = ({ row, onOpenModal, isMealHour, customMeta, onUpdateMeta,
 
             {/* COLUMNA 2: PLAN (Meta editable) */}
             <td>
-                <input 
+                {row.META}
+                {/* <input 
                     type="number"
                     className="input-meta-cell"
                     readOnly={!isUnlocked}
@@ -90,7 +91,7 @@ const ProductionRow = ({ row, onOpenModal, isMealHour, customMeta, onUpdateMeta,
                         // automáticamente al salir del campo:
                         // setIsUnlocked(false); 
                     }}
-                />
+                /> */}
             </td>
 
             {/* COLUMNA 3: REAL */}

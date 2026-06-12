@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { generateHourSlots, getFormattedDate } from '@utils/dateUtils';
+import { calcularMetaProgresiva } from '@utils/shiftUtils';
 
 const getStorageKey = (fecha, turno, lineNo) => `pending_losses_${fecha}_T${turno}_L${lineNo}`;
 
@@ -7,8 +8,10 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions, lineN
     const [data, setData] = useState({
         tableItems: [],
         totalDia: 0,
-        totalDelta: [ {CONTADOR:0}, {CONTADOR:0}, {CONTADOR:0} ],
+        totalDelta: [],
+        shiftsStatus:[],
         totalTurno: 0,
+        metaTurnoDB: 0,
         loading: true,
         error: null
     }); 
@@ -19,63 +22,103 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions, lineN
         if (!turno || turno === '0') return;
 
         try {
-            const [dataByHour, totalDiaRes, reporteDia, prodDiaTurno, prodDelta] = await Promise.all([
-                apiFunctions.getHourData(fecha, turno, lineNo),
-                apiFunctions.getTotalDate(fecha, lineNo),
-                apiFunctions.getReport(fecha, turno, lineNo),
-                apiFunctions.getTotalShift(fecha, turno, lineNo),
-                apiFunctions.getTotalShiftDelta(fecha, lineNo)
+            const [dataByHour, totalDiaRes, reporteDia, prodDiaTurno, prodDelta, shiftsStatus] = await Promise.all([
+                apiFunctions.getHourData(fecha, turno, lineNo),     //Hora por Hora con meta individual (MetaEfectiva)
+                apiFunctions.getTotalDate(fecha, lineNo),           //Total de producción de todos los turnos
+                apiFunctions.getReport(fecha, turno, lineNo),       //Reportes de pérdidas
+                apiFunctions.getTotalShift(fecha, turno, lineNo),   //Total de producción de un turno
+                apiFunctions.getTotalShiftDelta(fecha, lineNo),     //Informacion de produccion por turno: real y meta total
+                apiFunctions.getShiftsStatus(fecha, lineNo)         //Estatus de los turnos (Activos || Inactivos)
             ]);
+            
+            // Buscamos el objeto del turno seleccionado en el arreglo prodDiaTurno
+            const safeProdDelta= Array.isArray(prodDelta) ? prodDelta : [];
+            const currentShiftData = safeProdDelta.find(s => String(s.TURNO) === String(turno));
+            
+            //--DEBUG----------
+            // console.log("prodDiaTurno: ", prodDiaTurno);
+            // console.log("currentShiftData: ", currentShiftData);
+            //-----------------
 
-// ... código anterior ...
+            const realTurno = currentShiftData ? (currentShiftData.CONTADOR || currentShiftData.REAL || 0) : 0;
+            const metaTurnoDB = currentShiftData ? (currentShiftData.MetaEfectivaTurno || 0) : 0;
+
+            const metaProgresivaCalculada = calcularMetaProgresiva(dataByHour, metaTurnoDB);
+
+            //DEBUG: Estamos calculando bien la meta progresiva?
+            // console.log("metaProgresivaCalculada: ", metaProgresivaCalculada);
+            //-----------------
+
+
             const slots = generateHourSlots(turno);
+            
+            // Obtenemos las pérdidas locales si existen
+            const key = getStorageKey(fecha, turno, lineNo);
+            const currentLocal = JSON.parse(localStorage.getItem(key)) || {};
+            const safeDataByHour = Array.isArray(dataByHour) ? dataByHour : [];
 
-            // Pásale el lineNo a getStorageKey aquí:
-            const localSaved = JSON.parse(localStorage.getItem(getStorageKey(fecha, turno, lineNo))) || {};
+            //--DEBUG----------
+            // console.log("safeDataByHour: ", safeDataByHour);
+            // console.log("slots: ",slots);
+            //-----------------
 
-            const unifiedRows = slots.map(slot => {
-                const hourInt = parseInt(slot.split(':')[0]);
-                const prodRow = dataByHour.find(p => {
-                    const h = p.Hora ?? p.hora ?? p.HoraBD;
-                    return (h !== undefined && Number(h) === hourInt) || p.time_slot === slot;
-                }) || {};
 
-                const localChange = localSaved[slot];
+            const tableItems = slots.map(slot => {
+                const slotStartHour = parseInt(slot.split(':')[0], 10);
+                
+                const currentProd = safeDataByHour.find(d => 
+                    (d.Hora !== undefined && Number(d.Hora) === slotStartHour) || 
+                    d.TIME_SLOT === slot || 
+                    d.time_slot === slot
+                );
 
-                const dbLosses = reporteDia.filter(r => (r.time_slot || r.Hora_Slot || r.hora_slot) === slot);
-                const dbMins = dbLosses.reduce((acc, curr) => acc + (curr.PERDIDAS || curr.perdidas || 0), 0);
-                const dbObs = dbLosses.map(r => r.OBSERVACIONES || r.observaciones).filter(Boolean).join(' | ');
+                const currentReport = reporteDia.find(r => r.TIME_SLOT === slot);
+                const localLossData = currentLocal[slot];
 
                 return {
-                    HORA: hourInt,
-                    TIME_SLOT: slot,
-                    META: metaPorHora,
-                    REAL: prodRow.ProduccionTotal || 0,
-                    MODELO: prodRow.Modelos || prodRow.Modelo || '---',
-                    MINUTOS_PERDIDA: localChange ? localChange.perdidas : dbMins,
-                    OBSERVACIONES: localChange ? localChange.observaciones : dbObs,
-                    DETALLES: localChange ? localChange.detalles : dbLosses.map(l => ({
-                        minutos: l.PERDIDAS || l.perdidas || 0,
-                        observacion: l.OBSERVACIONES || l.observaciones || '',
-                        motivo: l.MOTIVO || l.motivo || ''
-                    }))
+                    HORA: slot, 
+                    REAL: currentProd ? (currentProd.ProduccionTotal || currentProd.REAL) : 0,
+                    MODELO: currentProd ? (currentProd.Modelos || currentProd.MODELO) : "---",
+                    META: currentProd ? (currentProd.MetaEfectiva || 0) : 0,
+                    MINUTOS_PERDIDA: currentReport ? currentReport.PERDIDA_TOTAL 
+                        : (localLossData ? localLossData.perdidas : 0),
+                    OBSERVACIONES: currentReport ? currentReport.OBSERVACIONES 
+                        : (localLossData ? localLossData.observaciones : ''),
                 };
             });
 
-            setData({
-                tableItems: unifiedRows,
-                totalDia: totalDiaRes.TOTAL_DIA || 0,
-                turnoDelta: prodDelta,
-                totalTurno: prodDiaTurno.TOTAL_TURNO,
-                loading: false,
-                error: null
-            });
+            setData(prev => ({ 
+                ...prev, 
+                tableItems,
+                totalDia: totalDiaRes.TOTAL_DIA,
+                totalTurno: realTurno,
+                metaTurnoDB,
+                metaProgresiva: metaProgresivaCalculada,
+                totalDelta: prodDelta,
+                shiftsStatus: shiftsStatus || [],
+                loading: false 
+            }));
 
-        } catch (err) {
-            console.error("Error en useProductionData:", err);
-            setData(prev => ({ ...prev, loading: false, error: "Error al cargar datos" }));
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            setData(prev => ({ ...prev, error, loading: false }));
         }
     }, [fecha, turno, metaPorHora, apiFunctions, lineNo]);
+
+    // Función para cambiar el estado del turno
+    const toggleShiftDB = useCallback(async (turnoId, estadoActual) => {
+        try {
+            const nuevoEstado = !estadoActual; // Invertimos el estado actual (de 1 a 0 / de 0 a 1)
+            
+            // Enviamos los parámetros dinámicos correctos
+            await apiFunctions.postShiftToggle(fecha, turnoId, nuevoEstado, lineNo);
+            
+            // Refrescamos la data de inmediato (esto actualizará las metas y estados en todo el front)
+            fetchAll(true); 
+        } catch (err) {
+            console.error("Error al cambiar el estado del turno en el Hook:", err);
+        }
+    }, [apiFunctions, fecha, lineNo, fetchAll]);
 
     // Función para persistir cambios locales del modal
     const saveLocalLoss = (slot, totalMinutos, formattedString, detallesArray) => {
@@ -92,7 +135,7 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions, lineN
         fetchAll(true); 
     };
 
-        // Function to save report data to the database
+    // Function to save report data to the database
     const saveReportToDB = useCallback(async (reportData) => {
         try {
             await postReport(reportData, lineNo); 
@@ -104,7 +147,7 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions, lineN
         }
     }, [postReport, lineNo, fecha, turno]);
 
-    useEffect(() => { // This useEffect should be after saveReportToDB definition if it uses it.
+    useEffect(() => { 
         const isToday = fecha === getFormattedDate();
         fetchAll();
         if (isToday && turno !== '0') {
@@ -113,5 +156,10 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions, lineN
         }
     }, [fetchAll, fecha, turno]);
 
-    return { ...data, saveLocalLoss, saveReportToDB, refresh: fetchAll };
+    //DEBUG----------------------
+    //console.log("Production Data:",data);
+    //---------------------------
+
+
+    return { ...data, toggleShiftDB,saveLocalLoss, saveReportToDB, fetchAll };
 };

@@ -2,87 +2,74 @@ import { getFormattedDate, getCurrentShift, generateHourSlots, getMetaPorHoraInd
 
 const SHIFT_ORDER = ['3', '1', '2'];
 
-export const calculateShiftMeta = ({ 
-    shiftId,
-    selectedDate, 
-    currentClientMinute, 
-    currentClientHour, 
-    metaPorHora,
-    localConfig
-}) => {
-    const activeShifts = localConfig?.activeShifts || ['1', '2', '3'];
-    if (!activeShifts.includes(shiftId)) return 0;
+const SHIFT_START_TIMES = {
+    '1': 6,  // 06:00
+    '2': 14, // 14:00
+    '3': 23  // 23:00
+};
+
+export const getShiftStartHour = (shiftId) => {
+    return SHIFT_START_TIMES[shiftId] || 6;
+};
+
+export const calculateShiftMeta = (config) => {
+    const {
+        selectedDate, 
+        currentClientMinute, 
+        currentClientHour, 
+        metaPorHora
+    } = config;
     
-    // 1. Si la fecha es pasada, devolvemos el turno completo (100% de la meta)
-    if (selectedDate < getFormattedDate()) return getFullShiftMeta(shiftId, metaPorHora);
-    
-    // 2. Si la fecha es futura, meta es 0
+    // CORRECCIÓN CRÍTICA: Soportar ambos nombres de parámetro para evitar el bug del 0
+    const shiftId = config.shiftId || config.selectedShift;
+
+    if (!shiftId) return 0;
+    if (selectedDate < getFormattedDate()) return getFullShiftMeta({ selectedShift: shiftId, metaPorHora });
     if (selectedDate > getFormattedDate()) return 0;
 
     const currentShift = getCurrentShift();
-    const SHIFT_ORDER = ['3', '1', '2'];
     const currentIndex = SHIFT_ORDER.indexOf(currentShift);
     const targetIndex = SHIFT_ORDER.indexOf(shiftId);
 
-    // 3. Si el turno ya pasó hoy (ej. estamos en T2 y vemos T1), meta completa
-    if (targetIndex < currentIndex) return getFullShiftMeta(shiftId, metaPorHora);
-    
-    // 4. Si el turno es futuro hoy, meta 0
+    if (targetIndex < currentIndex) return getFullShiftMeta({ selectedShift: shiftId, metaPorHora });
     if (targetIndex > currentIndex) return 0;
 
-    // 5. SI ES EL TURNO ACTUAL: Calculamos el progreso real
+    // SI ES EL TURNO ACTUAL: Acumulamos secuencialmente siguiendo el orden cronológico del turno
     const slots = generateHourSlots(shiftId);
     let metaAcum = 0;
 
     for (const slot of slots) {
         const startHour = parseInt(slot.split(':')[0], 10);
-        let hourlyMeta;
-        // if (localConfig.mealHour === slot) {
-        //     hourlyMeta = 0; // Hora de comida = 0 piezas
-        // } else 
-        if (localConfig?.customMetas?.[slot] !== undefined) {
-            hourlyMeta = Number(localConfig.customMetas[slot]); // Meta editada
-        } else {
-            hourlyMeta = getMetaPorHoraIndividual(startHour, shiftId, metaPorHora); // Meta base
-        }
+        const hourlyMeta = getMetaPorHoraIndividual(startHour, shiftId, metaPorHora);
 
-        if (startHour < currentClientHour) {
-            // Hora terminada
-            metaAcum += hourlyMeta;
-        } else if (startHour === currentClientHour) {
-            // Hora en curso: aplicamos proporcionalidad (cada 15 min)
+        if (startHour === currentClientHour) {
+            // Llegamos a la hora actual en curso: aplicamos proporcionalidad por cuartos de hora
             const quarter = hourlyMeta / 4;
             if (currentClientMinute >= 45) metaAcum += hourlyMeta;
             else if (currentClientMinute >= 30) metaAcum += (quarter * 2);
             else if (currentClientMinute >= 15) metaAcum += quarter;
-            break; 
+            break; // Detenerse aquí, las horas siguientes en el bucle son el futuro
         } else {
-            // Horas futuras del turno actual
-            break;
+            // Es una hora pasada dentro de la secuencia cronológica de este turno
+            metaAcum += hourlyMeta;
         }
     }
     return metaAcum;
 };
 
-// Función auxiliar interna
-export const getFullShiftMeta = (config, localConfig) => {
-    const { selectedShift, metaPorHora } = config;
-    const activeShifts = localConfig?.activeShifts || ['1', '2', '3'];
-    if (!activeShifts.includes(selectedShift)) return 0;
-    
-    return generateHourSlots(selectedShift).reduce((acc, slot) => {
+export const getFullShiftMeta = (config) => {
+    const { metaPorHora } = config;
+    // CORRECCIÓN CRÍTICA: Soportar ambos nombres de parámetro
+    const shiftId = config.selectedShift || config.shiftId;
+    if (!shiftId) return 0;
+
+    return generateHourSlots(shiftId).reduce((acc, slot) => {
         const start = parseInt(slot.split(':')[0], 10);
-        let hourlyMeta;
-        // if (localConfig?.mealHour === slot) hourlyMeta = 0;
-        // else 
-        if (localConfig?.customMetas?.[slot] !== undefined) hourlyMeta = Number(localConfig.customMetas[slot]);
-        else hourlyMeta = getMetaPorHoraIndividual(start, selectedShift, metaPorHora);
-        
-        return acc + hourlyMeta;
+        return acc + getMetaPorHoraIndividual(start, shiftId, metaPorHora);
     }, 0);
 };
 
-export const calcularMetaDiaAcumulada = (config, localConfig) => {
+export const calcularMetaDiaAcumulada = (config, shiftFilter = null) => {
     const { selectedDate, metaPorHora, currentClientHour, currentClientMinute } = config;
     const today = getFormattedDate();
     
@@ -95,21 +82,64 @@ export const calcularMetaDiaAcumulada = (config, localConfig) => {
     for (let i = 0; i < SHIFT_ORDER.length; i++) {
         const shiftId = SHIFT_ORDER[i];
         
+        let isShiftActive = true;
+        if (shiftFilter) {
+            if (Array.isArray(shiftFilter)) {
+                if (shiftFilter.length === 0) {
+                    isShiftActive = true; // Si está vacío al iniciar, por defecto está activo
+                } else if (typeof shiftFilter[0] === 'object') {
+                    const found = shiftFilter.find(s => String(s?.Turno ?? s?.id ?? '') === String(shiftId));
+                    isShiftActive = found ? Boolean(found.Activo) : true;
+                } else {
+                    isShiftActive = shiftFilter.map(String).includes(String(shiftId));
+                }
+            } else if (shiftFilter.activeShifts && Array.isArray(shiftFilter.activeShifts)) {
+                isShiftActive = shiftFilter.activeShifts.map(String).includes(String(shiftId));
+            }
+        }
+
+        if (!isShiftActive) continue;
+
         if (selectedDate === today) {
-            if (i < currentShiftIdx) {
-                // Turno ya pasado hoy: sumamos su meta completa
-                totalAcc += getFullShiftMeta({ selectedShift: shiftId, metaPorHora }, localConfig);
-            } else if (i === currentShiftIdx) {
-                // Turno actual: sumamos solo el progreso hasta el minuto actual
+            const targetIndex = SHIFT_ORDER.indexOf(shiftId);
+            if (targetIndex < currentShiftIdx) {
+                totalAcc += getFullShiftMeta({ selectedShift: shiftId, metaPorHora });
+            } else if (targetIndex === currentShiftIdx) {
                 totalAcc += calculateShiftMeta({ 
-                    shiftId, selectedDate, currentClientMinute, currentClientHour, metaPorHora, localConfig 
+                    shiftId, selectedDate, currentClientMinute, currentClientHour, metaPorHora
                 });
-                break; // No sumamos turnos futuros
+                break; 
             }
         } else {
-            // Fecha pasada: sumamos el total de todos los turnos activos de ese día
-            totalAcc += getFullShiftMeta({ selectedShift: shiftId, metaPorHora }, localConfig);
+            totalAcc += getFullShiftMeta({ selectedShift: shiftId, metaPorHora });
         }
     }
     return totalAcc;
+};
+
+export const calcularMetaProgresiva = (horasData, metaTurnoDB) => {
+    if (!horasData || horasData.length === 0) return 0;
+
+    const ahora = new Date();
+    const horaActual = ahora.getHours();
+    const minutosActuales = ahora.getMinutes();
+
+    let metaAcumulada = 0;
+
+    for (let i = 0; i < horasData.length; i++) {
+        const fila = horasData[i];
+        const metaDeEstaHora = Number(fila.MetaEfectiva) || 0;
+        const horaInt = Number(fila.Hora);
+
+        if (horaInt === horaActual) {
+            const cuartosPasados = Math.floor(minutosActuales / 15);
+            metaAcumulada += metaDeEstaHora * (cuartosPasados / 4);
+            break; 
+        } else {
+            metaAcumulada += metaDeEstaHora;
+        }
+    }
+
+    metaAcumulada = Math.round(metaAcumulada);
+    return (metaTurnoDB > 0 && metaAcumulada > metaTurnoDB) ? metaTurnoDB : metaAcumulada;
 };

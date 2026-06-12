@@ -9,7 +9,6 @@ export const useLocalLineConfig = (lineId, initialDefaultMeta) =>{
 
         return {
             mealHour: null,
-            customMetas: {},
             activeShifts: ['1', '2', '3'],
             ...parsed,
             // Forzamos el uso de la meta inicial definida en el código (linesConfig.jsx)
@@ -30,13 +29,6 @@ export const useLocalLineConfig = (lineId, initialDefaultMeta) =>{
         }));
     };
     
-    const setCustomMeta = (hour, value) => {
-        setConfig(prev => ({
-            ...prev,
-            customMetas: {...prev.customMetas, [hour] : value}
-        }));
-    };
-    
     const toggleShift = (shiftId) => {
         setConfig(prev => {
             const currentActive = prev.activeShifts || ['1', '2', '3'];
@@ -50,5 +42,5 @@ export const useLocalLineConfig = (lineId, initialDefaultMeta) =>{
         });
     };
     
-    return {config, setMealHour, setCustomMeta, toggleShift};
+    return {config, setMealHour, toggleShift};
 };

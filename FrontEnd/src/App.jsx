@@ -9,7 +9,7 @@ import TablaElectronics from './lines/Electronics/TablaElectronics';
 // import Menu from './pages/deprecated/Menu';
 // import Dashboard from './pages/deprecated/Dashboard';
 import TablaProdCdu from './lines/CDU/TablaCDU';
-import TablaProdInsin from './lines/Insinkerator/TablaInsinkerator';
+import TablaInsinkerator from './lines/Insinkerator/TablaInsinkerator';
 // import TablaProdRotorWet from './lines/RotorWet/TablaRotorWet';
 // import TablaProdRotorIse from './lines/RotorIse/TablaRotorISE';
 import TablaEnsamble from './lines/Ensamble/TablaEnsamble';
@@ -28,7 +28,7 @@ function App() {
       <Route path="/TablaCDU" element={<TablaProdCdu />} />
       <Route path="/TablaEnsamble" element={<TablaEnsamble />} />
       <Route path="/TablaThermo" element={<TablaThermo />} />
-      <Route path="/TablaInsin" element={<TablaProdInsin />} />
+      <Route path="/TablaInsin" element={<TablaInsinkerator />} />
       {/* <Route path="/TablaRotorWet" element={<TablaProdRotorWet />} />
       <Route path="/TablaRotorIse" element={<TablaProdRotorIse />} /> */}
       <Route path="/TablaECMFAN" element={<TablaECMFAN />} />
