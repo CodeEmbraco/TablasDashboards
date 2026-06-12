@@ -15,6 +15,7 @@ const LineDeltaContainer = ({ lineConfig, isLarge }) => {
     const [prodData, setProdData] = useState({
         desgloseTurnos: [], 
         totalTurno: 0,
+        shiftsStatus: [],
         loading: true,
         error: null
     });
@@ -25,15 +26,18 @@ const LineDeltaContainer = ({ lineConfig, isLarge }) => {
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
 
+    const [refreshSignal, setRefreshSignal] = useState(0);
+
     useEffect(() => {
         let isMounted = true;
         let timeoutId = null;
 
         const fetchData = async () => {
             try {
-                const [resDesglose, resTurno] = await Promise.all([
+                const [resDesglose, resTurno, resShifts] = await Promise.all([
                     productionService.getTotalShiftDelta(lineConfig.id, today, lineConfig.lineNo),
-                    productionService.getTotalShift(lineConfig.id, today, turnoActual, lineConfig.lineNo)
+                    productionService.getTotalShift(lineConfig.id, today, turnoActual, lineConfig.lineNo),
+                    productionService.getShiftsStatus(lineConfig.id, today, lineConfig.lineNo)
                 ]);
 
                 const desgloseArray = Array.isArray(resDesglose) 
@@ -44,6 +48,7 @@ const LineDeltaContainer = ({ lineConfig, isLarge }) => {
                     setProdData({
                         desgloseTurnos: desgloseArray, 
                         totalTurno: resTurno?.TOTAL_TURNO ?? resTurno?.total ?? resTurno?.TOTAL ?? 0,
+                        shiftsStatus: resShifts || [],
                         loading: false,
                         error: null
                     });
@@ -66,17 +71,33 @@ const LineDeltaContainer = ({ lineConfig, isLarge }) => {
             isMounted = false;
             if (timeoutId) clearTimeout(timeoutId);
         };
-    }, [lineConfig.id, lineConfig.lineNo, today, turnoActual]);
+    }, [lineConfig.id, lineConfig.lineNo, today, turnoActual, refreshSignal]);
+
+    const toggleShiftDB = async (shiftId, currentStatus) => {
+        try {
+            await productionService.shiftToggleStatus(lineConfig.id, today, shiftId, !currentStatus, lineConfig.lineNo);
+            // Forzamos actualización de datos
+            setRefreshSignal(prev => prev + 1);
+        } catch (error) {
+            console.error("Error toggling shift status in dashboard:", error);
+        }
+    };
 
     const produccionDiaAjustada = prodData.desgloseTurnos
         .filter(item => {
-            const valorTurno = String(item.TURNO ?? item.turno ?? item.Turno ?? '');
-            return config.activeShifts.includes(valorTurno);
+            const turnoId = String(item.TURNO ?? item.turno ?? item.Turno ?? '');
+            const statusDB = prodData.shiftsStatus.find(s => String(s.Turno) === turnoId);
+            return statusDB ? Boolean(statusDB.Activo) : true;
         })
         .reduce((acc, item) => {
             const piezas = item.CONTADOR ?? item.contador ?? item.total ?? item.TOTAL ?? 0;
             return acc + (Number(piezas) || 0); 
         }, 0);
+
+    // Sincronizamos los turnos activos con la base de datos para evitar discrepancias visuales
+    const activeShiftsFromDB = prodData.shiftsStatus
+        .filter(s => Boolean(s.Activo || s.ACTIVO))
+        .map(s => String(s.Turno));
 
     const metaAcumulada = calcularMetaDiaAcumulada(
         {
@@ -85,12 +106,14 @@ const LineDeltaContainer = ({ lineConfig, isLarge }) => {
             currentClientHour: currentHour,
             currentClientMinute: currentMinute
         }, 
-        config
+        { ...config, activeShifts: activeShiftsFromDB }
     );
     
     const eficiencia = metaAcumulada > 0 ? (produccionDiaAjustada / metaAcumulada) * 100 : 0;
 
-    const noShiftsActive = config.activeShifts.length === 0;
+    const status = eficiencia >= 100 ? 'status-good' : (eficiencia >= 90 ? 'status-regular' : 'status-bad');
+
+    const noShiftsActive = activeShiftsFromDB.length === 0;
     const deltaColor = noShiftsActive ? '#4caf50' : (eficiencia >= 100 ? '#4caf50' : (eficiencia >= 90 ? '#fbc02d' : '#ea5a00'));
 
     // 1. ESTADO DE CARGA (Mantiene la estructura grid-item)
@@ -163,9 +186,10 @@ const LineDeltaContainer = ({ lineConfig, isLarge }) => {
                     total={produccionDiaAjustada} 
                     accGoal={metaAcumulada}
                     eficiencia={eficiencia}
-                    activeShifts={config.activeShifts || []}
-                    onToggleShift={toggleShift}
-                    desgloseTurnos={prodData.desgloseTurnos}
+                    status={status}
+                    activeShifts={prodData.shiftsStatus}
+                    onToggleShift={toggleShiftDB}
+                    totalTurno={prodData.desgloseTurnos}
                     imgURL={lineConfig.imgURL}
                 />
             </div>

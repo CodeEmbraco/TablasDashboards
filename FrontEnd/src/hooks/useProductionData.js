@@ -46,7 +46,7 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions, lineN
             const metaProgresivaCalculada = calcularMetaProgresiva(dataByHour, metaTurnoDB);
 
             //DEBUG: Estamos calculando bien la meta progresiva?
-            //console.log("metaProgresivaCalculada: ", metaProgresivaCalculada);
+            // console.log("metaProgresivaCalculada: ", metaProgresivaCalculada);
             //-----------------
 
 

@@ -39,8 +39,9 @@ export const generateHourSlots = (shiftId) => {
 };
 
 export const getMetaPorHoraIndividual = (startHour, shiftId, metaBase) => {
-    if (shiftId === '1' && startHour === 9) return metaBase / 2;
-    if (shiftId === '2' && startHour === 18) return metaBase / 2;
-    if (shiftId === '3' && startHour === 0) return metaBase / 2;
+    //! Como las metas se modifican desde SQL, el calculo ya no es necesario
+    // if (shiftId === '1' && startHour === 9) return metaBase / 2;
+    // if (shiftId === '2' && startHour === 18) return metaBase / 2;
+    // if (shiftId === '3' && startHour === 0) return metaBase / 2;
     return metaBase;
 };

@@ -3,19 +3,38 @@ import { LINES_CONFIG } from '@config/linesConfig';
 import LineDeltaContainer from '@components/Dashboard/LineDeltaContainer'; 
 import Header from '@components/Header/Header'; 
 import Footer from '@components/Footer/footer';
+import productionService from '@services/ProductionServices';
 
 const GlobalDashboard = () => {
-    const lineasOriginales = Object.values(LINES_CONFIG);
-    const lineasProcesadas = [];
+    const [lineasProcesadas, setLineasProcesadas] = useState([]);
 
-    lineasOriginales.forEach((linea) => {
-        if (linea.id.toLowerCase().includes('insi') || (linea.name && linea.name.toLowerCase().includes('insi'))) { 
-            lineasProcesadas.push({ ...linea, lineNo: 1, name: `${linea.name} - L1` });
-            lineasProcesadas.push({ ...linea, lineNo: 2, name: `${linea.name} - L2` });
-        } else {
-            lineasProcesadas.push({ ...linea, lineNo: null });
-        }
-    });
+    // Carga inicial de todas las líneas para obtener sus nombres oficiales
+    useEffect(() => {
+        const loadAllLines = async () => {
+            try {
+                const dbLines = await productionService.getLinesConfig(); // Param null trae info elemental
+                const staticInfo = Object.values(LINES_CONFIG);
+                
+                const procesadas = staticInfo.map(staticLine => {
+                    const dbInfo = dbLines.find(db => db.LineId === staticLine.id);
+                    const nombreBase = dbInfo ? dbInfo.Nombre : "Línea Desconocida";
+                    
+                    if (staticLine.id.toLowerCase().includes('insi')) {
+                        return [
+                            { ...staticLine, name: `${nombreBase} - L1`, lineNo: 1 },
+                            { ...staticLine, name: `${nombreBase} - L2`, lineNo: 2 }
+                        ];
+                    }
+                    return { ...staticLine, name: nombreBase, lineNo: null };
+                }).flat();
+
+                setLineasProcesadas(procesadas);
+            } catch (err) {
+                console.error("Error cargando dashboard global:", err);
+            }
+        };
+        loadAllLines();
+    }, []);
 
     // Estado del ciclo de enfoque (avanza de 2 en 2)
     const [activeIndex, setActiveIndex] = useState(0);
@@ -29,6 +48,10 @@ const GlobalDashboard = () => {
 
         return () => clearInterval(interval);
     }, [lineasProcesadas.length]);
+
+    if (lineasProcesadas.length === 0) {
+        return <div className="loading-screen"><p>Cargando Dashboard de Producción...</p></div>;
+    }
 
     // Extraer las dos líneas enfocadas correspondientes
     const focusedLine1 = lineasProcesadas[activeIndex];

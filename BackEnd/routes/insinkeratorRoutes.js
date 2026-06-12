@@ -1,7 +1,7 @@
 import express from "express";
 import axios from 'axios';
 import sql from "mssql";
-import { sqlConfigINSI } from "../config/dbConnections.js";
+import { poolINSI, poolCIMA } from "../config/dbConnections.js";
 
 const router = express.Router();
 
@@ -13,29 +13,49 @@ const router = express.Router();
 router.get("/hourly", async (req, res) => {
     const {fecha, turno, lineNo} = req.query;
     const tablename = "EIN_0" + lineNo;
-    //*Abrimos una conexion con ES_INSI_TESTER
-    let pool = await sql.connect(sqlConfigINSI);
     try {
         //*Se hace la consulta de la info de la tabla de logs del tester de insinkerator
-        const result = await pool.request()
+        const hourly_production = await poolINSI.request()
         .input("FECHA", sql.Date, fecha)
         .input("TURNO", sql.Int, turno)
         .input("TableName", sql.NVarChar(128), tablename)
         .execute("INSINK_sp_prodByHour");
 
-        // Normalizar para que el FrontEnd encuentre la propiedad 'REAL'
-        const normalizedData = result.recordset.map(row => ({
-            ...row,
-            REAL: row.REAL ?? row.CONTADOR ?? row.CANTIDAD ?? 0
-        }));
-        res.json(normalizedData);
+        const hourly_goals = await poolCIMA.request()
+        .input("LineId", sql.VarChar(20), "insi")
+        .input("Fecha", sql.Date, fecha)
+        .input("Turno", sql.Int, turno)
+        .input("NumeroLinea", sql.Int, lineNo)
+        .execute("SP_OBTENER_METAS_EFECTIVAS");
+
+        //DEBUG---------------
+        //console.log(`Estas son las metas de insi${lineNo} del turno ${turno}`);
+        //--------------------    
+        
+        const production_data = hourly_production.recordset;
+        const goals_data = hourly_goals.recordset;
+
+        const final_result = goals_data.map(m =>{
+            const HoraInicioSlot = parseInt(m.Hora_Slot.split(':')[0], 10);
+            const ProduccionDeEstaHora = production_data.find(p => p.Hora === HoraInicioSlot);
+
+            
+            return {
+                Hora: HoraInicioSlot,
+                ProduccionTotal: ProduccionDeEstaHora ? ProduccionDeEstaHora.ProduccionTotal : 0, 
+                Modelos: ProduccionDeEstaHora ? ProduccionDeEstaHora.Modelos : "",
+                MetaEfectiva: m.MetaEfectiva,
+            };
+        });
+
+        //DEBUG---------------
+        //console.log("Final Result, hourly:  \n", final_result);
+        //--------------------
+        
+        res.json(final_result);
 
     } catch (error) {
         res.status(500).send('Error al obtener los datos');
-    }finally {
-        if (pool) {
-            await pool.close();
-        }
     }
 });
 
@@ -43,11 +63,9 @@ router.get("/hourly", async (req, res) => {
 router.get("/total-day", async (req, res) => {
     const {fecha, lineNo} = req.query;
     const tablename = "EIN_0" + lineNo;
-    //*Abrimos una conexion con CIMA
-    let pool = await sql.connect(sqlConfigINSI);
     try {
         //*Se hace la consulta de la info de la tabla de logs del tester de insinkerator
-        const result = await pool.request()
+        const result = await poolINSI.request()
         .input("FECHA", sql.Date, fecha)
         .input("TableName", sql.NVarChar(128), tablename)
         .execute("INSINK_sp_totalProdByDate");
@@ -57,22 +75,15 @@ router.get("/total-day", async (req, res) => {
 
     } catch (error) {
         res.status(500).send('Error al obtener los datos');
-    }finally {
-        if (pool) {
-            await pool.close();
-        }
     }
 });
 
 router.get("/total-shift", async (req, res) => {
     const { fecha, lineNo } = req.query;
     const tablename = "EIN_0" + lineNo;
-    let pool;
-
     try {
-        pool = await sql.connect(sqlConfigINSI);
 
-        const result = await pool.request()
+        const result = await poolINSI.request()
             .input("FECHA", sql.Date, fecha)
             .input("TableName", sql.NVarChar(128), tablename)   
             .execute("INSINK_sp_queryByDateAndShift");
@@ -80,34 +91,41 @@ router.get("/total-shift", async (req, res) => {
         const rows = result.recordset;
 
         const turnosRequeridos = [1, 2, 3];
-        const dataFinal = turnosRequeridos.map(idTurno => {
-            // Buscamos si el turno existe en los resultados de la DB
+        const dataFinal = await Promise.all(turnosRequeridos.map(async (idTurno) => {
+            // Consulta las metas para este turno específico
+            const metas = await poolCIMA.request()
+                .input("LineId", sql.VarChar(20), "insi")
+                .input("Fecha", sql.Date, fecha)
+                .input("Turno", sql.Int, idTurno)
+                .input("NumeroLinea", sql.Int, lineNo)
+                .execute("SP_OBTENER_METAS_EFECTIVAS");
+
+            // Sumamos las metas de todas las horas de este turno
+            const totalMetaTurno = metas.recordset.reduce((acc, curr) => acc + (curr.MetaEfectiva || 0), 0);
+
+            // Buscamos producción real
             const registro = rows.find(r => r.TURNO === idTurno);
 
-            // Si existe, lo usamos. Si no, creamos el objeto con CONTADOR 0
-            return registro ? registro : { CONTADOR: 0, TURNO: idTurno };
-        });
+            return {
+                TURNO: idTurno,
+                CONTADOR: registro ? registro.CONTADOR : 0,
+                MetaEfectivaTurno: totalMetaTurno // Nueva columna con la meta sumada
+            };
+        }));
 
         res.json(dataFinal);
 
     } catch (error) {
         console.error(error);
         res.status(500).send('Error al obtener los datos');
-    } finally {
-        if (pool) {
-            await pool.close();
-        }
     }
 });
 
 router.get("/shift", async(req,res) => {
     const { fecha, turno, lineNo } = req.query;
     const tablename = "EIN_0" + lineNo;
-    //console.log("^backend^ fecha: ", fecha, "\nturno: ", turno);
-    let pool;
     try{
-        pool = await sql.connect(sqlConfigINSI);
-        const result = await pool.request()
+        const result = await poolINSI.request()
         .input("FECHA", sql.Date, fecha)
         .input("TURNO", sql.Int, turno)
         .input("TableName", sql.NVarChar(128), tablename)
@@ -120,15 +138,9 @@ router.get("/shift", async(req,res) => {
         console.log(err);
         res.status(500).send('Error al obtener los datos');
     }
-    finally{
-        if(pool){
-            await pool.close;
-        }
-    }
 });
 
 router.post("/save", async(req, res) =>{
-    let pool;
     try {
         const { lineNo } = req.query;
         const reportData = req.body;
@@ -136,10 +148,6 @@ router.post("/save", async(req, res) =>{
         if (!Array.isArray(reportData) || reportData.length === 0) {
             return res.status(400).json({ error: "Datos de reporte inválidos o vacíos." });
         }
-
-        pool = new sql.ConnectionPool(sqlConfigINSI);
-        await pool.connect();
-
         const dataPorHora = {};
 
         reportData.forEach(row => {
@@ -153,7 +161,7 @@ router.post("/save", async(req, res) =>{
             const filasDeEstaHora = dataPorHora[horaSlot];
             const { Fecha, Turno } = filasDeEstaHora[0];
 
-            await pool.request()
+            await poolINSI.request()
                 .input('Fecha', sql.Date, Fecha)
                 .input('Turno', sql.Int, Turno)
                 .input('Hora', sql.VarChar, horaSlot)
@@ -167,7 +175,7 @@ router.post("/save", async(req, res) =>{
                 `);
 
             for (const row of filasDeEstaHora) {
-                await pool.request()
+                await poolINSI.request()
                     .input('Fecha', sql.Date, row.Fecha)
                     .input('Turno', sql.Int, row.Turno)
                     .input('Hora_Slot', sql.VarChar, row.Hora_Slot)
@@ -190,10 +198,6 @@ router.post("/save", async(req, res) =>{
     } catch (err) {
         console.error("Error al guardar el reporte Insinkerator:", err);
         res.status(500).json({ error: "Error interno del servidor al guardar." });
-    } finally {
-        if (pool) {
-            await pool.close();
-        }
     }
 });
 
@@ -204,12 +208,7 @@ router.get("/reports", async (req, res) => {
         return res.status(400).json({ error: "Faltan parámetros fecha o turno" });
     }
 
-    let pool;
-
     try {
-        pool = new sql.ConnectionPool(sqlConfigINSI);
-        await pool.connect();
-
         const query = `
             SELECT
                 HORA as time_slot,
@@ -227,7 +226,7 @@ router.get("/reports", async (req, res) => {
                 AND LINEA = @lineNo
         `;
 
-        const result = await pool.request()
+        const result = await poolINSI.request()
             .input('fecha', sql.Date, fecha)
             .input('turno', sql.Int, turno)
             .input('lineNo', sql.Int, lineNo)
@@ -238,10 +237,6 @@ router.get("/reports", async (req, res) => {
     } catch (err) {
         console.error("Error al consultar historial Insinkerator:", err);
         res.status(500).json({ error: "Error al consultar la base de datos." });
-    } finally {
-        if (pool) {
-            await pool.close();
-        }
     }
 });
 

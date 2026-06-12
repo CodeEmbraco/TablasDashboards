@@ -1,13 +1,14 @@
 import React from 'react';
 import zero from '@assets/zeroproductividad.png'
 
-const Delta = ({ total, accGoal, eficiencia, activeShifts = [], onToggleShift, desgloseTurnos = [], imgURL}) => {
+const Delta = ({ total, accGoal, totalTurno = [], eficiencia, activeShifts = [], onToggleShift, imgURL, status}) => {
     const deltaValue = total - accGoal;
     const deltaSign = deltaValue >= 0 ? "+" : "";
 
     // Lógica de color: Verde (>=100%), Amarillo (90-99%), Rojo (<90%)
     // Si no hay turnos activos, forzamos gris para no mostrar un estado "crítico" erróneo
-    const deltaColor = activeShifts.length === 0 ? '#4caf50' : (eficiencia >= 100 ? '#4caf50' : (eficiencia >= 90 ? '#fbc02d' : '#ea5a00'));
+    const hasActiveShifts = activeShifts.some(s => s.Activo || s.ACTIVO);
+    const deltaColor = !hasActiveShifts ? '#4caf50' : (eficiencia >= 100 ? '#4caf50' : (eficiencia >= 90 ? '#fbc02d' : '#ea5a00'));
 
     const displayValue = Math.min(Math.max(eficiencia,0), 100);
     
@@ -19,14 +20,15 @@ const Delta = ({ total, accGoal, eficiencia, activeShifts = [], onToggleShift, d
         { id: '2', label: 'T2' }
     ].map(shift => {
         // Buscamos en el arreglo del backend el turno correspondiente (ej. TURNO: 1)
-        const dataTurno = desgloseTurnos.find(item => 
+        const dataTurno = totalTurno.find(item => 
             String(item.TURNO ?? item.turno ?? item.Turno) === shift.id
         );
 
         return {
             ...shift,
             // Si lo encontró, asignamos el valor del CONTADOR, si no, se queda en 0
-            value: dataTurno ? (dataTurno.CONTADOR ?? dataTurno.contador ?? dataTurno.TOTAL ?? 0) : 0
+            value: dataTurno ? (dataTurno.CONTADOR ?? dataTurno.contador ?? dataTurno.TOTAL ?? 0) : 0,
+            meta: dataTurno ? (dataTurno.MetaEfectivaTurno ?? 0) : 0
         };
     });
 
@@ -60,11 +62,17 @@ const Delta = ({ total, accGoal, eficiencia, activeShifts = [], onToggleShift, d
             </div>
             <div className='turnos-breakdown-dashboard-delta'>
                 {shifts.map((s) => {
-                    const isActive = activeShifts.includes(s.id);
+                    // 1. Buscamos el estado del turno en el arreglo que viene de la BD
+                    // Aseguramos comparar como string ya que viene como INT desde SQL
+                    const statusDB = activeShifts.find(shift => String(shift.Turno) === String(s.id));
+                    
+                    // 2. Si existe en la BD evaluamos su estado, si no hay registro asumimos true (por defecto)
+                    const isActive = statusDB ? Boolean(statusDB.Activo) : true;
+
                     return (
                         <div 
                             key={s.id} 
-                            onClick={() => onToggleShift(s.id)}
+                            onClick={() => onToggleShift(s.id, isActive)}
                             style={{ 
                                 display: 'flex', 
                                 alignItems: 'center', 
@@ -83,7 +91,8 @@ const Delta = ({ total, accGoal, eficiencia, activeShifts = [], onToggleShift, d
                             </span>
                             <div className="progress-bar-container-shift" style={{ width: '100px', flexShrink: 0 }}>
                                 <div className="progress-bar-shift" style={{ 
-                                    width: s.value / accGoal * 100 + '%', 
+                                    // Priorizamos la meta del turno si existe, de lo contrario usamos la meta acumulada cuidando no dividir por cero
+                                    width: (s.meta > 0 ? Math.min((s.value / s.meta) * 100, 100) : (accGoal > 0 ? Math.min((s.value / accGoal) * 100, 100) : 0)) + '%', 
                                     backgroundColor: deltaColor  
                                 }}>
                                 </div>

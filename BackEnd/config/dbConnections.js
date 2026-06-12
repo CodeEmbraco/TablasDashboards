@@ -103,19 +103,11 @@ export const sqlConfigFAN = {
 // };
 
 const poolCIMAInstance = new sql.ConnectionPool(sqlConfigCIMA);
-// const poolINSIInstance = new sql.ConnectionPool(sqlConfigINSI);
-// const poolFANInstance = new sql.ConnectionPool(sqlConfigFAN);
-// const poolPLISInstance = new sql.ConnectionPool(sqlConfig);
+const poolINSIInstance = new sql.ConnectionPool(sqlConfigINSI);
+const poolFANInstance = new sql.ConnectionPool(sqlConfigFAN);
+const poolPLISInstance = new sql.ConnectionPool(sqlConfig);
 
 export const poolCIMA = await poolCIMAInstance.connect();
-// export const poolINSI = await poolINSIInstance.connect();
-// export const poolFAN = await poolFANInstance.connect();
-// export const poolPLIS = await poolPLISInstance.connect();
-
-// module.exports = {
-//     poolCIMA,
-//     poolINSI,
-//     poolFAN,
-//     poolPLIS
-// };
-//
+export const poolINSI = await poolINSIInstance.connect();
+export const poolFAN = await poolFANInstance.connect();
+export const poolPLIS = await poolPLISInstance.connect();

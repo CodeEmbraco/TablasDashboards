@@ -1,30 +1,74 @@
 import express from "express";
 import sql from "mssql";
-import { sqlConfigFAN, sqlConfigCIMA } from "../config/dbConnections.js";
+import { poolFAN, poolCIMA } from "../config/dbConnections.js";
 
 const router = express.Router();
 //? ----------------------
 //? --Autor: Sean Garcia--
 //? ----------------------
+
 //ENDPOINTS DE ECMFAN
 router.get("/hourly", async (req, res) => {
     const {fecha, turno} = req.query;
-    //*Abrimos una conexion con CIMA
-    let pool = await sql.connect(sqlConfigFAN);
+
+    //--------------------
     try {
-        const result = await pool.request()
+        //*Se hace la consulta de la info de la tabla de registros de ECMFAN
+        const hourly_production = await poolFAN.request()
         .input("fechaParam", sql.Date, fecha)
         .input("turnoParam", sql.Int, turno)
         .execute("ECMFAN_HOURLY");
 
-        res.json(result.recordset);
+        //DEBUG---------------
+        // console.log("Pasó la consulta de ECMFAN!");
+        //--------------------
+
+        const hourly_goals = await poolCIMA.request()
+        .input("LineId", sql.VarChar(20), "ecmfan")
+        .input("Fecha", sql.Date, fecha)
+        .input("Turno", sql.Int, turno)
+        .execute("SP_OBTENER_METAS_EFECTIVAS");
+
+        //DEBUG---------------
+        //console.log("Pasó la consulta de metas!");
+        //-------
+        
+        const production_data = hourly_production.recordset;
+        const goals_data = hourly_goals.recordset;
+        
+        //DEBUG---------------
+        // console.log("production_data!\n", production_data);
+        // console.log("goals_data!\n",goals_data);
+        //--------------------
+
+        const final_result = goals_data.map(m =>{
+            const HoraInicioSlot = parseInt(m.Hora_Slot.split(':')[0], 10);
+            const ProduccionDeEstaHora = production_data.find(p => p.Hora === HoraInicioSlot);
+
+            //DEBUG---------------
+            // console.log("HoraInicioSlot!", HoraInicioSlot);
+            // console.log("ProduccionDeEstaHora!",ProduccionDeEstaHora);
+            // console.log("MetaEfectiva!",m.MetaEfectiva);
+            // console.log("---------------------------------")
+            //--------------------
+            
+            return {
+                Hora: HoraInicioSlot,
+                ProduccionTotal: ProduccionDeEstaHora ? ProduccionDeEstaHora.ProduccionTotal : 0, 
+                Modelos: ProduccionDeEstaHora ? ProduccionDeEstaHora.Modelos : "",
+                MetaEfectiva: m.MetaEfectiva,
+            };
+        });
+
+        //DEBUG---------------
+        //console.log("Final Result, hourly:  \n", final_result);
+        //--------------------
+        
+        res.json(final_result);
 
     } catch (error) {
+        console.error(error);
         res.status(500).send('Error al obtener los datos');
-    }finally {
-        if (pool) {
-            await pool.close();
-        }
     }
 });
 
@@ -32,9 +76,8 @@ router.get("/hourly", async (req, res) => {
 router.get("/total-day", async (req, res) => {
     const {fecha} = req.query;
     //*Abrimos una conexion con CIMA
-    let pool = await sql.connect(sqlConfigFAN);
     try {
-        const result = await pool.request()
+        const result = await poolFAN.request()
         .input("fechaParam", sql.Date, fecha)
         .execute("ECMFAN_TOTALDAY");
 
@@ -43,54 +86,58 @@ router.get("/total-day", async (req, res) => {
 
     } catch (error) {
         res.status(500).send('Error al obtener los datos');
-    }finally {
-        if (pool) {
-            await pool.close();
-        }
     }
 });
 
 router.get("/total-shift", async (req, res) => {
     const { fecha } = req.query;
-    let pool;
 
     try {
-        pool = await sql.connect(sqlConfigFAN);
+        // const conexionCIMA = await poolCIMA;
 
-        const result = await pool.request()
+        // 1. Obtener producción real por turno
+        const result = await poolFAN.request()
             .input("fechaParam", sql.Date, fecha)
             .execute("ECMFAN_TOTALSHIFT");
-
         const rows = result.recordset;
 
+        // 2. Obtener las metas de todos los turnos para esa fecha
         const turnosRequeridos = [1, 2, 3];
-        const dataFinal = turnosRequeridos.map(idTurno => {
-            // Buscamos si el turno existe en los resultados de la DB
+        
+        const dataFinal = await Promise.all(turnosRequeridos.map(async (idTurno) => {
+            // Consulta las metas para este turno específico
+            const metas = await poolCIMA.request()
+                .input("LineId", sql.VarChar(20), "ecmfan")
+                .input("Fecha", sql.Date, fecha)
+                .input("Turno", sql.Int, idTurno)
+                .execute("SP_OBTENER_METAS_EFECTIVAS");
+
+            // Sumamos las metas de todas las horas de este turno
+            const totalMetaTurno = metas.recordset.reduce((acc, curr) => acc + (curr.MetaEfectiva || 0), 0);
+
+            // Buscamos producción real
             const registro = rows.find(r => r.TURNO === idTurno);
 
-            // Si existe, lo usamos. Si no, creamos el objeto con CONTADOR 0
-            return registro ? registro : { CONTADOR: 0, TURNO: idTurno };
-        });
-
+            return {
+                TURNO: idTurno,
+                CONTADOR: registro ? registro.CONTADOR : 0,
+                MetaEfectivaTurno: totalMetaTurno // Nueva columna con la meta sumada
+            };
+        }));
+        
         res.json(dataFinal);
 
     } catch (error) {
-        console.error(error);
+        console.error("Error en /total-shift:", error);
         res.status(500).send('Error al obtener los datos');
-    } finally {
-        if (pool) {
-            await pool.close();
-        }
     }
 });
 
 router.get("/shift", async(req,res) => {
     const { fecha, turno } = req.query;
     //console.log("^backend^ fecha: ", fecha, "\nturno: ", turno);
-    let pool;
     try{
-        pool = await sql.connect(sqlConfigFAN);
-        const result = await pool.request()
+        const result = await poolFAN.request()
         .input("fechaParam", sql.Date, fecha)
         .input("turnoParam", sql.Int, turno)
         .execute("ECMFAN_SHIFT");
@@ -102,25 +149,15 @@ router.get("/shift", async(req,res) => {
         console.log(err);
         res.status(500).send('Error al obtener los datos');
     }
-    finally{
-        if(pool){
-            await pool.close;
-        }
-    }
 });
 
 router.post("/save", async(req, res) =>{
-    let poolCIMA;
     try {
         const reportData = req.body;
 
         if (!Array.isArray(reportData) || reportData.length === 0) {
             return res.status(400).json({ error: "Datos de reporte inválidos o vacíos." });
         }
-
-        poolCIMA = new sql.ConnectionPool(sqlConfigCIMA);
-        await poolCIMA.connect();
-
         const dataPorHora = {};
 
         reportData.forEach(row => {
@@ -166,12 +203,8 @@ router.post("/save", async(req, res) =>{
         res.status(200).json({ message: "Reporte guardado con desglose correctamente." });
 
     } catch (err) {
-        console.error("Error al guardar el reporte ECM FAN:", err);
+        console.error("Error al guardar el reporte Ensamble:", err);
         res.status(500).json({ error: "Error interno del servidor al guardar." });
-    } finally {
-        if (poolCIMA) {
-            await poolCIMA.close();
-        }
     }
 });
 
@@ -182,12 +215,7 @@ router.get("/reports", async (req, res) => {
         return res.status(400).json({ error: "Faltan parámetros fecha o turno" });
     }
 
-    let poolCIMA;
-
     try {
-        poolCIMA = new sql.ConnectionPool(sqlConfigCIMA);
-        await poolCIMA.connect();
-
         const query = `
             SELECT
                 HORA as time_slot,
@@ -211,12 +239,8 @@ router.get("/reports", async (req, res) => {
         res.json(result.recordset);
 
     } catch (err) {
-        console.error("Error al consultar historial ECM FAN:", err);
+        console.error("Error al consultar historial ECMFAN:", err);
         res.status(500).json({ error: "Error al consultar la base de datos CIMA." });
-    } finally {
-        if (poolCIMA) {
-            await poolCIMA.close();
-        }
     }
 });
 
