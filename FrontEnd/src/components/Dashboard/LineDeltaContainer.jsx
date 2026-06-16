@@ -5,7 +5,10 @@ import { useLocalLineConfig } from '@hooks/useLocalLineConfig';
 import { getFormattedDate, getCurrentShift } from '@utils/dateUtils';
 import { calcularMetaDiaAcumulada } from '@utils/shiftUtils';
 
-const LineDeltaContainer = ({ lineConfig, isLarge }) => {
+const LineDeltaContainer = ({ lineConfig, isLarge, isAdmin, onAccessDenied }) => {
+    // Evita errores si lineConfig es undefined
+    if (!lineConfig) return null;
+
     const uniqueLineId = lineConfig.lineNo 
         ? `${lineConfig.id}_${lineConfig.lineNo}` 
         : lineConfig.id;
@@ -191,6 +194,8 @@ const LineDeltaContainer = ({ lineConfig, isLarge }) => {
                     onToggleShift={toggleShiftDB}
                     totalTurno={prodData.desgloseTurnos}
                     imgURL={lineConfig.imgURL}
+                    isAdmin={isAdmin}
+                    onAccessDenied={onAccessDenied}
                 />
             </div>
         </div>

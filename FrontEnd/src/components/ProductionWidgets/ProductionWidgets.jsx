@@ -1,5 +1,5 @@
 // src/components/ProductionWidgets/ProductionWidgets.jsx
-import React from 'react';
+import React, { memo } from 'react';
 import GaugeChart from 'react-gauge-chart'
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
@@ -68,4 +68,4 @@ const ProductionWidgets = ({ percent, statusClass, real, goal, losses, enableAni
     );
 };
 
-export default ProductionWidgets;
+export default memo(ProductionWidgets);

@@ -403,7 +403,46 @@
 .celda-no-cumplida { background-color: #f8d7da !important; color: #842029; transition: background-color 0.3s; }
 .input-loss-clickable { cursor: pointer; background-color: #fff3e0 !important; color: #e65100; font-weight: bold; }
 .input-loss-clickable:hover { background-color: #ffe0b2 !important; }
-.div-btn-guardar { text-align: center; margin: 10px 0 40px 0; }
+
+.div-btn-guardar { 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin: 10px 0 40px 0; 
+    position: relative;
+    padding: 0 60px;
+}
+
+.btn-admin-access {
+    background-color: var(--embraco-teal);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: absolute;
+    left: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-admin-access:hover { transform: scale(1.15); filter: brightness(1.1); }
+.btn-admin-access.admin-active { background-color: var(--nidec-lightgreen); }
+
+/* Versión flotante para Global Dashboard */
+.btn-admin-floating {
+    position: fixed !important;
+    bottom: 30px !important;
+    right: 30px !important;
+    left: auto !important; /* Anula el left: 40px por defecto */
+    width: 65px !important;
+    height: 65px !important;
+    z-index: 3000 !important;
+}
+
 .btnGuardarTabla { background-color: #66BB6A; color: white; border: none; padding: 10px 35px; border-radius: 30px; cursor: pointer; font-size: 15px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 .btnGuardarTablaEnsamlble:hover { background-color: #4CAF50; transform: translateY(-2px); box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); }
 .btnCambiarMeta { background-color: #1976D2; color: white; border: none; padding: 10px 20px; border-radius: 30px; cursor: pointer; font-size: 15px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-right: 15px; }
@@ -850,6 +889,83 @@
     background-color: #ffebee;
     color: #c62828;
     border-left: 4px solid #d32f2f;
+}
+
+/* Alerta de Advertencia / Acceso */
+.warning-toast {
+    background-color: #fff3e0;
+    color: #e65100;
+    border-left: 4px solid var(--nidec-orange);
+}
+
+/* Admin Expiry Toast */
+.admin-expiry-toast {
+    background-color: white;
+    border-left: 5px solid var(--nidec-lightgreen);
+    min-width: 220px;
+    transition: all 0.3s ease;
+    color: #333;
+}
+
+.admin-expiry-toast.warning {
+    border-left-color: #d32f2f;
+    background-color: #fff5f5;
+    animation: pulse-warning 1s infinite alternate;
+}
+
+@keyframes pulse-warning {
+    from { transform: scale(1); box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15); }
+    to { transform: scale(1.05); box-shadow: 0px 6px 16px rgba(211, 47, 47, 0.2); }
+}
+
+.timer-ring {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+}
+
+.timer-seconds {
+    position: absolute;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.admin-msg {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+    text-align: left;
+}
+
+.admin-msg strong {
+    font-size: 0.9rem;
+}
+
+.admin-msg span {
+    font-size: 0.75rem;
+    color: #666;
+}
+
+.btn-logout-timer {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    padding: 5px;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.btn-logout-timer:hover {
+    background-color: #f0f0f0;
+    color: #d32f2f;
 }
 
 /* Spinner animado pequeño */

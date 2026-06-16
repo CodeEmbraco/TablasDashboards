@@ -4,9 +4,13 @@ import LineDeltaContainer from '@components/Dashboard/LineDeltaContainer';
 import Header from '@components/Header/Header'; 
 import Footer from '@components/Footer/footer';
 import productionService from '@services/ProductionServices';
+import { useAdmin } from '@hooks/useAdmin';
+import AdminTimer from '@components/Admin/AdminTimer';
+import AdminAccessButton from '@components/Admin/AdminAccessButton';
 
 const GlobalDashboard = () => {
     const [lineasProcesadas, setLineasProcesadas] = useState([]);
+    const { isAdmin, handleUnlock, handleExpire, adminWarning, showWarning } = useAdmin();
 
     // Carga inicial de todas las líneas para obtener sus nombres oficiales
     useEffect(() => {
@@ -67,6 +71,16 @@ const GlobalDashboard = () => {
     return (
         <div className="global-dashboard-kiosk">
             <Header title="Dashboard Global de Producción" />
+
+            {/* TOAST DE ACCESO DENEGADO */}
+            {adminWarning && (
+                <div className="discreet-notification warning-toast">
+                    ⚠️ {adminWarning}
+                </div>
+            )}
+
+            {/* Temporizador de Seguridad */}
+            {isAdmin && <AdminTimer onExpire={handleExpire} />}
             
             <main style={{ 
                     flex: 1, 
@@ -86,14 +100,14 @@ const GlobalDashboard = () => {
                     {/* Primera Delta Enfocada */}
                     {focusedLine1 && (
                         <div style={{ flex: 1, overflow: 'hidden' }} key={`focus1_${focusedLine1.id}_${activeIndex}`} className="slide-up-animation">
-                            <LineDeltaContainer lineConfig={focusedLine1} isLarge={true} />
+                            <LineDeltaContainer lineConfig={focusedLine1} isLarge={true} isAdmin={isAdmin} onAccessDenied={showWarning} />
                         </div>
                     )}
 
                     {/* Segunda Delta Enfocada */}
                     {focusedLine2 && (
                         <div style={{ flex: 1, overflow: 'hidden' }} key={`focus2_${focusedLine2.id}_${activeIndex}`} className="slide-up-animation">
-                            <LineDeltaContainer lineConfig={focusedLine2} isLarge={true} />
+                            <LineDeltaContainer lineConfig={focusedLine2} isLarge={true} isAdmin={isAdmin} onAccessDenied={showWarning} />
                         </div>
                     )}
                 </div>
@@ -105,14 +119,14 @@ const GlobalDashboard = () => {
                         {/* Bloque Original de todas las líneas */}
                         {lineasCarousel.map((lineaConfig, idx) => (
                             <div key={`bot1_${lineaConfig.id}_${lineaConfig.lineNo || '0'}_${idx}`} style={cardStyleSmall}>
-                                <LineDeltaContainer lineConfig={lineaConfig} isLarge={false} />
+                                <LineDeltaContainer lineConfig={lineaConfig} isLarge={false} isAdmin={isAdmin} onAccessDenied={showWarning} />
                             </div>
                         ))}
                         
                         {/* Bloque Duplicado para efecto infinito */}
                         {lineasCarousel.map((lineaConfig, idx) => (
                             <div key={`bot2_${lineaConfig.id}_${lineaConfig.lineNo || '0'}_${idx}`} style={cardStyleSmall}>
-                                <LineDeltaContainer lineConfig={lineaConfig} isLarge={false} />
+                                <LineDeltaContainer lineConfig={lineaConfig} isLarge={false} isAdmin={isAdmin} />
                             </div>
                         ))}
 
@@ -120,6 +134,14 @@ const GlobalDashboard = () => {
                 </div>
 
             </main>
+
+            {/* Botón de Acceso Flotante */}
+            <AdminAccessButton 
+                isAdmin={isAdmin} 
+                onUnlock={handleUnlock} 
+                className="btn-admin-floating" 
+            />
+
             <Footer />
         </div>
     );

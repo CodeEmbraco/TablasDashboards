@@ -13,15 +13,15 @@ import cduRoutes from "./routes/cduRoutes.js"
 import electronicRoutes from "./routes/electronicsRoutes.js"
 import thermoRoutes from "./routes/thermoRoutes.js"
 import ecmfanRoutes from "./routes/ecmfanRoutes.js"
-import shiftsRoutes from "./routes/shiftsRoutes.js"
-import linesConfigRoutes from "./routes/linesConfigRoutes.js"
+import utilsRoutes from "./routes/utilsRoutes.js"
+// import linesConfigRoutes from "./routes/linesConfigRoutes.js"
 
 
 const app = express();
 app.use(express.json());
 app.use(cors());
-app.use("/api/shifts", shiftsRoutes);
-app.use("/api/linesConfig", linesConfigRoutes)
+app.use("/api/utils", utilsRoutes);
+// app.use("/api/linesConfig", linesConfigRoutes)
 app.use("/api/preensamble", preensamRoutes);
 app.use("/api/insi", insiRoutes);
 app.use("/api/cdu", cduRoutes);

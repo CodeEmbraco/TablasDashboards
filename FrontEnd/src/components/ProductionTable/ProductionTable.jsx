@@ -3,7 +3,7 @@ import ProductionRow from "@components/ProductionRow/ProductionRow";
 import '@styles/global.css';
 
 const ProductionTable = ({ items, onOpenModal, caption, localConfig, onSetMeal }) => {
-    //console.log("localConfig", localConfig);
+    //console.log("items", items);
     return (
         <section className="contenedorTabla">
             <table className="tablaProduccion">

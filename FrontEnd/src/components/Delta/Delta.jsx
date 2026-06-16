@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Delta = ({ total, accGoal, totalTurno, eficiencia, activeShifts = [], onToggleShift}) => {
+const Delta = ({ total, accGoal, totalTurno, eficiencia, activeShifts = [], onToggleShift, isAdmin, onAccessDenied }) => {
     const deltaValue = total - accGoal;
     const deltaSign = deltaValue >= 0 ? "+" : "";
 
@@ -21,7 +21,9 @@ const Delta = ({ total, accGoal, totalTurno, eficiencia, activeShifts = [], onTo
 
     return (
         <div className='medidor-card' style={{border: `3px solid ${deltaColor}`}}>
-            <div className='total-dia-title'>TOTAL DÍA</div>
+            <div className='total-dia-title'>
+                TOTAL DÍA
+            </div>
             <div className='total-dia-container'>
             <div style={{ flex: '1'}}>
                 <div style={{ fontSize: '2.2rem', fontWeight: 'bold', color: deltaColor, lineHeight: '1' }}>
@@ -52,14 +54,14 @@ const Delta = ({ total, accGoal, totalTurno, eficiencia, activeShifts = [], onTo
                     return (
                         <div 
                             key={s.id} 
-                            // 3. Pasamos el ID del turno y su estado ACTUAL a la función
-                            onClick={() => onToggleShift(s.id, isActive)}
+                            onClick={() => isAdmin ? onToggleShift(s.id, isActive) : onAccessDenied("Acceso Protegido: Introduzca credenciales válidas.")}
                             style={{ 
                                 display: 'flex', justifyContent: 'space-between', fontSize: '1rem',
-                                cursor: 'pointer', opacity: isActive ? 1 : 0.4,
+                                cursor: isAdmin ? 'pointer' : 'not-allowed', 
+                                opacity: isActive ? 1 : 0.4,
                                 textDecoration: isActive ? 'none' : 'line-through' 
                             }}
-                            title={isActive ? "Turno activo (Click para desactivar)" : "Turno inactivo (Click para activar)"}
+                            title={!isAdmin ? "Acceso Restringido" : (isActive ? "Turno activo (Click para desactivar)" : "Turno inactivo (Click para activar)")}
                         >
                             <span style={{ fontWeight: 'bold', color: isActive ? '#6e6e6e' : '#888888' }}>
                                 {/* Punto de color de estado */}

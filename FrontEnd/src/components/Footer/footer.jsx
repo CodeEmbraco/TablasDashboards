@@ -6,7 +6,7 @@ const Footer = () => {
     return (
         <footer className="app-footer">
             <p>&copy; {currentYear} Nidec ACIM Embraco Mty. Todos los derechos reservados.</p>
-            <p>Tablas de Productividad | Departamento TI</p>
+            <p>Tablas de Productividad | Departamento TI COLD MÉXICO</p>
         </footer>
     );
 };

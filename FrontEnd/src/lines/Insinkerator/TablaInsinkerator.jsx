@@ -6,6 +6,7 @@ import { useProduction } from '@context/ProductionContext';
 import { useProductionMetrics } from '@hooks/useProductionMetrics';
 import { useProductionData } from '@hooks/useProductionData';
 import { useLocalLineConfig } from "@hooks/useLocalLineConfig.js";
+import { useAdmin } from '@hooks/useAdmin';
 
 // Configuración de Líneas
 import { LINES_CONFIG } from '@config/linesConfig';
@@ -22,6 +23,9 @@ import ProductionWidgets from '@components/ProductionWidgets/ProductionWidgets';
 import ProductionTable from "@components/ProductionTable/ProductionTable";
 import Delta from '@components/Delta/Delta';
 import LossModal from "@components/Modals/LossModals";
+import GoalsModal from "@components/Modals/GoalsModal";
+import AdminTimer from "@components/Admin/AdminTimer";
+import AdminAccessButton from "@components/Admin/AdminAccessButton";
 
 // Estilos
 import '@styles/global.css';
@@ -123,6 +127,8 @@ const {
     // 5. Estados de Interfaz (UI)
     const [isManualOpen, setIsManualOpen] = useState(false);
     const [isLossModalOpen, setIsLossModalOpen] = useState(false);
+    const [isGoalsModalOpen, setIsGoalsModalOpen] = useState(false);
+    const { isAdmin, handleUnlock, handleExpire, adminWarning, showWarning } = useAdmin();
     const [currentLossSlot, setCurrentLossSlot] = useState(null);
     const [supervisor, setSupervisor] = useState('0');
     const [lider, setLider] = useState('0');
@@ -131,6 +137,40 @@ const {
     const handleSaveFromModal = (totalMins, formattedObs, detailsArray) => {
         saveLocalLoss(currentLossSlot, totalMins, formattedObs, detailsArray);
         setIsLossModalOpen(false);
+    };
+
+        const handleSaveGoals = async (data) => {
+        try {
+            if (data.metaCustom) {
+                await productionService.updateCustomGoal(
+                    lineConfig.id, 
+                    selectedDate, 
+                    data.turno, 
+                    data.hora, 
+                    data.nuevaMeta, 
+                    'Admin', // Usuario por defecto
+                    lineNo
+                );
+            } else if (data.metaDefaultHora) {
+                await productionService.updateDefaultGoalTimeSlot(
+                    lineConfig.id, 
+                    data.hora, 
+                    data.nuevaMeta,
+                    lineNo
+                );
+            } else if (data.metaDefaultTurno) {
+                await productionService.updateDefaultGoalShift(
+                    lineConfig.id, 
+                    data.turno, 
+                    data.nuevaMeta,
+                    lineNo
+                );
+            }
+            alert("¡Meta actualizada con éxito!");
+            fetchAll(); // Recargar datos de la tabla
+        } catch (err) {
+            alert("Error al intentar actualizar la meta.");
+        }
     };
 
     const handleGuardarEnDB = async () => {
@@ -188,6 +228,17 @@ const {
                     ⚠️ Conexión inestable. Mostrando datos locales.
                 </div>
             )}
+            
+            {/* TOAST DE ACCESO DENEGADO */}
+            {adminWarning && (
+                <div className="discreet-notification warning-toast">
+                    ⚠️ {adminWarning}
+                </div>
+            )}
+
+            {/* NOTIFICACIÓN DE EXPIRACIÓN ADMIN */}
+            {isAdmin && <AdminTimer onExpire={handleExpire} />}
+
             {/* <Header line={lineConfig.name}/> */}
             <Header line={`${dynamicConfig.name || 'Cargando...'} - L${lineNo}`}/>
             <div className="top-panel-container">
@@ -273,6 +324,8 @@ const {
                         eficiencia={dayMetrics.eficiencia}
                         activeShifts={shiftsStatus}
                         onToggleShift={toggleShiftDB}
+                        isAdmin={isAdmin}
+                        onAccessDenied={showWarning}
                     />
                     <button onClick={() => setIsManualOpen(true)} className="btn-manual">Manual de Uso</button>
                 </div>
@@ -290,7 +343,17 @@ const {
             />
 
             <div className="div-btn-guardar">
-                {/*<button className="btnCambiarMeta" onClick={() => setIsMetaModalOpen(true)}>Ajustar Meta</button>*/}
+                <AdminAccessButton 
+                    isAdmin={isAdmin} 
+                    onUnlock={handleUnlock} 
+                />
+                <button 
+                    className="btnCambiarMeta" 
+                    onClick={() => isAdmin ? setIsGoalsModalOpen(true) : showWarning("Acceso Restringido: Desbloquee con el escudo.")}
+                    style={{ opacity: isAdmin ? 1 : 0.6 }}
+                >
+                    Ajustar Meta
+                </button>
                 <button className="btnGuardarTabla" onClick={handleGuardarEnDB}>Guardar Reporte</button>
             </div>
 
@@ -303,6 +366,12 @@ const {
                 onSave={handleSaveFromModal}
                 currentSlot={currentLossSlot}
                 initialData={tableItems?.find(i => i.TIME_SLOT === currentLossSlot)?.DETALLES || []}
+            />
+
+            <GoalsModal 
+                isOpen={isGoalsModalOpen}
+                onClose={() => setIsGoalsModalOpen(false)}
+                onSave={handleSaveGoals}
             />
 
             <Footer/>

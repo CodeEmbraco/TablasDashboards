@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, X, Utensils, Info } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Utensils, Info, ShieldCogCorner } from 'lucide-react';
 import './Manual.css';
 
 import paso1 from './placeholder.png';
@@ -13,7 +13,11 @@ import selectores from './img/selectores.png';
 import tabla from './img/tabla.png'
 import widgetsproduccion from './img/widgetsproduccion.png';
 import modal from './img/modal.png';
-import { color } from 'chart.js/helpers';
+import adminlogin from './img/adminlogin.png';
+import admintimer from './img/admintimer.png';
+import adminbutton from './img/adminbutton.png';
+import ajustarMeta from './img/ajustarMeta.png';
+import modifyGoal from './img/modifyGoal.png';
 
 
 const Manual = ({ isOpen, onClose }) => {
@@ -39,13 +43,23 @@ const Manual = ({ isOpen, onClose }) => {
                 <>
                 <p>Muestra la diferencia entre la producción real y la meta, incluye el desglose de la producción real por turno de la fecha seleccionada. El color indica el estado de la producción real en comparación con la meta:</p>
                 <p>•<strong style={{color:'#4caf50'}}>Verde</strong>: La producción real supera la meta.</p>
-                <p>•<strong style={{color:'#ff8800'}}>Naranja</strong>: La producción real es menor que la meta.</p>
+                <p>•<strong style={{color:'#fbc02d'}}>Amarillo</strong>: La producción real es menor que la meta pero mayor del 90%.</p>
+                <p>•<strong style={{color:'#f44336'}}>Rojo</strong>: La producción real es menor al 90% de la meta.</p>
+
             </>
             ) },
         { title: "Desglose de turnos", 
             image: desgloseturnos, 
-            desc: `Es posible deshabilitar los turnos que no tengan producción y evitar el impacto en los indicadores con información incompleta o errónea.
-            El usuario debe hacer <strong>Click</strong> en el ícono de la fila del turno para deshabilitarlo.` },
+            desc: (
+
+                <>
+                <p>Es posible deshabilitar los turnos que no tengan producción y evitar el impacto en los indicadores con información incompleta o errónea.</p>
+                <p>El usuario debe hacer <strong>Click</strong> en el ícono de la fila del turno para deshabilitarlo.</p>
+                <p>Para habilitar o deshabilitar los turnos, son necesarios los <strong style={{color: 'teal'}}>Permisos de Administrador<ShieldCogCorner/></strong></p>
+                
+                </>
+
+            ) },
         { title: "HxH de Producción", 
             image: desglosetabla, 
             desc: "La tabla del HxH se divide en dos secciones: Información de Producción y Desglose de Pérdidas." },
@@ -91,11 +105,55 @@ const Manual = ({ isOpen, onClose }) => {
             desc: (
                 <>
                 <p>Si el turno ha concluido, para guardar el reporte de pérdidas haga <strong>Click</strong> en <strong>Guardar Reporte</strong>.</p>
-                <p><strong style={{color: 'red'}}><Info style={{paddingTop:'10px'}}/> IMPORTANTE: SOLO GUARDAR REPORTE CUANDO SE TENGAN TODAS LAS PÉRDIDAS REGISTRADAS AL FINAL DEL TURNO</strong></p>
+                {/* <p><strong style={{color: 'red'}}><Info style={{paddingTop:'10px'}}/> IMPORTANTE: SOLO GUARDAR REPORTE CUANDO SE TENGAN TODAS LAS PÉRDIDAS REGISTRADAS AL FINAL DEL TURNO</strong></p> */}
                 </>
             ) },
+        { title: "Permisos de Administrador", 
+        image: adminbutton, 
+        desc: (
+            <>
+                <p>
+                El administrador tiene los permisos para <strong>Agregar</strong> y/o <strong>Modificar</strong> las metas de producción.
+                Esto con el fin de presentar la información de la producción de la forma mas precisa y justa posible.
+                </p>
+            </>
+        ) },
+        { title: "Login de Administrador", 
+        image: adminlogin, 
+        desc: (
+            <>
+                <p>Para acceder a los <strong style={{color: 'teal'}}>permisos de administrador<ShieldCogCorner/></strong>, es necesario un <strong>usuario</strong> y una <strong>contraseña</strong> válida.</p>
+            </>
+        ) },
+        { title: "Límite de tiempo de sesión de Administrador", 
+        image: admintimer, 
+        desc: (
+            <>
+            <p>Por seguridad, los <strong style={{color: 'teal'}}>permisos de administrador<ShieldCogCorner/></strong> manejan un límite de tiempo para poder realizar las modificaciones a las metas y a los turnos.</p>
+            <p>Para desactivar los <strong style={{color: 'teal'}}>permisos de administrador<ShieldCogCorner/></strong>, haga <strong>Click</strong> en el ícono de <strong style={{color: 'red'}}>X</strong> </p>
+            </>
+        ) },
+        { title: "Ajustar Metas", 
+        image: ajustarMeta, 
+        desc: (
+            <>
+            <p>Para acceder a la ventana de configuración de metas, son necesarios los <strong style={{color: 'teal'}}>permisos de administrador<ShieldCogCorner/></strong> ; de otra forma, el botón permanecerá deshabilitado.</p>
+            </>
+        ) },
+        { title: "Configuración de Metas", 
+        image: modifyGoal, 
+        desc: (
+            <>
+                <p>Las opciones de configuración de las metas son las siguientes:<br/>
+                • <strong>Metas Custom</strong>: Agregar una meta <strong>ÚNICA</strong> en una hora y día específicos.<br/>
+                • <strong>Metas Default (Hora)</strong>: Modifica la meta de una hora específica.<br/>        
+                • <strong>Metas Default (Turno)</strong>: Modifica la meta de todas las horas de un turno específico.</p>
+                <p><strong style={{color: 'red'}}><Info style={{paddingTop:'10px'}}/> IMPORTANTE: MODIFICAR UNA META DEFAULT CAMBIA TANTO LAS METAS HISTÓRICAS COMO FUTURAS <br/> ¡PROCEDE CON CUIDADO!</strong></p>
+            </>
+        ) },
         // Agregar más páginas aquí...
     ];
+    
 
     if (!isOpen) return null;
 

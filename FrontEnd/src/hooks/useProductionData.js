@@ -72,7 +72,7 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions, lineN
                     d.time_slot === slot
                 );
 
-                const currentReport = reporteDia.find(r => r.TIME_SLOT === slot);
+                const currentReport = reporteDia.find(r => r.time_slot === slot);
                 const localLossData = currentLocal[slot];
 
                 return {
@@ -80,7 +80,7 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions, lineN
                     REAL: currentProd ? (currentProd.ProduccionTotal || currentProd.REAL) : 0,
                     MODELO: currentProd ? (currentProd.Modelos || currentProd.MODELO) : "---",
                     META: currentProd ? (currentProd.MetaEfectiva || 0) : 0,
-                    MINUTOS_PERDIDA: currentReport ? currentReport.PERDIDA_TOTAL 
+                    MINUTOS_PERDIDA: currentReport ? currentReport.PERDIDAS
                         : (localLossData ? localLossData.perdidas : 0),
                     OBSERVACIONES: currentReport ? currentReport.OBSERVACIONES 
                         : (localLossData ? localLossData.observaciones : ''),

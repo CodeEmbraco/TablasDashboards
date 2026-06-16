@@ -1,7 +1,7 @@
 import React from 'react';
 import zero from '@assets/zeroproductividad.png'
 
-const Delta = ({ total, accGoal, totalTurno = [], eficiencia, activeShifts = [], onToggleShift, imgURL, status}) => {
+const Delta = ({ total, accGoal, totalTurno = [], eficiencia, activeShifts = [], onToggleShift, imgURL, status, isAdmin, onAccessDenied }) => {
     const deltaValue = total - accGoal;
     const deltaSign = deltaValue >= 0 ? "+" : "";
 
@@ -56,7 +56,7 @@ const Delta = ({ total, accGoal, totalTurno = [], eficiencia, activeShifts = [],
                     style={{
                         maxWidth: '100%', 
                         maxHeight: '100%', 
-                        objectFit: 'contain' // LA MAGIA: Ajusta la imagen sin estirarla
+                        objectFit: 'contain'
                     }}
                 />
             </div>
@@ -72,17 +72,18 @@ const Delta = ({ total, accGoal, totalTurno = [], eficiencia, activeShifts = [],
                     return (
                         <div 
                             key={s.id} 
-                            onClick={() => onToggleShift(s.id, isActive)}
+                            onClick={() => isAdmin ? onToggleShift(s.id, isActive) : onAccessDenied("Acceso Restringido: Introduzca credenciales válidas.")}
                             style={{ 
                                 display: 'flex', 
                                 alignItems: 'center', 
                                 justifyContent: 'space-between', 
                                 fontSize: '1.3rem',
-                                cursor: 'pointer', opacity: isActive ? 1 : 0.4,
+                                cursor: isAdmin ? 'pointer' : 'not-allowed', 
+                                opacity: isActive ? 1 : 0.4,
                                 textDecoration: isActive ? 'none' : 'line-through',
                                 paddingBlock: '3px' 
                             }}
-                            title={isActive ? "Turno activo (Click para desactivar)" : "Turno inactivo (Click para activar)"}
+                            title={isAdmin ? (isActive ? "Turno activo (Click para desactivar)" : "Turno inactivo (Click para activar)") : "Acceso Restringido: Desbloquee con el icono de escudo."}
                         >
                             <span style={{ fontWeight: 'bold', color: isActive ? '#6e6e6e' : '#888888', minWidth: '45px' }}>
                                 {/* Punto de color de estado */}
