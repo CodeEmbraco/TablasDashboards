@@ -16,6 +16,10 @@ router.get("/get-lines-config", async (req, res) => {
     }
     catch(err){
         console.error("Error:", err);
+        return res.status(500).json({ 
+            message : "get-lines-config : Error al obtener shift status",
+            success: false
+        });
     }
 });
 
@@ -32,7 +36,7 @@ router.get("/shift-status", async (req, res) => {
     }
     catch(err){
         console.error("Error al obtener shift status:", err);
-        res.status(500).json({ error: "Error al obtener shift status" });
+        return res.status(500).json({ error: "Error al obtener shift status" });
     }
 
 });
@@ -55,14 +59,14 @@ router.post("/shift-toggle", async (req, res) => {
         .input('NuevoEstado', sql.Bit, nuevoEstado ? 1 : 0)
         .execute("SHIFT_TOGGLE");
 
-        res.status(200).json({
+        return res.status(200).json({
             message:`toggle-shift: Estado de turno actualizado correctamente`,
             success: true
         });
     }
     catch(err){
         console.error("/toggle-shift:", err);
-        res.status(500).json({ 
+        return res.status(500).json({ 
             success: false, 
             error: "Error interno del servidor al actualizar el turno"
         });
@@ -71,23 +75,23 @@ router.post("/shift-toggle", async (req, res) => {
 
 //METAS DEFAULT
 router.post("/default-goal-update-shift", async (req, res) =>{
-    const {lineID, turno, metaDefault, lineNo} = req.body;
+    const {lineId, turno, metaDefault, lineNo} = req.body;
     try{
         const result = await poolCIMA.request()
-        .input('LineId', sql.VarChar(20), lineID)
+        .input('LineId', sql.VarChar(20), lineId)
         .input('Turno', sql.Int, turno)
         .input('MetaDefault', sql.Int, metaDefault)
         .input('NumeroLinea', sql.Int, lineNo ? lineNo : 1)
         .execute("SP_METAS_DEFAULT_UPDATE_SHIFT");
 
-        res.status(200).json({
+        return res.status(200).json({
             success :true,
             message: "default-goal-update-shift: Metas actualizada correctamente"
         })
     }
     catch(err){
         console.error("default-goal-update-shift:", err);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: "Error interno del servidor al actualizar la meta"
         });
@@ -95,23 +99,23 @@ router.post("/default-goal-update-shift", async (req, res) =>{
 });
 
 router.post("/default-goal-update-timeslot", async (req, res) =>{
-    const {lineID, horaSlot, metaDefault, lineNo} = req.body;
+    const {lineId, horaSlot, metaDefault, lineNo} = req.body;
     try{
         const result = await poolCIMA.request()
-        .input('LineId', sql.VarChar(20), lineID)
+        .input('LineId', sql.VarChar(20), lineId)
         .input('Hora_slot', sql.VarChar(13), horaSlot)
         .input('MetaDefault', sql.Int, metaDefault)
         .input('NumeroLinea', sql.Int, lineNo ? lineNo : 1)
         .execute("SP_METAS_DEFAULT_UPDATE_TIMESLOT");
 
-        res.status(200).json({
+        return res.status(200).json({
             success :true,
             message: "default-goal-update-shift: Metas actualizada correctamente"
         })
     }
     catch(err){
-        console.error("default-goal-update-shift:", err);
-        res.status(500).json({
+        console.error("default-goal-update-timeslot:", err);
+        return res.status(500).json({
             success: false,
             error: "Error interno del servidor al actualizar la meta"
         });
@@ -133,14 +137,14 @@ router.post("/custom-goal-update", async (req, res) => {
         .input('NumeroLinea', sql.Int, lineNo ? lineNo : 1)
         .execute("SP_METAS_CUSTOM_UPSERT");
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             message: "custom-goal-update: Meta actualizada correctamente"
         });
     }
     catch(err){
         console.error("custom-goal-update:", err);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: "Error interno del servidor al actualizar la meta"
         })
