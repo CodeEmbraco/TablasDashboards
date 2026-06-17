@@ -184,16 +184,16 @@ const {
             if (item.DETALLES && item.DETALLES.length > 0) {
                 item.DETALLES.forEach(det => {
                     reportDataFlat.push({
-                        Fecha: selectedDate, Turno: selectedShift, Hora_Slot: item.TIME_SLOT,
-                        Supervisor: supervisor, Lider: lider, Modelo: item.MODELO,
+                        Fecha: selectedDate, Turno: selectedShift, Hora_Slot: item.time_slot,
+                        Supervisor: supervisor, Lider: lider, Modelo: item.MODELO || '',
                         Perdidas: det.minutos, Observaciones: det.observacion, Motivo: det.motivo,
                         Linea: lineNo // Se incluye el parámetro LINEA del resultado de la consulta
                     });
                 });
             } else {
                 reportDataFlat.push({
-                    Fecha: selectedDate, Turno: selectedShift, Hora_Slot: item.TIME_SLOT,
-                    Supervisor: supervisor, Lider: lider, Modelo: item.MODELO,
+                    Fecha: selectedDate, Turno: selectedShift, Hora_Slot: item.time_slot,
+                    Supervisor: supervisor, Lider: lider, Modelo: item.MODELO || '',
                     Perdidas: 0, Observaciones: '', Motivo: '',
                     Linea: lineNo // Se incluye el parámetro LINEA del resultado de la consulta
                 });
@@ -203,7 +203,7 @@ const {
         try {
             await saveReportToDB(reportDataFlat); // Use the new function from the hook
             alert('¡Guardado exitosamente!');
-            window.location.reload(); 
+            //window.location.reload(); 
         } catch (err) {
             alert('Error al guardar en la base de datos.');
         }

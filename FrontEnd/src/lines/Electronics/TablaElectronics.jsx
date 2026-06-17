@@ -207,7 +207,7 @@ const {
         try {
             await saveReportToDB(reportDataFlat); // Use the new function from the hook
             alert('¡Guardado exitosamente!');
-            window.location.reload(); 
+            // window.location.reload(); 
         } catch (err) {
             alert('Error al guardar en la base de datos.');
         }

@@ -46,6 +46,7 @@ const productionService =  {
     },
     
     saveReport: async (lineID, reportData, lineNo = null) => {
+        console.log(`Si estoy entrando a /saveReport`)
         const params = {};
         if (lineNo) params.lineNo = lineNo;
         const response = await api.post(`/${lineID}/save`, reportData, { params });
