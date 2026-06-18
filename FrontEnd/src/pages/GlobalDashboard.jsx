@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useProduction } from '@context/ProductionContext';
 import { LINES_CONFIG } from '@config/linesConfig'; 
 import LineDeltaContainer from '@components/Dashboard/LineDeltaContainer'; 
 import Header from '@components/Header/Header'; 
@@ -9,6 +10,7 @@ import AdminTimer from '@components/Admin/AdminTimer';
 import AdminAccessButton from '@components/Admin/AdminAccessButton';
 
 const GlobalDashboard = () => {
+    const { selectedDate, selectedShift } = useProduction();
     const [lineasProcesadas, setLineasProcesadas] = useState([]);
     const { isAdmin, handleUnlock, handleExpire, adminWarning, showWarning } = useAdmin();
 
@@ -99,15 +101,29 @@ const GlobalDashboard = () => {
                     
                     {/* Primera Delta Enfocada */}
                     {focusedLine1 && (
-                        <div style={{ flex: 1, overflow: 'hidden' }} key={`focus1_${focusedLine1.id}_${activeIndex}`} className="slide-up-animation">
-                            <LineDeltaContainer lineConfig={focusedLine1} isLarge={true} isAdmin={isAdmin} onAccessDenied={showWarning} />
+                        <div style={{ flex: 1, overflow: 'hidden' }} key={`focus1_${focusedLine1.id}_${focusedLine1.lineNo}_${activeIndex}`} className="slide-up-animation">
+                            <LineDeltaContainer 
+                                lineConfig={focusedLine1} 
+                                isLarge={true} 
+                                isAdmin={isAdmin} 
+                                onAccessDenied={showWarning}
+                                selectedDate={selectedDate}
+                                selectedShift={selectedShift}
+                            />
                         </div>
                     )}
 
                     {/* Segunda Delta Enfocada */}
                     {focusedLine2 && (
-                        <div style={{ flex: 1, overflow: 'hidden' }} key={`focus2_${focusedLine2.id}_${activeIndex}`} className="slide-up-animation">
-                            <LineDeltaContainer lineConfig={focusedLine2} isLarge={true} isAdmin={isAdmin} onAccessDenied={showWarning} />
+                        <div style={{ flex: 1, overflow: 'hidden' }} key={`focus2_${focusedLine2.id}_${focusedLine2.lineNo}_${activeIndex}`} className="slide-up-animation">
+                            <LineDeltaContainer 
+                                lineConfig={focusedLine2} 
+                                isLarge={true} 
+                                isAdmin={isAdmin} 
+                                onAccessDenied={showWarning}
+                                selectedDate={selectedDate}
+                                selectedShift={selectedShift}
+                            />
                         </div>
                     )}
                 </div>
@@ -118,15 +134,28 @@ const GlobalDashboard = () => {
                         
                         {/* Bloque Original de todas las líneas */}
                         {lineasCarousel.map((lineaConfig, idx) => (
-                            <div key={`bot1_${lineaConfig.id}_${lineaConfig.lineNo || '0'}_${idx}`} style={cardStyleSmall}>
-                                <LineDeltaContainer lineConfig={lineaConfig} isLarge={false} isAdmin={isAdmin} onAccessDenied={showWarning} />
+                            <div key={`bot1_${lineaConfig.id}_${lineaConfig.lineNo}_${idx}`} style={cardStyleSmall}>
+                                <LineDeltaContainer 
+                                    lineConfig={lineaConfig} 
+                                    isLarge={false} 
+                                    isAdmin={isAdmin} 
+                                    onAccessDenied={showWarning}
+                                    selectedDate={selectedDate}
+                                    selectedShift={selectedShift}
+                                />
                             </div>
                         ))}
                         
                         {/* Bloque Duplicado para efecto infinito */}
                         {lineasCarousel.map((lineaConfig, idx) => (
-                            <div key={`bot2_${lineaConfig.id}_${lineaConfig.lineNo || '0'}_${idx}`} style={cardStyleSmall}>
-                                <LineDeltaContainer lineConfig={lineaConfig} isLarge={false} isAdmin={isAdmin} />
+                            <div key={`bot2_${lineaConfig.id}_${lineaConfig.lineNo}_${idx}`} style={cardStyleSmall}>
+                                <LineDeltaContainer 
+                                    lineConfig={lineaConfig} 
+                                    isLarge={false} 
+                                    isAdmin={isAdmin} 
+                                    selectedDate={selectedDate}
+                                    selectedShift={selectedShift}
+                                />
                             </div>
                         ))}
 
