@@ -92,23 +92,18 @@ const {
         fetchAll
     } = useProductionData(selectedDate, selectedShift, lineConfig.defaultMeta, apiConfig);
 
-// Calculamos métricas específicas para el turno actual (lo que ven los Widgets)
-    const turnMetrics = useProductionMetrics(
-        totalTurno,       // CORREGIDO: Usar totalTurno para reflejar la eficiencia del turno actual
-        config,           // localConfig
-        metaTurnoDB,      // dbMetaTurno
-        [],               // allShiftsData
-        shiftsStatus      // CORREGIDO: Proveer el estatus real de los turnos desde la base de datos
+    const metrics = useProductionMetrics(
+        tableItems,       // Info hora x hora para el Turno
+        totalDelta,       // Info global para el Delta
+        shiftsStatus,     // Estatus activo/inactivo
+        totalTurno,       // Real del turno
+        totalDia,         // Real del día
+        selectedDate,     // Fecha actual
+        selectedShift     // Turno visualizado
     );
-    
-    // Calculamos métricas globales para el día completo (lo que ve el componente Delta)
-    const dayMetrics = useProductionMetrics(
-        totalDia,         // Valor real acumulado del día
-        config,           // localConfig
-        null,             // CORREGIDO: Pasar null para obligar a calcular el acumulado diario progresivo
-        [],               // allShiftsData
-        shiftsStatus      // CORREGIDO: Proveer el estatus real de los turnos desde la base de datos
-    );
+
+    const turnMetrics = metrics.turno;
+    const dayMetrics = metrics.dia;
 
     //-----
     //DEBUG

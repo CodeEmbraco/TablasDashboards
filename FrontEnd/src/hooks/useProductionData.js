@@ -35,12 +35,16 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions, lineN
             const currentShiftData = safeProdDelta.find(s => String(s.TURNO) === String(turno));
             
             //--DEBUG----------
+            // console.log("prodDelta: ", prodDelta);
+            // console.log("safeProdDelta: ", safeProdDelta);
             // console.log("prodDiaTurno: ", prodDiaTurno);
             // console.log("currentShiftData: ", currentShiftData);
             //-----------------
 
             const realTurno = currentShiftData ? (currentShiftData.CONTADOR || currentShiftData.REAL || 0) : 0;
             const metaTurnoDB = currentShiftData ? (currentShiftData.MetaEfectivaTurno || 0) : 0;
+
+            //console.log(metaTurnoDB)
 
             const metaProgresivaCalculada = calcularMetaProgresiva(dataByHour, metaTurnoDB);
 
@@ -101,7 +105,7 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions, lineN
                 tableItems,
                 totalDia: totalDiaRes.TOTAL_DIA,
                 totalTurno: realTurno,
-                metaTurnoDB,
+                metaTurnoDB: metaTurnoDB,
                 metaProgresiva: metaProgresivaCalculada,
                 totalDelta: prodDelta,
                 shiftsStatus: shiftsStatus || [],
