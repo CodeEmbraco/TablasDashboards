@@ -4,8 +4,11 @@ const Delta = ({ total, accGoal, totalTurno, eficiencia, activeShifts = [], onTo
     const deltaValue = total - accGoal;
     const deltaSign = deltaValue >= 0 ? "+" : "";
 
-    // Lógica de color: Verde (>=100%), Amarillo (90-99%), Rojo (<90%)
-    const deltaColor = eficiencia >= 100 ? '#4caf50' : (eficiencia >= 90 ? '#fbc02d' : '#f44336');
+    // Agregamos la verificación de turnos inactivos y meta en 0
+    const hasActiveShifts = activeShifts.some(s => s.Activo || s.ACTIVO);
+    const deltaColor = (!hasActiveShifts || accGoal === 0) 
+        ? '#4caf50' 
+        : (eficiencia >= 100 ? '#4caf50' : (eficiencia >= 90 ? '#fbc02d' : '#f44336'));
 
     const displayValue = Math.min(Math.max(eficiencia,0), 100);
     

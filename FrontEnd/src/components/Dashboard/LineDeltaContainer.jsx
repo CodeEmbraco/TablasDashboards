@@ -49,8 +49,9 @@ const LineDeltaContainer = ({ lineConfig, isLarge, isAdmin, onAccessDenied, sele
 
     // Determine delta color based on day metrics and active shifts
     const noShiftsActive = shiftsStatus.filter(s => Boolean(s.Activo || s.ACTIVO)).length === 0;
-    const deltaColor = noShiftsActive ? '#4caf50' : (dayMetrics.eficiencia >= 100 ? '#4caf50' : (dayMetrics.eficiencia >= 90 ? '#fbc02d' : '#ea5a00'));
-
+    const deltaColor = (noShiftsActive || dayMetrics.metaTotalAcumulada === 0) 
+        ? '#4caf50' 
+        : (dayMetrics.eficiencia >= 100 ? '#4caf50' : (dayMetrics.eficiencia >= 90 ? '#fbc02d' : '#ea5a00'));
     // 1. ESTADO DE CARGA (Mantiene la estructura grid-item)
     if (loading) {
         return (

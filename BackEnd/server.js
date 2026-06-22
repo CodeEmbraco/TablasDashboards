@@ -3,9 +3,11 @@
 //? --------------------------------------
 //? --Autores: Jorge Barrón, Sean Garcia--
 //? --------------------------------------
-
+//Node
 import express from "express";
 import cors from "cors";
+
+//Rutas
 import preensamRoutes from "./routes/preensambleRoutes.js"
 import insiRoutes from "./routes/insinkeratorRoutes.js"
 import cduRoutes from "./routes/cduRoutes.js"

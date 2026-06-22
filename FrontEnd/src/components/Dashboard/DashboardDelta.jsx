@@ -8,8 +8,11 @@ const Delta = ({ total, accGoal, totalTurno = [], eficiencia, activeShifts = [],
     // Lógica de color: Verde (>=100%), Amarillo (90-99%), Rojo (<90%)
     // Si no hay turnos activos, forzamos gris para no mostrar un estado "crítico" erróneo
     const hasActiveShifts = activeShifts.some(s => s.Activo || s.ACTIVO);
-    const deltaColor = !hasActiveShifts ? '#4caf50' : (eficiencia >= 100 ? '#4caf50' : (eficiencia >= 90 ? '#fbc02d' : '#ea5a00'));
-
+    
+    // Si no hay turnos activos, O si la meta actual es 0 (el turno aún no empieza) -> Verde
+    const deltaColor = (!hasActiveShifts || accGoal === 0) 
+        ? '#4caf50' 
+        : (eficiencia >= 100 ? '#4caf50' : (eficiencia >= 90 ? '#fbc02d' : '#ea5a00'));
     const displayValue = Math.min(Math.max(eficiencia,0), 100);
     
     // console.log('totalTurno content:', totalTurno);

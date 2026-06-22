@@ -1,18 +1,48 @@
+// React & Router
 import React, { useState, useEffect } from 'react';
+
+// Context & Hooks
+import { useAdmin } from '@hooks/useAdmin';
 import { useProduction } from '@context/ProductionContext';
-import { LINES_CONFIG } from '@config/linesConfig'; 
+
+//Services
+import productionService from '@services/ProductionServices';
+
+//Components
 import LineDeltaContainer from '@components/Dashboard/LineDeltaContainer'; 
 import Header from '@components/Header/Header'; 
 import Footer from '@components/Footer/footer';
-import productionService from '@services/ProductionServices';
-import { useAdmin } from '@hooks/useAdmin';
+import ClockTime from '@components/ClockTime/ClockTime';
 import AdminTimer from '@components/Admin/AdminTimer';
 import AdminAccessButton from '@components/Admin/AdminAccessButton';
+import ConsolidatedRate from '@components/Dashboard/ConsolidatedRate';
+
+//Configuración de las líneas Local //!Son un fallback en caso de problemas en la base de datos
+import { LINES_CONFIG } from '@config/linesConfig'; 
 
 const GlobalDashboard = () => {
     const { selectedDate, selectedShift } = useProduction();
     const [lineasProcesadas, setLineasProcesadas] = useState([]);
     const { isAdmin, handleUnlock, handleExpire, adminWarning, showWarning } = useAdmin();
+    const [greeting, setGreeting] = useState('');
+
+    useEffect(() => {
+        const updateGreeting = () => {
+            const hour = new Date().getHours();
+            if (hour >= 6 && hour < 12) {
+                setGreeting('Buenos días');
+            } else if (hour >= 12 && hour < 19) {
+                setGreeting('Buenas tardes');
+            } else {
+                setGreeting('Buenas noches');
+            }
+        };
+
+        updateGreeting(); // Ejecutar al cargar
+        // Verificar cada minuto por si el turno cambia mientras la pantalla está encendida
+        const interval = setInterval(updateGreeting, 60000); 
+        return () => clearInterval(interval);
+    }, []);
 
     // Carga inicial de todas las líneas para obtener sus nombres oficiales
     useEffect(() => {
@@ -60,15 +90,15 @@ const GlobalDashboard = () => {
     }
 
     // Extraer las dos líneas enfocadas correspondientes
-    const focusedLine1 = lineasProcesadas[activeIndex];
+    const focusedLine = lineasProcesadas[activeIndex];
     // Aseguramos que si estamos en la última línea impar, la segunda compañera sea la número 0
     const nextIndex = (activeIndex + 1) % lineasProcesadas.length;
-    const focusedLine2 = lineasProcesadas[nextIndex];
 
     // Filtrar las líneas para el carrusel inferior (excluir las que tienen el focus arriba)
     const lineasCarousel = lineasProcesadas.filter((_, idx) => idx !== activeIndex && idx !== nextIndex);
 
     const cardStyleSmall = { flex: '0 0 auto', weight:'600px', height: '100%' };
+
 
     return (
         <div className="global-dashboard-kiosk">
@@ -92,18 +122,37 @@ const GlobalDashboard = () => {
                     // padding: '10px', 
                     boxSizing: 'border-box', 
                     overflow: 'hidden',
-                    justifyContent: 'center',
+                    justifyContent: 'space-around',
                     
                 }}>
+                    <div style={{ 
+                        // flex: 1,
+                        display: 'flex', 
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        // alignItems: 'center',
+                        // gap: '20px',
+                        fontSize: '2rem', 
+                        fontWeight: '600',
+                        // color: 'var(--nidec-lightgreen)', 
+                        // marginTop: '5px' 
+                    }}>
+                        {/* <div style={{paddingLeft:'40px'}}>¡{greeting}, equipo!</div> */}
+                        <div style={{
+                            marginRight:'40px',
+                            }}>
+                                <ClockTime/>
+                        </div>
+                    </div>
                 
                 {/* SECCIÓN SUPERIOR: 2 DELTAS GRANDES (60%) */}
                 <div style={{ flex: '0 0 60%', display: 'flex', gap: '20px', padding: '10px',  overflow: 'hidden' }}>
                     
-                    {/* Primera Delta Enfocada */}
-                    {focusedLine1 && (
-                        <div style={{ flex: 1, overflow: 'hidden' }} key={`focus1_${focusedLine1.id}_${focusedLine1.lineNo}_${activeIndex}`} className="slide-up-animation">
-                            <LineDeltaContainer 
-                                lineConfig={focusedLine1} 
+                    {/* Primer Slot: Consolidado de Planta */}
+                    {lineasProcesadas.length > 0 && (
+                        <div style={{ flex: 1, overflow: 'hidden' }} key={`consolidated_${activeIndex}`}>
+                            <ConsolidatedRate
+                                lines={lineasProcesadas}
                                 isLarge={true} 
                                 isAdmin={isAdmin} 
                                 onAccessDenied={showWarning}
@@ -114,10 +163,10 @@ const GlobalDashboard = () => {
                     )}
 
                     {/* Segunda Delta Enfocada */}
-                    {focusedLine2 && (
-                        <div style={{ flex: 1, overflow: 'hidden' }} key={`focus2_${focusedLine2.id}_${focusedLine2.lineNo}_${activeIndex}`} className="slide-up-animation">
+                    {focusedLine && (
+                        <div style={{ flex: 1, overflow: 'hidden' }} key={`focus2_${focusedLine.id}_${focusedLine.lineNo}_${activeIndex}`} className="slide-up-animation">
                             <LineDeltaContainer 
-                                lineConfig={focusedLine2} 
+                                lineConfig={focusedLine} 
                                 isLarge={true} 
                                 isAdmin={isAdmin} 
                                 onAccessDenied={showWarning}
