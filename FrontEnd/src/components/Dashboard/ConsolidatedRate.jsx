@@ -3,7 +3,7 @@ import productionService from '@services/ProductionServices';
 import { useProductionData } from '@hooks/useProductionData';
 import { useProductionMetrics } from '@hooks/useProductionMetrics';
 import ZeroBien from '@assets/ZeroBien.png';
-import ZeroMal from '@assets/ZeroMal.png';
+import ZeroMal from '@assets/ZeroMal_v2.png';
 import '@styles/global.css';
 
 /**
@@ -155,32 +155,28 @@ const ConsolidatedRate = ({ lines, selectedDate, selectedShift, isLarge, isAdmin
     const deltaColor = totalEficiencia >= 100 ? '#4caf50' : (totalEficiencia >= 90 ? '#fbc02d' : '#ea5a00');
 
     return (
-        // <div>
-            // GENERAL RATE
         <div className="grid-item" style={{ 
             border: `0px`,
             padding: '10px', 
             boxSizing: 'border-box',
-            // backgroundColor: `${deltaColor}10`,
-            pointerEvents: 'none'}}>
-            <div style={{
-                textAlign: 'center',
-                fontSize: isLarge ? '26px' : '20px',
-                fontWeight: 'bold',
-                padding: '5px'
-            }}>
-            </div>
+            pointerEvents: 'none'
+        }}>
 
-            <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+            {/* Contenedor principal usando GRID para asegurar el 50/50 exacto */}
+            <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: '1fr 1fr', /* Crea 2 columnas de exactamente el mismo tamaño */
+                gap: '20px', /* Espacio entre las líneas y el total */
+                alignItems: 'center', /* Centra ambos lados verticalmente */
+                width: '100%' 
+            }}>
+                
                 {/* Columna Izquierda: Lista de Líneas */}
                 <div style={{
-                    flex: 1,
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '8px',
-                    // overflowY: 'auto',
-                    // paddingRight: '10px',
-                    // justifyContent: 'space-between'
+                    width: '100%'
                 }}>
                     {lines.map(line => (
                         <LineRateItem
@@ -194,17 +190,15 @@ const ConsolidatedRate = ({ lines, selectedDate, selectedShift, isLarge, isAdmin
                 </div>
 
                 {/* Columna Derecha: Totales e Imagen */}
-                <div 
-                // style={{
-                //     flex: 1,
-                //     display: 'flex',
-                //     flexDirection: 'column',
-                //     alignItems: 'center',
-                //     justifyContent: 'center',
-                //     gap: '15px'
-                // }}
-                >
-                    <div style={{ textAlign: 'center' }}>
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '15px',
+                    width: '100%'
+                }}>
+                    <div style={{ textAlign: 'center', width:'auto'}}>
                         <div style={{ fontSize: '1.7rem', fontWeight: 'bold', color: '#000' }}>TOTAL PLANTA</div>
                         <div style={{ fontSize: '3rem', fontWeight: 'bold', color: deltaColor, lineHeight: 1.1 }}>
                             {totalReal}
@@ -212,12 +206,16 @@ const ConsolidatedRate = ({ lines, selectedDate, selectedShift, isLarge, isAdmin
                         </div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                        <img src={statusImage} alt="Status Indicator" style={{ width: '250px', transition: 'all 0.3s' }} />
+                        {/* Se agregó width 100% y maxWidth para que la imagen sea responsiva y no rompa el Grid */}
+                        <img 
+                            src={statusImage} 
+                            alt="Status Indicator" 
+                            style={{ width: '100%', maxWidth: '300px', transition: 'all 0.3s', objectFit:'fill' }} 
+                        />
                     </div>
                 </div>
             </div>
         </div>
-        // </div>
     );
 };
 
