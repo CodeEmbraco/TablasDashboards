@@ -10,12 +10,14 @@ const Header = ({line}) =>{
             <img src={logoNidec} alt="Nidec ACIM Logo" className="logoTabla" />
             {
                 line ? (
+                    <>
                     <h2 className="tituloPrincipal">TABLA DE PRODUCTIVIDAD {line}</h2>
+                    <img src={Zero} alt="Zero Productividad" className="logoZero" />
+                    </>
                 ) : (
                     <h2 className="tituloPrincipal">LINEAS DE PRODUCCION: GA COLD MX</h2>
                 )
             }
-            <img src={Zero} alt="Zero Productividad" className="logoZero" />
         </header>
     );
 };

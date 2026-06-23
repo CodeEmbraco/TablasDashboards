@@ -45,7 +45,7 @@ const LineDeltaContainer = ({ lineConfig, isLarge, isAdmin, onAccessDenied, sele
     const metrics = useProductionMetrics(
         tableItems, totalDelta, shiftsStatus, totalTurno, totalDia, selectedDate, selectedShift
     );
-    const { turno: turnMetrics, dia: dayMetrics } = metrics;
+    const { dia: dayMetrics } = metrics;
 
     // Determine delta color based on day metrics and active shifts
     const noShiftsActive = shiftsStatus.filter(s => Boolean(s.Activo || s.ACTIVO)).length === 0;
@@ -54,37 +54,34 @@ const LineDeltaContainer = ({ lineConfig, isLarge, isAdmin, onAccessDenied, sele
         : (dayMetrics.eficiencia >= 100 ? '#4caf50' : (dayMetrics.eficiencia >= 90 ? '#fbc02d' : '#ea5a00'));
     // 1. ESTADO DE CARGA (Mantiene la estructura grid-item)
     if (loading) {
-        return (
-            <div className="grid-item" style={{ 
-                borderTop: '8px solid #cccccc', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                minHeight: '280px'
-            }}>
-                <div className="spinner"></div>
-                <div style={{ color: '#888', marginTop: '15px', fontWeight: 'bold',
-                    width : isLarge ? '100%' : '600px'
-                }}>
-                    Conectando con {lineConfig.name}...
-                </div>
+    return (
+        <div className="grid-item" style={{ height: '350px', display: 'flex' }}>
+            <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                 <img 
+                    src={lineConfig.imgURL || zero} 
+                    alt="Cargando..."
+                    fetchPriority="high" 
+                    style={{ width: '100%', maxWidth: '200px', opacity: 0.5 }}
+                 />
+                 <div className="spinner" style={{ position: 'absolute' }}></div>
             </div>
-        );
-    }
+        </div>
+    );
+}
 
     // 3. RENDERIZADO EXITOSO
     return (
         <div className="grid-item" style={{ 
-            borderTop: `8px solid ${deltaColor}`, 
-            // borderRight: `8px solid ${deltaColor}`, 
-            height: '100%', 
+            borderTop: `8px solid ${deltaColor}`,
+            // El contenedor cambia de altura dinámicamente
+            height: isLarge ? '485px' : '325px', 
             display: 'flex', 
             flexDirection: 'column',
             padding: '10px',
             boxSizing: 'border-box',
             overflow: 'hidden',
-            position: 'relative' // Necesario para posicionar el spinner de reconexión
+            position: 'relative',
+            transition: 'all 0.4s ease-in-out' 
         }}>
             {/* INDICADOR DE REINTENTO: Spinner en la esquina superior derecha si falla la conexión */}
             {error && (
@@ -105,9 +102,11 @@ const LineDeltaContainer = ({ lineConfig, isLarge, isAdmin, onAccessDenied, sele
 
             <div style={{
                 textAlign: 'center',
-                fontSize: isLarge ? '26px' : '20px', // Aumentamos levemente el título si es grande
+                // El título crece si tiene el foco
+                fontSize: isLarge ? '2.2rem' : '1.5rem', 
                 fontWeight: 'bold',
-                padding: '5px'
+                padding: '5px',
+                transition: 'font-size 0.4s ease'
             }}>
                 {lineConfig.name}
             </div>
@@ -129,6 +128,7 @@ const LineDeltaContainer = ({ lineConfig, isLarge, isAdmin, onAccessDenied, sele
                     imgURL={lineConfig.imgURL}
                     isAdmin={isAdmin}
                     onAccessDenied={onAccessDenied}
+                    isLarge={isLarge}
                 />
             </div>
         </div>

@@ -199,8 +199,8 @@ const ConsolidatedRate = ({ lines, selectedDate, selectedShift, isLarge, isAdmin
                     width: '100%'
                 }}>
                     <div style={{ textAlign: 'center', width:'auto'}}>
-                        <div style={{ fontSize: '1.7rem', fontWeight: 'bold', color: '#000' }}>TOTAL PLANTA</div>
-                        <div style={{ fontSize: '3rem', fontWeight: 'bold', color: deltaColor, lineHeight: 1.1 }}>
+                        <div style={{ fontSize: '1.7rem', fontWeight: 'bold', color: '#000', marginRight:'70px' }}>TOTAL PLANTA</div>
+                        <div style={{ fontSize: '3rem', fontWeight: 'bold', color: deltaColor, lineHeight: 1.1, marginRight:'70px' }}>
                             {totalReal}
                             <span style={{ fontSize: '1.5rem', color: '#888', fontWeight: 'normal' }}>/{parseInt(totalMeta)}</span>
                         </div>
@@ -210,6 +210,7 @@ const ConsolidatedRate = ({ lines, selectedDate, selectedShift, isLarge, isAdmin
                         <img 
                             src={statusImage} 
                             alt="Status Indicator" 
+                            fetchPriority="high" 
                             style={{ width: '100%', maxWidth: '300px', transition: 'all 0.3s', objectFit:'fill' }} 
                         />
                     </div>
