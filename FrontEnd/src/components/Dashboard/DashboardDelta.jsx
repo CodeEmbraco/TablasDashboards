@@ -94,23 +94,20 @@ const Delta = ({ total,
                 </div>
             </div>
 
-            <div className='total-dia-icon' style={{ 
-                flex: 1, 
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center' 
-            }}>
+            <div style={{
+                        alignItems:'center',
+                        justifyContent:'center'
+                        }}>
                 {/* La imagen crece según isLarge */}
                 <img 
                     src={imgURL ? imgURL : zero} 
                     alt="Line Icon"
                     fetchPriority="high"
                     style={{
-                        width: '100%', 
-                        maxWidth: isLarge ? 'auto' : '250px', 
+                        // width: '100%', 
+                        maxWidth: isLarge ? '290px' : '200px', 
                         height: 'auto', 
                         objectFit: 'contain',
-                        alignItems:'center'
                     }}
                 />
             </div>

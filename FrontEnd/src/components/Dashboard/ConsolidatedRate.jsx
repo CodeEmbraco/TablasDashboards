@@ -2,8 +2,9 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import productionService from '@services/ProductionServices';
 import { useProductionData } from '@hooks/useProductionData';
 import { useProductionMetrics } from '@hooks/useProductionMetrics';
-import ZeroBien from '@assets/ZeroBien.png';
-import ZeroMal from '@assets/ZeroMal_v2.png';
+import ZeroBien from '@assets/zero-status-color/zero-green.png';
+import ZeroMal from '@assets/zero-status-color/zero-red.png';
+import ZeroYellow from '@assets/zero-status-color/zero-yellow.png';
 import '@styles/global.css';
 
 /**
@@ -127,7 +128,7 @@ const LineRateItem = ({ lineConfig, selectedDate, selectedShift, onDataLoaded })
 /**
  * Contenedor principal que muestra el rate consolidado de todas las líneas.
  */
-const ConsolidatedRate = ({ lines, selectedDate, selectedShift, isLarge, isAdmin, onAccessDenied }) => {
+const ConsolidatedRate = ({ lines, selectedDate, selectedShift }) => {
     const [consolidatedData, setConsolidatedData] = useState({});
     const [totalReal, setTotalReal] = useState(0);
     const [totalMeta, setTotalMeta] = useState(0);
@@ -150,8 +151,8 @@ const ConsolidatedRate = ({ lines, selectedDate, selectedShift, isLarge, isAdmin
     }, [consolidatedData]);
 
     const totalEficiencia = totalMeta > 0 ? (totalReal / totalMeta) * 100 : 0;
-    const statusClass = totalEficiencia >= 100 ? 'bueno' : 'malo';
-    const statusImage = statusClass === 'bueno' ? ZeroBien : ZeroMal;
+    const statusClass = totalEficiencia >= 100 ? 'bueno' : (totalEficiencia >= 90 ? 'medio' : 'mal');
+    const statusImage = statusClass === 'bueno' ? ZeroBien : (statusClass === 'medio' ? ZeroYellow : ZeroMal);
     const deltaColor = totalEficiencia >= 100 ? '#4caf50' : (totalEficiencia >= 90 ? '#fbc02d' : '#ea5a00');
 
     return (
@@ -199,8 +200,8 @@ const ConsolidatedRate = ({ lines, selectedDate, selectedShift, isLarge, isAdmin
                     width: '100%'
                 }}>
                     <div style={{ textAlign: 'center', width:'auto'}}>
-                        <div style={{ fontSize: '1.7rem', fontWeight: 'bold', color: '#000', marginRight:'70px' }}>TOTAL PLANTA</div>
-                        <div style={{ fontSize: '3rem', fontWeight: 'bold', color: deltaColor, lineHeight: 1.1, marginRight:'70px' }}>
+                        <div style={{ fontSize: '1.7rem', fontWeight: 'bold', color: '#000', }}>TOTAL PLANTA</div>
+                        <div style={{ fontSize: '3rem', fontWeight: 'bold', color: deltaColor, lineHeight: 1.1, }}>
                             {totalReal}
                             <span style={{ fontSize: '1.5rem', color: '#888', fontWeight: 'normal' }}>/{parseInt(totalMeta)}</span>
                         </div>
@@ -211,7 +212,7 @@ const ConsolidatedRate = ({ lines, selectedDate, selectedShift, isLarge, isAdmin
                             src={statusImage} 
                             alt="Status Indicator" 
                             fetchPriority="high" 
-                            style={{ width: '100%', maxWidth: '300px', transition: 'all 0.3s', objectFit:'fill' }} 
+                            style={{  height: '400px', transition: 'all 0.3s', objectFit:'fill' }} 
                         />
                     </div>
                 </div>

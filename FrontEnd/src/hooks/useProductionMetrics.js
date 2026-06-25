@@ -15,7 +15,7 @@ export const useProductionMetrics = (
     useEffect(() => {
         const interval = setInterval(() => {
             setCurrentTime(new Date());
-        }, 60000); 
+        }, 60000);
         return () => clearInterval(interval);
     }, []);
 
@@ -36,13 +36,13 @@ export const useProductionMetrics = (
         // 1. CÁLCULO DE META DEL TURNO (Exacta por Hora)
         // =================================================================
         let metaTurnoProgresiva = 0;
-        
+
         if (tableItems && tableItems.length > 0) {
             for (let i = 0; i < tableItems.length; i++) {
                 const fila = tableItems[i];
-                const metaHora = Number(fila.MetaEfectiva || fila.META || fila.Meta) || 0; 
+                const metaHora = Number(fila.MetaEfectiva || fila.META || fila.Meta) || 0;
                 const horaSlot = parseInt((fila.TIME_SLOT || fila.Hora_Slot || fila.Hora || fila.HORA || "").split(':')[0], 10);
-                
+
                 if (isNaN(horaSlot)) continue;
 
                 if (selectedDate < today) {
@@ -124,10 +124,10 @@ export const useProductionMetrics = (
                                 totalQuarters = 8 * 4; // 8 horas x 4 cuartos = 32
                                 elapsedQuarters = (currentHour - 6) * 4 + cuartosActuales;
                             } else if (shiftId === '2') {
-                                totalQuarters = 9 * 4; 
+                                totalQuarters = 9 * 4;
                                 elapsedQuarters = (currentHour - 14) * 4 + cuartosActuales;
                             } else if (shiftId === '3') {
-                                totalQuarters = 7 * 4; 
+                                totalQuarters = 7 * 4;
                                 const hrs = currentHour === 23 ? 0 : (currentHour + 1);
                                 elapsedQuarters = hrs * 4 + cuartosActuales;
                             }
@@ -151,12 +151,12 @@ export const useProductionMetrics = (
             turno: {
                 metaAcumulada: metaTurnoProgresiva,
                 eficiencia: efTurno,
-                status: efTurno >= 100 ? "bueno" : "mal"
+                status: efTurno >= 100 ? "bueno" : efTurno >= 90 ? "medio" : "mal"
             },
             dia: {
                 metaTotalAcumulada: metaDiaProgresiva,
                 eficiencia: efDia,
-                status: efDia >= 100 ? "bueno" : "mal"
+                status: efDia >= 100 ? "bueno" : efDia >= 90 ? "medio" : "mal"
             }
         };
 

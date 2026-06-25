@@ -3,7 +3,7 @@ import cduImg from '@assets/materials/cdu.png';
 import electronicsImg from '@assets/materials/electronics.png';
 import insinkeratorImg from '@assets/materials/insinkerator.png';
 import ecmfanImg from '@assets/materials/ecmfan.png';
-import thermoImg from '@assets/materials/thermo.png';
+import thermoImg from '@assets/materials/thermo_v2.png';
 //?Rotores se dejan on hold por el momento
 // import rotoriseImg from '@assets/materials/rotorise.png';
 // import rotorwetImg from '@assets/materials/rotorwet.png';
@@ -29,17 +29,17 @@ export const LINES_CONFIG = {
         defaultMeta: 3,
         imgURL: thermoImg
     },
-    electronics:{
+    electronics: {
         id: "electronics",
         defaultMeta: 180,
         imgURL: electronicsImg
     },
-    insinkerator:{
+    insinkerator: {
         id: "insi",
         defaultMeta: 140,
         imgURL: insinkeratorImg
     },
-    ecmfan:{
+    ecmfan: {
         id: "ecmfan",
         defaultMeta: 60,
         imgURL: ecmfanImg
