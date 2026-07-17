@@ -9,6 +9,7 @@ import ZeroYellow from '@assets/zero-status-color/zero-yellow.png';
 import '@styles/global.css'
 
 const ProductionWidgets = ({ percent, statusClass, real, goal, losses, enableAnimation }) => {
+    //console.log("statusClass: ", statusClass);
     const statusImage = statusClass === 'bueno' ? ZeroBien : (statusClass === 'medio' ? ZeroYellow : ZeroMal);
     const lossesCircleValue = ((losses - 480) / 480) * 100 + 100;
     const GaugePercent = percent > 100 ? 100 : percent;

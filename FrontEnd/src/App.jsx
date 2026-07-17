@@ -16,6 +16,7 @@ import TablaEnsamble from './lines/Ensamble/TablaEnsamble';
 import TablaThermo from './lines/Thermofisher/TablaThermo';
 import TablaECMFAN from './lines/ECMFAN/TablaECMFAN';
 import GlobalDashboard from './pages/GlobalDashboard';
+import { TablaGenericRouter } from './lines/TablaGeneric';
 
 
 
@@ -36,6 +37,8 @@ function App() {
       <Route path="/Login" element={<Login />} />
       <Route path="/Menu" element={<Menu />} /> */}
       <Route path="/Dashboard" element={<GlobalDashboard />} />
+      {/* Ruta genérica: /tabla/:lineId (ej: /tabla/cdu, /tabla/electronics, /tabla/insinkerator) */}
+      <Route path="/tabla/:lineId" element={<TablaGenericRouter />} />
       <Route path="*" element={<TablaElectronics />} />
     </Routes>
     </ProductionProvider>

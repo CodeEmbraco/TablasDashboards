@@ -1,11 +1,19 @@
 import mysql from "mysql2/promise";
 import sql from "mssql";
-import sqlite from 'sqlite3';
 import dotenv from "dotenv";
 
 dotenv.config();
 
+// =============================================================
+// ? Reintentos automáticos con backoff exponencial
+// =============================================================
+const RETRY_DELAY_MS     = 5_000;   // 5 seg primer reintento
+const MAX_RETRY_DELAY_MS = 60_000;  // tope de 60 seg
+
 // MySQL Pool for Electronics
+// createPool() es lazy: no conecta al crearse, sino al llegar la primera query.
+// El proceso NO cae si MySQL no está disponible al arrancar, pero hacemos
+// un ping en background con reintentos para visibilidad en logs.
 export const mysqlPool = mysql.createPool({
     host: process.env.DB_SERVER,
     port: parseInt(process.env.DB_PORT, 10),
@@ -16,6 +24,23 @@ export const mysqlPool = mysql.createPool({
     connectionLimit: 10,
     queueLimit: 0
 });
+
+async function pingMySQLWithRetry() {
+    let delay = RETRY_DELAY_MS;
+    while (true) {
+        try {
+            const conn = await mysqlPool.getConnection();
+            conn.release();
+            console.log(`✅  [DB] Conexión exitosa → MySQL (Electronics)`);
+            return;
+        } catch (err) {
+            console.error(`❌  [DB] No se pudo conectar a MySQL (Electronics): ${err.message}`);
+            console.log(`🔄  [DB] Reintentando MySQL en ${delay / 1000}s…`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            delay = Math.min(delay * 2, MAX_RETRY_DELAY_MS);
+        }
+    }
+}
 
 // SQL Server Config for CDU y THERMOFISHER
 export const sqlConfig = {
@@ -85,8 +110,7 @@ export const sqlConfigFAN = {
     }
 };
 
-
-// SQLite for Rotor Wet and Rotor Insinkerator
+// // SQLite for Rotor Wet and Rotor Insinkerator
 // const dbPathLiteWetISE = 'C:/Users/jorgeb03/Documents/Proyectos/PlataformaProduccion v3 - local/dbRotorWet.sqlite3';
 // export const dbSQLiteWetISE = new sqlite.Database(dbPathLiteWetISE, (err) => {
 //     if (err) {
@@ -98,16 +122,86 @@ export const sqlConfigFAN = {
 
 // // Export a function to close SQLite connections if needed
 // export const closeSqliteConnections = () => {
-//     dbSQLite.close((err) => { if (err) console.error("Error closing Insinkerator SQLite DB:", err.message); else console.log("Insinkerator SQLite DB closed."); });
-//     dbSQLiteWetISE.close((err) => { if (err) console.error("Error closing Rotor Wet/ISE SQLite DB:", err.message); else console.log("Rotor Wet/ISE SQLite DB closed."); });
+//     dbSQLite.close((err) => { if (err) console.error("Error closing Insinkerator SQLite DB:", err.message); else console.log("Rotor Wet/ISE SQLite DB closed."); });
 // };
 
-const poolCIMAInstance = new sql.ConnectionPool(sqlConfigCIMA);
-const poolINSIInstance = new sql.ConnectionPool(sqlConfigINSI);
-const poolFANInstance = new sql.ConnectionPool(sqlConfigFAN);
-const poolPLISInstance = new sql.ConnectionPool(sqlConfig);
 
-export const poolCIMA = await poolCIMAInstance.connect();
-export const poolINSI = await poolINSIInstance.connect();
-export const poolFAN = await poolFANInstance.connect();
-export const poolPLIS = await poolPLISInstance.connect();
+// =============================================================
+// ? Conexión con reintentos automáticos (backoff exponencial)
+// ? Si falla una BD, el proceso continúa y sigue reintentando
+// =============================================================
+
+/**
+ * Conecta un mssql.ConnectionPool de forma persistente.
+ * Si la conexión falla NO tumba el proceso; espera con backoff
+ * exponencial y reintenta indefinidamente.
+ *
+ * @param {() => sql.ConnectionPool} poolFactory - función que crea una instancia nueva del pool
+ * @param {string}                   name        - nombre para los logs
+ * @param {{ current: sql.ConnectionPool | null }} ref - referencia mutable donde se guarda el pool
+ */
+async function connectWithRetry(poolFactory, name, ref) {
+    let delay = RETRY_DELAY_MS;
+
+    while (true) {
+        try {
+            const instance = poolFactory();
+            const connected = await instance.connect();
+            ref.current = connected;
+            console.log(`✅  [DB] Conexión exitosa → ${name}`);
+            return;
+        } catch (err) {
+            ref.current = null;
+            console.error(`❌  [DB] No se pudo conectar a ${name}: ${err.message}`);
+            console.log(`🔄  [DB] Reintentando ${name} en ${delay / 1000}s…`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            delay = Math.min(delay * 2, MAX_RETRY_DELAY_MS); // backoff exponencial con tope
+        }
+    }
+}
+
+// Referencias mutables – arrancan en null y se llenan cuando conectan
+const _refPLIS = { current: null };
+const _refCIMA = { current: null };
+const _refINSI = { current: null };
+const _refFAN  = { current: null };
+
+// Lanzamos las 5 conexiones en PARALELO; el fallo de una no afecta a las demás
+pingMySQLWithRetry();
+connectWithRetry(() => new sql.ConnectionPool(sqlConfig),     "PLIS  (CDU / Thermo)", _refPLIS);
+connectWithRetry(() => new sql.ConnectionPool(sqlConfigCIMA), "CIMA  (Historial)",    _refCIMA);
+connectWithRetry(() => new sql.ConnectionPool(sqlConfigINSI), "INSI  (Insinkerator)", _refINSI);
+connectWithRetry(() => new sql.ConnectionPool(sqlConfigFAN),  "FAN   (ECM Fan)",      _refFAN);
+
+/**
+ * Getters seguros: devuelven el pool cuando está listo
+ * o lanzan un error descriptivo si aún no está disponible.
+ * Úsalos en las rutas cuando quieras ser explícito:
+ *
+ *   const pool = getPoolPLIS();
+ *   await pool.request()…
+ */
+export const getPoolPLIS = () => {
+    if (!_refPLIS.current) throw new Error("Pool PLIS no disponible – reconectando…");
+    return _refPLIS.current;
+};
+export const getPoolCIMA = () => {
+    if (!_refCIMA.current) throw new Error("Pool CIMA no disponible – reconectando…");
+    return _refCIMA.current;
+};
+export const getPoolINSI = () => {
+    if (!_refINSI.current) throw new Error("Pool INSI no disponible – reconectando…");
+    return _refINSI.current;
+};
+export const getPoolFAN = () => {
+    if (!_refFAN.current) throw new Error("Pool FAN no disponible – reconectando…");
+    return _refFAN.current;
+};
+
+// Compatibilidad con las rutas existentes que importan poolPLIS / poolCIMA etc.
+// Los Proxy delegan cada propiedad/método al getter en tiempo de ejecución,
+// así las rutas reciben siempre el pool conectado sin necesidad de cambios.
+export const poolPLIS = new Proxy({}, { get: (_, prop) => getPoolPLIS()[prop] });
+export const poolCIMA = new Proxy({}, { get: (_, prop) => getPoolCIMA()[prop] });
+export const poolINSI = new Proxy({}, { get: (_, prop) => getPoolINSI()[prop] });
+export const poolFAN  = new Proxy({}, { get: (_, prop) => getPoolFAN()[prop]  });

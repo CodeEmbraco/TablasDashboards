@@ -138,6 +138,13 @@ const productionService =  {
             console.error("Error actualizando la meta:",err);
             throw err;
         }
+    },
+
+    getLineEffectiveGoalDay: async (lineId, date, lineNo = null) => {
+        const params = { fecha: date, lineId: lineId };
+        if (lineNo) params.lineNo = lineNo;
+        const response = await api.get(`utils/line-effective-goal-day`, { params });
+        return response.data;
     }
 } ;
 

@@ -37,7 +37,8 @@ export const LINES_CONFIG = {
     insinkerator: {
         id: "insi",
         defaultMeta: 140,
-        imgURL: insinkeratorImg
+        imgURL: insinkeratorImg,
+        hasSubLines: true   // Activa el selector L1/L2 en TablaGeneric
     },
     ecmfan: {
         id: "ecmfan",
