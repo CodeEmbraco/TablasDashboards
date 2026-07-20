@@ -8,29 +8,15 @@ import express from "express";
 import cors from "cors";
 
 //Rutas
-import preensamRoutes from "./routes/preensambleRoutes.js"
-import insiRoutes from "./routes/insinkeratorRoutes.js"
-import cduRoutes from "./routes/cduRoutes.js"
-// import rotwetRoutes from "./routes/rotorWetRoutes.js"
-import electronicRoutes from "./routes/electronicsRoutes.js"
-import thermoRoutes from "./routes/thermoRoutes.js"
-import ecmfanRoutes from "./routes/ecmfanRoutes.js"
-import utilsRoutes from "./routes/utilsRoutes.js"
-// import linesConfigRoutes from "./routes/linesConfigRoutes.js"
-
+import utilsRoutes from "./routes/utilsRoutes.js";
+import dynamicProductionRoutes from "./routes/dynamicProductionRoutes.js";
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 app.use("/api/utils", utilsRoutes);
-// app.use("/api/linesConfig", linesConfigRoutes)
-app.use("/api/preensamble", preensamRoutes);
-app.use("/api/insi", insiRoutes);
-app.use("/api/cdu", cduRoutes);
-// app.use("/api/rotwet", rotwetRoutes);
-app.use("/api/electronics", electronicRoutes);
-app.use("/api/thermo", thermoRoutes);
-app.use("/api/ecmfan", ecmfanRoutes);
+app.use("/api", dynamicProductionRoutes);
+
 
 //Server 
 const PORT = process.env.PORT || 3001;

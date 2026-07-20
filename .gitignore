@@ -7,22 +7,23 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
+node_modules/
 dist
 dist-ssr
 *.local
-.env
+*.env
+local/
 
-BackEnd/node_modules
-BackEnd/dist
-BackEnd/dist-ssr
-BackEnd/*.local
-BackEnd/.env
-BackEnd/server0*
-BackEnd/Querys.sql
-BackEnd/PreEnsam-api.js
-BackEnd/tablas
-BackEnd/Usersjorgeb03Documentsdb.sqlite3
+# BackEnd/node_modules
+# BackEnd/dist
+# BackEnd/dist-ssr
+# BackEnd/*.local
+# BackEnd/*.env
+# BackEnd/server0*
+# BackEnd/Querys.sql
+# BackEnd/PreEnsam-api.js
+# BackEnd/tablas
+# BackEnd/Usersjorgeb03Documentsdb.sqlite3
 
 
 
@@ -38,3 +39,4 @@ BackEnd/Usersjorgeb03Documentsdb.sqlite3
 *.sw?
 BackEnd/migration-MySQLtoSQLServer.js
 scripts/
+deprecated/

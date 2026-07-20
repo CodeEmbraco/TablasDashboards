@@ -15,6 +15,28 @@
     width: auto;
 }
 
+.menu-toggle-btn {
+    position: absolute;
+    right: 20px;
+    background: none;
+    border: none;
+    color: inherit; /* Hereda el color del texto (blanco/oscuro según el tema) */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.menu-toggle-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    transform: scale(1.05);
+}
+
+
+
 .logoZero {
     position: absolute;
     right: 30px;
