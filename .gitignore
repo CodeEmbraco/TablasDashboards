@@ -14,19 +14,6 @@ dist-ssr
 *.env
 local/
 
-# BackEnd/node_modules
-# BackEnd/dist
-# BackEnd/dist-ssr
-# BackEnd/*.local
-# BackEnd/*.env
-# BackEnd/server0*
-# BackEnd/Querys.sql
-# BackEnd/PreEnsam-api.js
-# BackEnd/tablas
-# BackEnd/Usersjorgeb03Documentsdb.sqlite3
-
-
-
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
