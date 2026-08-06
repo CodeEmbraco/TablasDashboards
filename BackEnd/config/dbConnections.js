@@ -1,8 +1,15 @@
 import mysql from "mysql2/promise";
 import sql from "mssql";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Cargar variables de entorno desde CWD y como fallback absoluto desde la carpeta del proyecto BackEnd
 dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 // =============================================================
 // ? Reintentos automáticos con backoff exponencial
@@ -15,11 +22,11 @@ const MAX_RETRY_DELAY_MS = 60_000;  // tope de 60 seg
 // El proceso NO cae si MySQL no está disponible al arrancar, pero hacemos
 // un ping en background con reintentos para visibilidad en logs.
 export const mysqlPool = mysql.createPool({
-    host: process.env.DB_SERVER,
-    port: parseInt(process.env.DB_PORT, 10),
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
+    host: process.env.MYSQL_SERVER || "",
+    port: parseInt(process.env.MYSQL_PORT || process.env.DB_PORT || "3306", 10),
+    user: process.env.MYSQL_USER || "",
+    password: process.env.MYSQL_PASSWORD || "",
+    database: process.env.MYSQL_DATABASE || "",
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -44,10 +51,10 @@ async function pingMySQLWithRetry() {
 
 // SQL Server Config for CDU y THERMOFISHER
 export const sqlConfig = {
-    user: process.env.MSSQL_USER,
-    password: process.env.MSSQL_PASSWORD,
-    database: process.env.MSSQL_DATABASE,
-    server: process.env.MSSQL_SERVER,
+    user: process.env.MSSQL_USER || "",
+    password: process.env.MSSQL_PASSWORD || "",
+    database: process.env.MSSQL_DATABASE || "",
+    server: process.env.MSSQL_SERVER || "",
     pool: {
         max: 20,
         min: 0,
@@ -61,10 +68,10 @@ export const sqlConfig = {
 
 // SQL Server Config for CIMA (Historial tables)
 export const sqlConfigCIMA = {
-    user: process.env.CIMA_USER,
-    password: process.env.CIMA_PASSWORD,
-    database: process.env.CIMA_DATABASE,
-    server: process.env.CIMA_SERVER,
+    user: process.env.CIMA_USER || "",
+    password: process.env.CIMA_PASSWORD || "",
+    database: process.env.CIMA_DATABASE || "",
+    server: process.env.CIMA_SERVER || "",
     pool: {
         max: 20,
         min: 0,
@@ -78,10 +85,10 @@ export const sqlConfigCIMA = {
 
 // SQL Server for Insinkerator
 export const sqlConfigINSI = {
-    user: process.env.INSI_USER,
-    password: process.env.INSI_PASSWORD,
-    database: process.env.INSI_DATABASE,
-    server: process.env.INSI_SERVER,
+    user: process.env.INSI_USER || "",
+    password: process.env.INSI_PASSWORD || "",
+    database: process.env.INSI_DATABASE || "",
+    server: process.env.INSI_SERVER || "",
     pool: {
         max: 20,
         min: 0,
@@ -95,10 +102,10 @@ export const sqlConfigINSI = {
 
 // SQL Server de ECM FAN
 export const sqlConfigFAN = {
-    user: process.env.FAN_USER,
-    password: process.env.FAN_PASSWORD,
-    database: process.env.FAN_DATABASE,
-    server: process.env.FAN_SERVER,
+    user: process.env.FAN_USER || "",
+    password: process.env.FAN_PASSWORD || "",
+    database: process.env.FAN_DATABASE || "",
+    server: process.env.FAN_SERVER || "",
     pool: {
         max: 20,
         min: 0,
@@ -110,6 +117,21 @@ export const sqlConfigFAN = {
     }
 };
 
+export const sqlConfigDbServer = {
+    user: process.env.DB_USER || "",
+    password: process.env.DB_PASSWORD || "",
+    database: process.env.DB_DATABASE || "",
+    server: process.env.DB_SERVER || "",
+    pool: {
+        max: 20,
+        min: 0,
+        idleTimeoutMillis: 30000
+    },
+    options: {
+        encrypt: false,
+        trustServerCertificate: true
+    }
+};
 // // SQLite for Rotor Wet and Rotor Insinkerator
 // const dbPathLiteWetISE = 'C:/Users/jorgeb03/Documents/Proyectos/PlataformaProduccion v3 - local/dbRotorWet.sqlite3';
 // export const dbSQLiteWetISE = new sqlite.Database(dbPathLiteWetISE, (err) => {
@@ -165,13 +187,15 @@ const _refPLIS = { current: null };
 const _refCIMA = { current: null };
 const _refINSI = { current: null };
 const _refFAN  = { current: null };
+const _refDBSV = { current: null};
 
 // Lanzamos las 5 conexiones en PARALELO; el fallo de una no afecta a las demás
 pingMySQLWithRetry();
-connectWithRetry(() => new sql.ConnectionPool(sqlConfig),     "PLIS  (CDU / Thermo)", _refPLIS);
-connectWithRetry(() => new sql.ConnectionPool(sqlConfigCIMA), "CIMA  (Historial)",    _refCIMA);
-connectWithRetry(() => new sql.ConnectionPool(sqlConfigINSI), "INSI  (Insinkerator)", _refINSI);
-connectWithRetry(() => new sql.ConnectionPool(sqlConfigFAN),  "FAN   (ECM Fan)",      _refFAN);
+connectWithRetry(() => new sql.ConnectionPool(sqlConfigDbServer),   "EM10VS0034 (DB SERVER)", _refDBSV);
+connectWithRetry(() => new sql.ConnectionPool(sqlConfig),           "PLIS  (CDU / Thermo)", _refPLIS);
+connectWithRetry(() => new sql.ConnectionPool(sqlConfigCIMA),       "CIMA  (Historial)",    _refCIMA);
+connectWithRetry(() => new sql.ConnectionPool(sqlConfigINSI),       "INSI  (Insinkerator)", _refINSI);
+connectWithRetry(() => new sql.ConnectionPool(sqlConfigFAN),        "FAN   (ECM Fan)",      _refFAN);
 
 /**
  * Getters seguros: devuelven el pool cuando está listo
@@ -181,6 +205,10 @@ connectWithRetry(() => new sql.ConnectionPool(sqlConfigFAN),  "FAN   (ECM Fan)",
  *   const pool = getPoolPLIS();
  *   await pool.request()…
  */
+export const getPoolDBSV = () => {
+    if (!_refDBSV.current) throw new Error("Pool DB SERVER no disponible – reconectando…");
+    return _refDBSV.current;
+}
 export const getPoolPLIS = () => {
     if (!_refPLIS.current) throw new Error("Pool PLIS no disponible – reconectando…");
     return _refPLIS.current;
@@ -201,6 +229,7 @@ export const getPoolFAN = () => {
 // Compatibilidad con las rutas existentes que importan poolPLIS / poolCIMA etc.
 // Los Proxy delegan cada propiedad/método al getter en tiempo de ejecución,
 // así las rutas reciben siempre el pool conectado sin necesidad de cambios.
+export const poolDBSV = new Proxy({}, { get: (_, prop) => getPoolDBSV()[prop] });
 export const poolPLIS = new Proxy({}, { get: (_, prop) => getPoolPLIS()[prop] });
 export const poolCIMA = new Proxy({}, { get: (_, prop) => getPoolCIMA()[prop] });
 export const poolINSI = new Proxy({}, { get: (_, prop) => getPoolINSI()[prop] });

@@ -1,4 +1,4 @@
-//API DE INSERT EN BD DE CIMA PARA TABLA DE PRE-ENSAMBLE
+//API DE INSERT EN BD DE EM10VS0034 PARA TABLA DE PRE-ENSAMBLE
 //Desarrollado por Sean Garcia 20-03-2026
 
 import axios from "axios";
@@ -12,11 +12,11 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Configuración base de datos MSSQL
-const sqlConfigCIMA = {
-    user: process.env.CIMA_USER,
-    password: process.env.CIMA_PASSWORD,
-    server: process.env.CIMA_SERVER,
-    database: process.env.CIMA_DATABASE,
+const sqlConfigDB = {
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    server: process.env.DB_SERVER,
+    database: process.env.DB_DATABASE,
     options: {
         encrypt: true, 
         trustServerCertificate: true 
@@ -55,13 +55,13 @@ async function dataPLCInsert() {
         console.log(`--- Ejecutando Registro Local: ${queryDate} ${now.toLocaleTimeString()} ---`);
         console.log("Counter:", COUNTER, "| Product:", PRODUCT_ID, "| Turno:", turno);
         
-        pool_query = await sql.connect(sqlConfigCIMA);
+        pool_query = await sql.connect(sqlConfigDB);
         const res_query = await pool_query.request()
             .input("COUNTER", sql.Int, COUNTER)
             .input("PRODUCT_ID", sql.VarChar, PRODUCT_ID)
             .input("FECHA", sql.Date, queryDate)
             .input("TURNO", sql.Int, turno)
-            .execute(`preEnsam_sp_checkIsRegistered`)
+            .execute(`sp_preensamble_isregistered`)
         
         const row = res_query.recordset[0];
         const registro = row ? row.isRegistered : 0;
@@ -72,13 +72,13 @@ async function dataPLCInsert() {
         }
 		
         //Conexión e Insert en MSSQL
-        pool = await sql.connect(sqlConfigCIMA);
+        pool = await sql.connect(sqlConfigDB);
         const result = await pool.request()
             .input("COUNTER", sql.Int, COUNTER)
             .input("PRODUCT_ID", sql.VarChar, PRODUCT_ID)
             .input("FECHA", sql.Date, queryDate)
             .input("TURNO", sql.Int, turno)
-            .execute("preEnsam_sp_insert");
+            .execute("sp_preensamble_insert");
 
         console.log("INSERT: SUCCESS!");
 

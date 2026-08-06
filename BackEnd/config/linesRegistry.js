@@ -1,13 +1,11 @@
-import { poolPLIS, poolCIMA, poolINSI, poolFAN, mysqlPool } from "./dbConnections.js";
+import { poolPLIS, poolCIMA, poolINSI, poolFAN, mysqlPool, poolDBSV } from "./dbConnections.js";
 
 export const linesRegistry = {
     cdu: {
         lineId: "cdu",
         dbType: "mssql",
         prodPool: poolPLIS,
-        goalsPool: poolCIMA,
-        histPool: poolCIMA,
-        histTable: "tbl_HistProdCDU",
+        goalsPool: poolDBSV,
         procedures: {
             hourly: "CDU_HOURLY",
             totalDay: "CDU_TOTALDAY",
@@ -23,9 +21,7 @@ export const linesRegistry = {
         lineId: "thermo",
         dbType: "mssql",
         prodPool: poolPLIS,
-        goalsPool: poolCIMA,
-        histPool: poolCIMA,
-        histTable: "tbl_HistProdThermo",
+        goalsPool: poolDBSV,
         procedures: {
             hourly: "THERMO_HOURLY",
             totalDay: "THERMO_TOTALDAY",
@@ -40,28 +36,24 @@ export const linesRegistry = {
     preensamble: {
         lineId: "preensamble",
         dbType: "mssql",
-        prodPool: poolCIMA,
-        goalsPool: poolCIMA,
-        histPool: poolCIMA,
-        histTable: "tbl_HistProdPreEnsam",
+        prodPool: poolDBSV,
+        goalsPool: poolDBSV,
         procedures: {
-            hourly: "preEnsam_sp_prodByHour",
-            totalDay: "preEnsam_sp_totalProdByDate",
-            totalShift: "preEnsam_sp_queryByDateAndShift",
-            shift: "preEnsam_sp_ShiftTotalByDate"
+            hourly: "sp_preensamble_hourly",
+            totalDay: "sp_preensamble_totalday",
+            totalShift: "sp_preensamble_totalshift",
+            shift: "sp_preensamble_shift"
         },
         params: {
-            date: "FECHA",
-            shift: "TURNO"
+            date: "fechaParam",
+            shift: "turnoParam"
         }
     },
     insi: {
         lineId: "insi",
         dbType: "mssql",
         prodPool: poolINSI,
-        goalsPool: poolCIMA,
-        histPool: poolINSI,
-        histTable: "EIN_PERDIDAS",
+        goalsPool: poolDBSV,
         procedures: {
             hourly: "INSINK_sp_prodByHour",
             totalDay: "INSINK_sp_totalProdByDate",
@@ -72,15 +64,17 @@ export const linesRegistry = {
             date: "FECHA",
             shift: "TURNO"
         },
-        hasLineNo: true
+        hasLineNo: true,
+        tableMap: {
+            1: "EIN_01",
+            2: "EIN_02"
+        }
     },
     ecmfan: {
         lineId: "ecmfan",
         dbType: "mssql",
         prodPool: poolFAN,
-        goalsPool: poolCIMA,
-        histPool: poolCIMA,
-        histTable: "tbl_HistProdECMFAN",
+        goalsPool: poolDBSV,
         procedures: {
             hourly: "ECMFAN_HOURLY",
             totalDay: "ECMFAN_TOTALDAY",
@@ -96,9 +90,7 @@ export const linesRegistry = {
         lineId: "electronics",
         dbType: "mysql",
         prodPool: mysqlPool,
-        goalsPool: poolCIMA,
-        histPool: poolCIMA,
-        histTable: "tbl_HistProdElectro",
+        goalsPool: poolDBSV,
         procedures: {
             hourly: "ELECTRO_HOURLY",
             totalDay: "ELECTRO_TOTALDAY",

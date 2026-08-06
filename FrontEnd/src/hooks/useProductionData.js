@@ -75,26 +75,48 @@ export const useProductionData = (fecha, turno, metaPorHora, apiFunctions, lineN
                     d.time_slot === slot
                 );
 
+                const real = currentProd ? (currentProd.ProduccionTotal || currentProd.REAL || 0) : 0;
+                const meta = currentProd ? (currentProd.MetaEfectiva || 0) : 0;
+
                 // Agregamos soporte para múltiples registros por hora desde la DB
-                const dbReports = Array.isArray(reporteDia) ? reporteDia.filter(r => r.time_slot === slot) : [];
+                const dbReports = Array.isArray(reporteDia) ? reporteDia.filter(r => r.time_slot === slot && r.PERDIDAS !== null && r.PERDIDAS !== undefined) : [];
+                const dbReportRow = Array.isArray(reporteDia) ? reporteDia.find(r => r.time_slot === slot) : null;
                 const localLossData = currentLocal[slot];
+
+                const perdidaCalculada = dbReportRow && dbReportRow.PerdidaCalculada !== undefined
+                    ? dbReportRow.PerdidaCalculada
+                    : (meta > 0 ? Math.max(0, Math.round(60 * (1 - (real / meta)))) : 0);
+
+                const perdidaJustificada = localLossData
+                    ? localLossData.perdidas
+                    : dbReports.reduce((sum, r) => sum + (r.PERDIDAS || 0), 0);
+
+                const perdidaNoJustificada = Math.max(0, perdidaCalculada - perdidaJustificada);
+
+                const supervisor = dbReportRow?.SUPERVISOR || (dbReports[0]?.SUPERVISOR) || '0';
+                const lider = dbReportRow?.LIDER || (dbReports[0]?.LIDER) || '0';
 
                 return {
                     HORA: slot,
                     TIME_SLOT: slot, // Aseguramos compatibilidad con ambos nombres
                     time_slot: slot,
-                    REAL: currentProd ? (currentProd.ProduccionTotal || currentProd.REAL) : 0,
+                    SUPERVISOR: supervisor,
+                    LIDER: lider,
+                    REAL: real,
                     MODELO: currentProd ? (currentProd.Modelos || currentProd.MODELO) : "---",
-                    META: currentProd ? (currentProd.MetaEfectiva || 0) : 0,
+                    META: meta,
+                    PERDIDA_CALCULADA: perdidaCalculada,
+                    PERDIDA_JUSTIFICADA: perdidaJustificada,
+                    PERDIDA_NO_JUSTIFICADA: perdidaNoJustificada,
                     // Prioridad: Si hay cambios locales (borrador), mostramos eso. Si no, lo de la DB.
-                    MINUTOS_PERDIDA: localLossData ? localLossData.perdidas
-                        : dbReports.reduce((sum, r) => sum + (r.PERDIDAS || 0), 0),
+                    MINUTOS_PERDIDA: perdidaJustificada,
                     OBSERVACIONES: localLossData ? localLossData.observaciones
                         : dbReports.map(r => r.OBSERVACIONES).filter(Boolean).join(' | '),
                     DETALLES: localLossData ? localLossData.detalles
                         : dbReports.map(r => ({
                             minutos: r.PERDIDAS,
                             motivo: r.MOTIVO,
+                            maquina: r.MAQUINA || '',
                             observacion: r.OBSERVACIONES
                         }))
                 };

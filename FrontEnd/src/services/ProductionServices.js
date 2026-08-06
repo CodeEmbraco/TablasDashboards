@@ -2,10 +2,10 @@ import axios from 'axios';
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_LOCAL_BACKEND_URL || 'http://localhost:3001/api',
-    headers: {'Content-Type' : 'application/json'}
+    headers: { 'Content-Type': 'application/json' }
 });
 
-const productionService =  {
+const productionService = {
     //TABLA DE PRODUCTIVIDAD
     getHourlyData: async (lineID, date, shift, lineNo = null) => {
         const params = { fecha: date, turno: shift };
@@ -14,29 +14,29 @@ const productionService =  {
         return response.data;
     },
 
-    getTotalDate: async(lineID, date, lineNo = null) => {
+    getTotalDate: async (lineID, date, lineNo = null) => {
         const params = { fecha: date };
         if (lineNo) params.lineNo = lineNo;
         const response = await api.get(`/${lineID}/total-day`, { params });
         return response.data;
     },
-    
-    getTotalShiftDelta: async(lineID, date, lineNo = null) => {
+
+    getTotalShiftDelta: async (lineID, date, lineNo = null) => {
         const params = { fecha: date };
         if (lineNo) params.lineNo = lineNo;
         const response = await api.get(`/${lineID}/total-shift`, { params });
         return response.data;
     },
 
-    getTotalShift: async(lineID, date, shift, lineNo = null) => {
+    getTotalShift: async (lineID, date, shift, lineNo = null) => {
         const params = { fecha: date, turno: shift };
         if (lineNo) params.lineNo = lineNo;
         const response = await api.get(`/${lineID}/shift`, { params });
         return response.data;
     },
-    
+
     //PERDIDAS
-    getLossReports: async(lineID, date, shift, lineNo = null) => {
+    getLossReports: async (lineID, date, shift, lineNo = null) => {
         const params = { fecha: date, turno: shift };
         if (lineNo) params.lineNo = lineNo;
         const response = await api.get(`/${lineID}/reports`, { params });
@@ -44,7 +44,7 @@ const productionService =  {
         // console.log("QUE ES ESTO!?",response.data);
         return response.data;
     },
-    
+
     saveReport: async (lineID, reportData, lineNo = null) => {
         console.log(`Si estoy entrando a /saveReport`)
         const params = {};
@@ -78,15 +78,15 @@ const productionService =  {
     },
 
     //CONFIGURACION DE LINEAS
-    getLinesConfig: async(lineId=null) => {
+    getLinesConfig: async (lineId = null) => {
         const params = lineId ? { lineId: lineId } : {};
         const response = await api.get(`utils/get-lines-config`, { params });
         return response.data;
     },
 
     //METAS
-    updateDefaultGoalShift: async(lineId, turno, metaDefault,lineNo = null) => {
-        try{
+    updateDefaultGoalShift: async (lineId, turno, metaDefault, lineNo = null) => {
+        try {
             const params = {};
             if (lineNo) params.lineNo = lineNo;
             const response = await api.post(`utils/default-goal-update-shift`, {
@@ -96,14 +96,14 @@ const productionService =  {
             }, { params });
             return response.data;
         }
-        catch(err){
-            console.error("Error actualizando la meta:",err);
+        catch (err) {
+            console.error("Error actualizando la meta:", err);
             throw err;
         }
     },
-    
-    updateDefaultGoalTimeSlot: async(lineId, horaSlot, metaDefault, lineNo = null) => {
-        try{
+
+    updateDefaultGoalTimeSlot: async (lineId, horaSlot, metaDefault, lineNo = null) => {
+        try {
             const params = {};
             if (lineNo) params.lineNo = lineNo;
             const response = await api.post(`utils/default-goal-update-timeslot`, {
@@ -113,14 +113,14 @@ const productionService =  {
             }, { params });
             return response.data;
         }
-        catch(err){
-            console.error("Error actualizando la meta:",err);
+        catch (err) {
+            console.error("Error actualizando la meta:", err);
             throw err;
         }
     },
 
-    updateCustomGoal: async(lineId, fecha, turno, horaSlot, metaCustom, user, lineNo = null) => {
-        try{
+    updateCustomGoal: async (lineId, fecha, turno, horaSlot, metaCustom, user, lineNo = null) => {
+        try {
             const params = {};
             if (lineNo) params.lineNo = lineNo;
             const response = await api.post(`utils/custom-goal-update`, {
@@ -134,8 +134,8 @@ const productionService =  {
             }, { params });
             return response.data;
         }
-        catch(err){
-            console.error("Error actualizando la meta:",err);
+        catch (err) {
+            console.error("Error actualizando la meta:", err);
             throw err;
         }
     },
@@ -146,6 +146,6 @@ const productionService =  {
         const response = await api.get(`utils/line-effective-goal-day`, { params });
         return response.data;
     }
-} ;
+};
 
 export default productionService;

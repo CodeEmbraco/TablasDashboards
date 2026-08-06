@@ -67,10 +67,25 @@ const TablaGeneric = ({ lineConfigKey }) => {
             try {
                 const data = await productionService.getLinesConfig(lineConfig.id);
                 if (data && data.length > 0) {
+                    const extractPersonal = (roles) => {
+                        const map = new Map();
+                        data.filter(d => roles.includes(d.Rol?.toLowerCase())).forEach(d => {
+                            const id = d.IdPersonal ?? d.IdTrabajador ?? d.Id ?? d.Trabajador;
+                            const name = d.Trabajador || d.Nombre || String(id);
+                            if (id && !map.has(String(id))) {
+                                map.set(String(id), { id: String(id), name: String(name) });
+                            }
+                        });
+                        return Array.from(map.values());
+                    };
+
+                    const sups = extractPersonal(['supervisor']);
+                    const lds = extractPersonal(['team leader', 'lider']);
+
                     setDynamicConfig({
-                        name: data[0].Nombre,
-                        supervisors: [...new Set(data.filter(d => d.Rol?.toLowerCase() === 'supervisor').map(d => d.Trabajador))],
-                        leaders: [...new Set(data.filter(d => d.Rol?.toLowerCase() === 'team leader' || d.Rol?.toLowerCase() === 'lider').map(d => d.Trabajador))]
+                        name: data[0].Nombre || lineConfig.id,
+                        supervisors: sups.length > 0 ? sups : [...new Set(data.filter(d => d.Rol?.toLowerCase() === 'supervisor').map(d => ({ id: d.Trabajador, name: d.Trabajador })))],
+                        leaders: lds.length > 0 ? lds : [...new Set(data.filter(d => d.Rol?.toLowerCase() === 'team leader' || d.Rol?.toLowerCase() === 'lider').map(d => ({ id: d.Trabajador, name: d.Trabajador })))]
                     });
                 }
             } catch (err) {
@@ -201,6 +216,8 @@ const TablaGeneric = ({ lineConfigKey }) => {
                 Supervisor: supervisor,
                 Lider: lider,
                 Modelo: item.MODELO || '',
+                ProduccionReal: item.REAL ?? 0,
+                MetaEfectiva: item.META ?? 0,
                 ...(hasSubLines ? { Linea: lineNo } : {})
             };
 
@@ -210,7 +227,8 @@ const TablaGeneric = ({ lineConfigKey }) => {
                         ...baseEntry,
                         Perdidas: det.minutos,
                         Observaciones: det.observacion,
-                        Motivo: det.motivo
+                        Motivo: det.motivo,
+                        Maquina: det.maquina || null
                     });
                 });
             } else {
@@ -218,7 +236,8 @@ const TablaGeneric = ({ lineConfigKey }) => {
                     ...baseEntry,
                     Perdidas: 0,
                     Observaciones: '',
-                    Motivo: ''
+                    Motivo: '',
+                    Maquina: null
                 });
             }
         });
@@ -309,19 +328,27 @@ const TablaGeneric = ({ lineConfigKey }) => {
                                 <tr>
                                     <td>Supervisor:</td>
                                     <td>
-                                        <select value={supervisor} onChange={(e) => setSupervisor(e.target.value)}>
-                                            <option value="0" disabled>--Selecciona--</option>
-                                            {dynamicConfig.supervisors.map(s => <option key={s} value={s}>{s}</option>)}
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Team Leader:</td>
-                                    <td>
-                                        <select value={lider} onChange={(e) => setLider(e.target.value)}>
-                                            <option value="0" disabled>--Selecciona--</option>
-                                            {dynamicConfig.leaders.map(l => <option key={l} value={l}>{l}</option>)}
-                                        </select>
+                                         <select value={supervisor} onChange={(e) => setSupervisor(e.target.value)}>
+                                             <option value="0" disabled>--Selecciona--</option>
+                                             {dynamicConfig.supervisors.map(s => (
+                                                 <option key={typeof s === 'object' ? s.id : s} value={typeof s === 'object' ? s.id : s}>
+                                                     {typeof s === 'object' ? s.name : s}
+                                                 </option>
+                                             ))}
+                                         </select>
+                                     </td>
+                                 </tr>
+                                 <tr>
+                                     <td>Team Leader:</td>
+                                     <td>
+                                         <select value={lider} onChange={(e) => setLider(e.target.value)}>
+                                             <option value="0" disabled>--Selecciona--</option>
+                                             {dynamicConfig.leaders.map(l => (
+                                                 <option key={typeof l === 'object' ? l.id : l} value={typeof l === 'object' ? l.id : l}>
+                                                     {typeof l === 'object' ? l.name : l}
+                                                 </option>
+                                             ))}
+                                         </select>
                                     </td>
                                 </tr>
 
@@ -407,6 +434,7 @@ const TablaGeneric = ({ lineConfigKey }) => {
                 onSave={handleSaveFromModal}
                 currentSlot={currentLossSlot}
                 initialData={tableItems.find(i => (i.TIME_SLOT ?? i.time_slot) === currentLossSlot)?.DETALLES || []}
+                perdidaCalculada={tableItems.find(i => (i.TIME_SLOT ?? i.time_slot) === currentLossSlot)?.PERDIDA_CALCULADA || 0}
             />
 
             <GoalsModal

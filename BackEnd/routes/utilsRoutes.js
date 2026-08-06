@@ -1,6 +1,6 @@
 import express from "express";
 import sql from "mssql";
-import { poolCIMA } from '../config/dbConnections.js';
+import { poolDBSV } from '../config/dbConnections.js';
 const router = express.Router();
 
 //LINES CONFIG
@@ -8,9 +8,9 @@ const router = express.Router();
 router.get("/get-lines-config", async (req, res) => {
     const { lineId } = req.query;
     try {
-        const result = await poolCIMA.request()
+        const result = await poolDBSV.request()
             .input('LineId', sql.VarChar(20), lineId)
-            .execute("sp_GetLinesConfig");
+            .execute("sp_select_linesconfig");
 
         return res.json(result.recordset);
     }
@@ -26,11 +26,11 @@ router.get("/get-lines-config", async (req, res) => {
 router.get("/shift-status", async (req, res) => {
     const { fecha, lineId, lineNo } = req.query;
     try {
-        const result = await poolCIMA.request()
+        const result = await poolDBSV.request()
             .input('FechaConsulta', sql.Date, fecha)
             .input('LineId', sql.VarChar(20), lineId)
             .input('NumeroLinea', sql.Int, lineNo ? lineNo : 1)
-            .execute("SHIFT_STATUS");
+            .execute("sp_select_shiftstatus");
 
         return res.json(result.recordset);
     }
@@ -51,13 +51,13 @@ router.post("/shift-toggle", async (req, res) => {
     }
 
     try {
-        const result = await poolCIMA.request().
+        const result = await poolDBSV.request().
             input('Fecha', sql.Date, fecha)
             .input('LineId', sql.VarChar(20), lineId)
             .input('NumeroLinea', sql.Int, lineNo ? lineNo : 1)
             .input('Turno', sql.Int, turno)
             .input('NuevoEstado', sql.Bit, nuevoEstado ? 1 : 0)
-            .execute("SHIFT_TOGGLE");
+            .execute("sp_update_shifttoggle");
 
         return res.status(200).json({
             message: `toggle-shift: Estado de turno actualizado correctamente`,
@@ -77,12 +77,12 @@ router.post("/shift-toggle", async (req, res) => {
 router.post("/default-goal-update-shift", async (req, res) => {
     const { lineId, turno, metaDefault, lineNo } = req.body;
     try {
-        const result = await poolCIMA.request()
+        const result = await poolDBSV.request()
             .input('LineId', sql.VarChar(20), lineId)
             .input('Turno', sql.Int, turno)
             .input('MetaDefault', sql.Int, metaDefault)
             .input('NumeroLinea', sql.Int, lineNo ? lineNo : 1)
-            .execute("SP_METAS_DEFAULT_UPDATE_SHIFT");
+            .execute("sp_update_metadefault_shift");
 
         return res.status(200).json({
             success: true,
@@ -101,12 +101,12 @@ router.post("/default-goal-update-shift", async (req, res) => {
 router.post("/default-goal-update-timeslot", async (req, res) => {
     const { lineId, horaSlot, metaDefault, lineNo } = req.body;
     try {
-        const result = await poolCIMA.request()
+        const result = await poolDBSV.request()
             .input('LineId', sql.VarChar(20), lineId)
             .input('Hora_slot', sql.VarChar(13), horaSlot)
             .input('MetaDefault', sql.Int, metaDefault)
             .input('NumeroLinea', sql.Int, lineNo ? lineNo : 1)
-            .execute("SP_METAS_DEFAULT_UPDATE_TIMESLOT");
+            .execute("sp_update_metadefault_timeslot");
 
         return res.status(200).json({
             success: true,
@@ -127,7 +127,7 @@ router.post("/default-goal-update-timeslot", async (req, res) => {
 router.post("/custom-goal-update", async (req, res) => {
     const { lineId, fecha, turno, horaSlot, metaCustom, user, lineNo } = req.body;
     try {
-        const result = await poolCIMA.request()
+        const result = await poolDBSV.request()
             .input('LineId', sql.VarChar(20), lineId)
             .input('Fecha', sql.Date, fecha)
             .input('Turno', sql.Int, turno)
@@ -135,7 +135,7 @@ router.post("/custom-goal-update", async (req, res) => {
             .input('MetaCustom', sql.Int, metaCustom)
             .input('UsuarioModifico', sql.VarChar(50), user)
             .input('NumeroLinea', sql.Int, lineNo ? lineNo : 1)
-            .execute("SP_METAS_CUSTOM_UPSERT");
+            .execute("sp_upsert_metascustom");
 
         return res.status(200).json({
             success: true,
@@ -160,13 +160,13 @@ router.get("/line-effective-goal-shift", async (req, res) => {
         const horaActual = fechaActual.toTimeString().split(' ')[0];
         //console.log("horaActual: ", horaActual);
 
-        const result = await poolCIMA.request()
+        const result = await poolDBSV.request()
             .input('LineId', sql.VarChar(20), lineId)
             .input('Fecha', sql.Date, fecha)
             .input('Turno', sql.Int, turno)
             .input('NumeroLinea', sql.Int, lineNo ? lineNo : 1)
             .input('HoraActual', sql.VarChar, horaActual)
-            .execute("SP_OBTENER_METAS_EFECTIVAS_ACUMULADAS");
+            .execute("sp_select_metasefectivas_acumuladas");
 
         return res.status(200).json({
             success: true,
@@ -190,12 +190,12 @@ router.get("/line-effective-goal-day", async (req, res) => {
         const horaActual = fechaActual.toTimeString().split(' ')[0];
         //console.log("horaActual: ", horaActual);
 
-        const result = await poolCIMA.request()
+        const result = await poolDBSV.request()
             .input('LineId', sql.VarChar(20), lineId)
             .input('Fecha', sql.Date, fecha)
             .input('NumeroLinea', sql.Int, lineNo ? lineNo : 1)
             .input('HoraActual', sql.VarChar, horaActual)
-            .execute("SP_OBTENER_METAS_EFECTIVAS_DIA_COMPLETO");
+            .execute("sp_select_metaefectiva_dia");
 
         return res.status(200).json({
             success: true,
