@@ -1,0 +1,12 @@
+name: "Tablas-de-Productividad-FrontEnd-Produccion"
+services:
+  frontend: 
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: prod
+    ports:
+      - "8402:8402"
+    env_file:
+      - .env
+    restart: always
