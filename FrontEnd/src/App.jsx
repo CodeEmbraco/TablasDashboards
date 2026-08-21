@@ -3,18 +3,18 @@ import { useState } from 'react'
 import { Routes, Route, Navigate } from "react-router-dom";
 import React from "react";
 import { ProductionProvider } from '@context/ProductionContext'
-import TablaElectronics from './deprecated/Electronics/TablaElectronics';
+// import TablaElectronics from './deprecated/Electronics/TablaElectronics';
 // import SelectIdioma from './pages/deprecated/SelectLanguage';
 // import Login from './pages/deprecated/Login';
 // import Menu from './pages/deprecated/Menu';
 // import Dashboard from './pages/deprecated/Dashboard';
-import TablaProdCdu from './deprecated/CDU/TablaCDU';
-import TablaInsinkerator from './deprecated/Insinkerator/TablaInsinkerator';
+// import TablaProdCdu from './deprecated/CDU/TablaCDU';
+// import TablaInsinkerator from './deprecated/Insinkerator/TablaInsinkerator';
 // import TablaProdRotorWet from './lines/RotorWet/TablaRotorWet';
 // import TablaProdRotorIse from './lines/RotorIse/TablaRotorISE';
-import TablaEnsamble from './deprecated/Ensamble/TablaEnsamble';
-import TablaThermo from './deprecated/Thermofisher/TablaThermo';
-import TablaECMFAN from './deprecated/ECMFAN/TablaECMFAN';
+// import TablaEnsamble from './deprecated/Ensamble/TablaEnsamble';
+// import TablaThermo from './deprecated/Thermofisher/TablaThermo';
+// import TablaECMFAN from './deprecated/ECMFAN/TablaECMFAN';
 import GlobalDashboard from './pages/GlobalDashboard';
 import { TablaGenericRouter } from './lines/TablaGeneric';
 
