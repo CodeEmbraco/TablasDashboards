@@ -38,6 +38,13 @@ export const generateHourSlots = (shiftId) => {
     return slots;
 };
 
+export const horaSlotFormatter = (hora) => {
+    const siguienteHoraInt = hora === 23 ? 0 : hora + 1;
+    const horaString = hora < 10 ? `0${hora}:00` : `${hora}:00`;
+    const siguienteHoraString = siguienteHoraInt < 10 ? `0${siguienteHoraInt}:00` : `${siguienteHoraInt}:00`;
+    return `${horaString} - ${siguienteHoraString}`;
+}
+
 export const getMetaPorHoraIndividual = (startHour, shiftId, metaBase) => {
     //! Como las metas se modifican desde SQL, el calculo ya no es necesario
     // if (shiftId === '1' && startHour === 9) return metaBase / 2;
