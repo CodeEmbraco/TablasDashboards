@@ -15,9 +15,9 @@ const Delta = ({ total, accGoal, totalTurno, eficiencia, activeShifts = [], onTo
     // console.log('totalTurno content:', totalTurno);
     // console.log('totalTurno length:', totalTurno?.length);
     const shifts = [
-        {id: '3', label: 'T3', value: totalTurno[2]?.CONTADOR ?? 0},
-        {id: '1', label: 'T1', value: totalTurno[0]?.CONTADOR ?? 0},
-        {id: '2', label: 'T2', value: totalTurno[1]?.CONTADOR ?? 0}
+        {id: '3', label: 'T3', value: totalTurno[2]?.contador ?? 0},
+        {id: '1', label: 'T1', value: totalTurno[0]?.contador ?? 0},
+        {id: '2', label: 'T2', value: totalTurno[1]?.contador ?? 0}
     ];
 
     //console.log(shifts);

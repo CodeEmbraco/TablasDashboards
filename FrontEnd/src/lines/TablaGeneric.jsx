@@ -66,26 +66,17 @@ const TablaGeneric = ({ lineConfigKey }) => {
         const fetchLineInfo = async () => {
             try {
                 const data = await productionService.getLinesConfig(lineConfig.id);
-                if (data && data.length > 0) {
-                    const extractPersonal = (roles) => {
-                        const map = new Map();
-                        data.filter(d => roles.includes(d.Rol?.toLowerCase())).forEach(d => {
-                            const id = d.IdPersonal ?? d.IdTrabajador ?? d.Id ?? d.Trabajador;
-                            const name = d.Trabajador || d.Nombre || String(id);
-                            if (id && !map.has(String(id))) {
-                                map.set(String(id), { id: String(id), name: String(name) });
-                            }
-                        });
-                        return Array.from(map.values());
-                    };
-
-                    const sups = extractPersonal(['supervisor']);
-                    const lds = extractPersonal(['team leader', 'lider']);
-
+                if (data && data.LineId) {
                     setDynamicConfig({
-                        name: data[0].Nombre || lineConfig.id,
-                        supervisors: sups.length > 0 ? sups : [...new Set(data.filter(d => d.Rol?.toLowerCase() === 'supervisor').map(d => ({ id: d.Trabajador, name: d.Trabajador })))],
-                        leaders: lds.length > 0 ? lds : [...new Set(data.filter(d => d.Rol?.toLowerCase() === 'team leader' || d.Rol?.toLowerCase() === 'lider').map(d => ({ id: d.Trabajador, name: d.Trabajador })))]
+                        name: data.Nombre || lineConfig.id,
+                        supervisors: data.Supervisores.map(s => ({
+                            id: String(s.PersonalId),
+                            name: s.Nombre
+                        })),
+                        leaders: data.Lideres.map(l =>({
+                            id: String(l.PersonalId),
+                            name: l.Nombre
+                        }))
                     });
                 }
             } catch (err) {
@@ -96,14 +87,12 @@ const TablaGeneric = ({ lineConfigKey }) => {
     }, [lineConfig?.id]);
 
     const apiConfig = useMemo(() => ({
-        getHourData: (date, shift, ln) => productionService.getHourlyData(lineConfig.id, date, shift, ln),
-        getTotalShift: (date, shift, ln) => productionService.getTotalShift(lineConfig.id, date, shift, ln),
-        getTotalShiftDelta: (date, ln) => productionService.getTotalShiftDelta(lineConfig.id, date, ln),
-        getReport: (date, shift, ln) => productionService.getLossReports(lineConfig.id, date, shift, ln),
-        postReport: (reportData, ln) => productionService.saveReport(lineConfig.id, reportData, ln),
-        getTotalDate: (date, ln) => productionService.getTotalDate(lineConfig.id, date, ln),
-        getShiftsStatus: (date, ln) => productionService.getShiftsStatus(lineConfig.id, date, ln),
-        postShiftToggle: (date, shift, shiftStatus, ln) => productionService.shiftToggleStatus(lineConfig.id, date, shift, shiftStatus, ln)
+        getDailyProduction: (date) => productionService.getDailyProduction(lineConfig.id, date),
+        syncParentLoss: (date, hour, mins) => productionService.syncParentLoss(lineConfig.id, date, hour, mins),
+        addLossDetail: (lossId, detail) => productionService.addLossDetail(lossId,detail),
+        deleteLossDetail: (detailId) => productionService.deleteLossDetail(detailId),
+        getShiftsStatus: (date) => productionService.getShiftsStatus(lineConfig.id, date),
+        postShiftToggle: (date, shift, shiftStatus) => productionService.shiftToggleStatus(lineConfig.id, date, shift, shiftStatus)
     }), [lineConfig?.id]);
 
     const {
@@ -111,17 +100,15 @@ const TablaGeneric = ({ lineConfigKey }) => {
         totalDia,
         totalTurno,
         totalDelta,
-        metaTurnoDB,
-        metaProgresiva,
         shiftsStatus,
         loading,
         error,
         toggleShiftDB,
-        saveLocalLoss,
-        saveReportToDB,
+        isSaving,
+        deleteLossDetail,
+        saveLossRealTime,
         fetchAll
-        // Se pasa lineNo solo si la línea tiene sublineas; de lo contrario undefined (comportamiento por defecto)
-    } = useProductionData(selectedDate, selectedShift, lineConfig?.defaultMeta, apiConfig, hasSubLines ? lineNo : undefined);
+    } = useProductionData(lineConfig.id,selectedDate, selectedShift, lineConfig?.defaultMeta, apiConfig);
 
     const metrics = useProductionMetrics(
         tableItems,
@@ -147,8 +134,8 @@ const TablaGeneric = ({ lineConfigKey }) => {
 
     // Efecto para sincronizar Supervisor y Líder cuando se cargan datos guardados de la DB
     useEffect(() => {
-        if (tableItems && tableItems.length > 0) {
-            const savedData = tableItems.find(item => item.SUPERVISOR && item.SUPERVISOR !== '0');
+        if (dynamicConfig && dynamicConfig.length > 0) {
+            const savedData = dynamicConfig.find(item => item.Supervisores && item.Supervisores !== '0');
             if (savedData) {
                 setSupervisor(savedData.SUPERVISOR);
                 setLider(savedData.LIDER);
@@ -160,8 +147,8 @@ const TablaGeneric = ({ lineConfigKey }) => {
     }, [tableItems, selectedShift, ...(hasSubLines ? [lineNo] : [])]);
 
     // Manejadores de Eventos
-    const handleSaveFromModal = (totalMins, formattedObs, detailsArray) => {
-        saveLocalLoss(currentLossSlot, totalMins, formattedObs, detailsArray);
+    const handleSaveFromModal = (totalMins, detailsArray) => {
+        saveLossRealTime(currentLossSlot, totalMins, detailsArray);
         setIsLossModalOpen(false);
     };
 
@@ -196,57 +183,6 @@ const TablaGeneric = ({ lineConfigKey }) => {
             fetchAll();
         } catch (err) {
             alert("Error al intentar actualizar la meta.");
-        }
-    };
-
-    const handleGuardarEnDB = async () => {
-        if (selectedShift === '0' || supervisor === '0' || lider === '0') {
-            alert('Por favor, selecciona Supervisor y Líder antes de guardar.');
-            return;
-        }
-
-        const reportDataFlat = [];
-        tableItems.forEach(item => {
-            // Insinkerator guarda con time_slot (minúsculas) y con campo Linea extra
-            const horaSlot = item.TIME_SLOT ?? item.time_slot;
-            const baseEntry = {
-                Fecha: selectedDate,
-                Turno: selectedShift,
-                Hora_Slot: horaSlot,
-                Supervisor: supervisor,
-                Lider: lider,
-                Modelo: item.MODELO || '',
-                ProduccionReal: item.REAL ?? 0,
-                MetaEfectiva: item.META ?? 0,
-                ...(hasSubLines ? { Linea: lineNo } : {})
-            };
-
-            if (item.DETALLES && item.DETALLES.length > 0) {
-                item.DETALLES.forEach(det => {
-                    reportDataFlat.push({
-                        ...baseEntry,
-                        Perdidas: det.minutos,
-                        Observaciones: det.observacion,
-                        Motivo: det.motivo,
-                        Maquina: det.maquina || null
-                    });
-                });
-            } else {
-                reportDataFlat.push({
-                    ...baseEntry,
-                    Perdidas: 0,
-                    Observaciones: '',
-                    Motivo: '',
-                    Maquina: null
-                });
-            }
-        });
-
-        try {
-            await saveReportToDB(reportDataFlat);
-            alert('¡Guardado exitosamente!');
-        } catch (err) {
-            alert('Error al guardar en la base de datos.');
         }
     };
 
@@ -291,6 +227,14 @@ const TablaGeneric = ({ lineConfigKey }) => {
                 </div>
             )}
 
+            {/* TOAST DE SINCRONIZACION DE PERDIDAS */}
+            {isSaving && (
+            <div className="discreet-notification loading-toast" style={{ backgroundColor: '#e8f5e9', color: '#2e7d32', borderLeftColor: '#4caf50' }}>
+                <span className="spinner-mini" style={{ borderLeftColor: '#2e7d32' }}></span> 
+                Guardando información...
+            </div>
+            )}
+
             {/* NOTIFICACIÓN DE EXPIRACIÓN ADMIN */}
             {isAdmin && <AdminTimer onExpire={handleExpire} />}
 
@@ -328,27 +272,27 @@ const TablaGeneric = ({ lineConfigKey }) => {
                                 <tr>
                                     <td>Supervisor:</td>
                                     <td>
-                                         <select value={supervisor} onChange={(e) => setSupervisor(e.target.value)}>
-                                             <option value="0" disabled>--Selecciona--</option>
-                                             {dynamicConfig.supervisors.map(s => (
-                                                 <option key={typeof s === 'object' ? s.id : s} value={typeof s === 'object' ? s.id : s}>
-                                                     {typeof s === 'object' ? s.name : s}
-                                                 </option>
-                                             ))}
-                                         </select>
-                                     </td>
-                                 </tr>
-                                 <tr>
-                                     <td>Team Leader:</td>
-                                     <td>
-                                         <select value={lider} onChange={(e) => setLider(e.target.value)}>
-                                             <option value="0" disabled>--Selecciona--</option>
-                                             {dynamicConfig.leaders.map(l => (
-                                                 <option key={typeof l === 'object' ? l.id : l} value={typeof l === 'object' ? l.id : l}>
-                                                     {typeof l === 'object' ? l.name : l}
-                                                 </option>
-                                             ))}
-                                         </select>
+                                        <select value={supervisor} onChange={(e) => setSupervisor(e.target.value)}>
+                                            <option value="0" disabled>--Selecciona--</option>
+                                            {dynamicConfig.supervisors.map(s => (
+                                                <option key={typeof s === 'object' ? s.id : s} value={typeof s === 'object' ? s.id : s}>
+                                                    {typeof s === 'object' ? s.name : s}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Team Leader:</td>
+                                    <td>
+                                        <select value={lider} onChange={(e) => setLider(e.target.value)}>
+                                            <option value="0" disabled>--Selecciona--</option>
+                                            {dynamicConfig.leaders.map(l => (
+                                                <option key={typeof l === 'object' ? l.id : l} value={typeof l === 'object' ? l.id : l}>
+                                                    {typeof l === 'object' ? l.name : l}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </td>
                                 </tr>
 
@@ -422,7 +366,6 @@ const TablaGeneric = ({ lineConfigKey }) => {
                 >
                     Ajustar Meta
                 </button>
-                <button className="btnGuardarTabla" onClick={handleGuardarEnDB}>Guardar Reporte</button>
             </div>
 
             {/* MODALES */}
@@ -432,6 +375,7 @@ const TablaGeneric = ({ lineConfigKey }) => {
                 isOpen={isLossModalOpen}
                 onClose={() => setIsLossModalOpen(false)}
                 onSave={handleSaveFromModal}
+                onDeleteDetail={deleteLossDetail}
                 currentSlot={currentLossSlot}
                 initialData={tableItems.find(i => (i.TIME_SLOT ?? i.time_slot) === currentLossSlot)?.DETALLES || []}
                 perdidaCalculada={tableItems.find(i => (i.TIME_SLOT ?? i.time_slot) === currentLossSlot)?.PERDIDA_CALCULADA || 0}

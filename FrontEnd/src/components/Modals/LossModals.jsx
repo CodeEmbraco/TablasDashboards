@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import './LossModals.css';
 
-const LossModal = ({ isOpen, onClose, onSave, currentSlot, initialData = [], perdidaCalculada = 0 }) => {
+const LossModal = ({ isOpen, onClose, onSave, onDeleteDetail, currentSlot, initialData = [], perdidaCalculada = 0 }) => {
     const [tempLossList, setTempLossList] = useState([]);
     const [newLossMinutos, setNewLossMinutos] = useState('');
     const [newLossMotivo, setNewLossMotivo] = useState('');
@@ -49,17 +49,24 @@ const LossModal = ({ isOpen, onClose, onSave, currentSlot, initialData = [], per
         setNewLossObs('');
     };
 
-    const removeLossItem = (index) => {
-        setTempLossList(tempLossList.filter((_, i) => i !== index));
+    const removeLossItem = async (index) => {
+        const itemToRemove = tempLossList[index];
+        if (itemToRemove.IdDetalle) {
+            const confirm = window.confirm("¿Estás seguro que quieres eliminar este registro?")
+            if(confirm) {
+                await onDeleteDetail(itemToRemove.IdDetalle);
+                setTempLossList(tempLossList.filter((_, i) => i !== index));
+            }
+        } else {
+            setTempLossList(tempLossList.filter((_, i) => i !== index));
+        }
     };
 
     const handleConfirm = () => {
+        const nuevosDetalles = tempLossList.filter(item => !item.IdDetalle);
         const totalMinutes = tempLossList.reduce((sum, item) => sum + (item.minutos || 0), 0);
-        const formattedString = tempLossList
-            .map(item => `${item.minutos} min ${item.motivo}: ${item.observacion}`)
-            .join(' | ');
 
-        onSave(totalMinutes, formattedString, tempLossList);
+        onSave(totalMinutes, nuevosDetalles);
         onClose();
     };
 

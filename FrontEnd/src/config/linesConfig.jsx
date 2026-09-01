@@ -14,11 +14,6 @@ import thermoImg from '@assets/materials/thermo_v2.png';
  * mediante el servicio productionService.getLinesConfig(id).
  */
 export const LINES_CONFIG = {
-    preensamble: {
-        id: "preensamble",
-        defaultMeta: 350,
-        imgURL: preensambleImg
-    },
     cdu: {
         id: "cdu",
         defaultMeta: 24,
@@ -34,15 +29,24 @@ export const LINES_CONFIG = {
         defaultMeta: 180,
         imgURL: electronicsImg
     },
-    insinkerator: {
-        id: "insi",
-        defaultMeta: 140,
-        imgURL: insinkeratorImg,
-        hasSubLines: true   // Activa el selector L1/L2 en TablaGeneric
-    },
     ecmfan: {
         id: "ecmfan",
         defaultMeta: 60,
         imgURL: ecmfanImg
     },
+    insinkerator1:{
+        id: "insinkerator1",
+        defaultMeta: 140,
+        imgURL: insinkeratorImg
+    },
+    insinkerator2:{
+        id: "insinkerator2",
+        defaultMeta: 140,
+        imgURL: insinkeratorImg
+    },
+    preensamble: {
+        id: "preensamble",
+        defaultMeta: 350,
+        imgURL: preensambleImg
+    }
 };

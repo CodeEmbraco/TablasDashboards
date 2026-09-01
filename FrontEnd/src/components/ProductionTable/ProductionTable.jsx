@@ -14,7 +14,8 @@ const ProductionTable = ({ items, onOpenModal, caption, localConfig, onSetMeal }
                         <th>Plan</th>
                         <th>Real</th>
                         <th>Modelo</th>
-                        <th>Pérdidas</th>
+                        <th>Pérdidas No Justificadas</th>
+                        <th>Pérdidas Justificadas</th>
                         <th>Observaciones</th>
                         <th>Acciones</th>
                     </tr>
@@ -23,10 +24,10 @@ const ProductionTable = ({ items, onOpenModal, caption, localConfig, onSetMeal }
                     {items.length > 0 ? (
                         items.map((row) => (
                             <ProductionRow 
-                                key={row.HORA} 
+                                key={row.hora} 
                                 row={row}
                                 onOpenModal={onOpenModal}
-                                isMealHour={localConfig.mealHour === row.HORA}
+                                isMealHour={localConfig.mealHour === row.hora}
                                 onSetMeal={onSetMeal}
                             />
                         ))
