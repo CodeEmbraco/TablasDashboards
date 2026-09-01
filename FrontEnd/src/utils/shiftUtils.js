@@ -1,4 +1,10 @@
-import { getFormattedDate, getCurrentShift, generateHourSlots, getMetaPorHoraIndividual } from '@utils/dateUtils';
+import { 
+    getFormattedDate,
+    getCurrentShift, 
+    generateHourSlots, 
+    getMetaPorHoraIndividual, 
+    horaSlotFormatter 
+} from '@utils/dateUtils';
 
 const SHIFT_ORDER = ['3', '1', '2'];
 
@@ -143,3 +149,25 @@ export const calcularMetaProgresiva = (horasData, metaTurnoDB) => {
     metaAcumulada = Math.round(metaAcumulada);
     return (metaTurnoDB > 0 && metaAcumulada > metaTurnoDB) ? metaTurnoDB : metaAcumulada;
 };
+
+export const horasEsperadas = (turno) => {
+    if (turno === '1') return [6, 7, 8, 9, 10, 11, 12, 13];
+    if (turno === '2') return [14, 15, 16, 17, 18, 19, 20, 21, 22];
+    if (turno === '3') return [23, 0, 1, 2, 3, 4, 5];
+    return [];
+};
+
+export const esHoraTerminada = (fecha, horaFija, turno) => {
+    if (!fecha) return true;
+
+    const [year, month, day] = fecha.split('-');
+    const rowEnd = new Date(year, month - 1, day);
+    if(String(turno) === '3' && horaFija < 6){
+        rowEnd.setDate(rowEnd.getDate() + 1);
+    }
+
+    rowEnd.setHours(horaFija + 1, 0, 0, 0);
+
+    const now = new Date();
+    return now >= rowEnd;
+}

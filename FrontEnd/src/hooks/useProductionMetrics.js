@@ -13,9 +13,7 @@ export const useProductionMetrics = (
     const [currentTime, setCurrentTime] = useState(new Date());
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            setCurrentTime(new Date());
-        }, 60000);
+        const interval = setInterval(() => setCurrentTime(new Date()), 60000);
         return () => clearInterval(interval);
     }, []);
 
@@ -38,18 +36,14 @@ export const useProductionMetrics = (
         let metaTurnoProgresiva = 0;
 
         if (tableItems && tableItems.length > 0) {
-            for (let i = 0; i < tableItems.length; i++) {
-                const fila = tableItems[i];
-                const metaHora = Number(fila.MetaEfectiva || fila.META || fila.Meta) || 0;
-                const horaSlot = parseInt((fila.TIME_SLOT || fila.Hora_Slot || fila.Hora || fila.HORA || "").split(':')[0], 10);
-
+            for (const fila of tableItems) {
+                const metaHora = Number(fila.meta) || 0;
+                const horaSlot = parseInt((fila.hora).split(':')[0], 10);
                 if (isNaN(horaSlot)) continue;
 
                 if (selectedDate < today) {
                     metaTurnoProgresiva += metaHora; // Días pasados suman todo
-                } else if (selectedDate > today) {
-                    metaTurnoProgresiva += 0; // Futuro
-                } else {
+                } else if (selectedDate === today) {
                     // Si hoy estamos viendo un turno distinto al actual
                     if (selectedShift !== actualShift) {
                         const SHIFT_ORDER = ['3', '1', '2'];
@@ -57,26 +51,16 @@ export const useProductionMetrics = (
                             metaTurnoProgresiva += metaHora; // Turno de hoy que ya pasó
                         }
                     } else {
-                        // Es el turno en curso
-                        let isPastHour = false;
-                        let isCurrentHour = false;
+                        //TURNO EN CURSO: Lógica de tiempo
+                        const isTurno3 = selectedShift === '3';
+                        const mappedSlot = isTurno3 && horaSlot === 23 ? -1 : horaSlot;
+                        const mappedCurrent = isTurno3 && currentHour === 23 ? -1 : currentHour;
 
-                        // Truco para el Turno 3 que cruza la medianoche (23 a 06)
-                        if (selectedShift === '3') {
-                            const mappedSlot = horaSlot === 23 ? -1 : horaSlot;
-                            const mappedCurrent = currentHour === 23 ? -1 : currentHour;
-                            isPastHour = mappedSlot < mappedCurrent;
-                            isCurrentHour = mappedSlot === mappedCurrent;
-                        } else {
-                            isPastHour = horaSlot < currentHour;
-                            isCurrentHour = horaSlot === currentHour;
-                        }
-
-                        if (isPastHour) {
-                            metaTurnoProgresiva += metaHora;
-                        } else if (isCurrentHour) {
-                            metaTurnoProgresiva += metaHora * (cuartosActuales / 4);
-                            break; // Detenemos aquí, las demás horas son futuro
+                        if (mappedSlot < mappedCurrent){
+                            metaTurnoProgresiva += metaHora; //Hora pasada completa
+                        } else if (mappedSlot === mappedCurrent){
+                            metaTurnoProgresiva += metaHora * (cuartosActuales / 4); //Fracción de Hora actual
+                            break;
                         }
                     }
                 }
@@ -99,42 +83,19 @@ export const useProductionMetrics = (
                 if (!isActivo) return acc;
 
                 // 2.2 Obtener Meta Total de este turno específico
-                const turnoData = totalDelta.find(t => String(t.TURNO || t.Turno || t.turno) === shiftId);
+                const turnoData = totalDelta.find(t => String(t.turno) === shiftId);
                 const metaTotalTurnoBD = turnoData ? (Number(turnoData.MetaEfectivaTurno) || 0) : 0;
 
                 // 2.3 Lógica de Tiempo
-                if (selectedDate < today) {
-                    return acc + metaTotalTurnoBD; // Día pasado
-                } else if (selectedDate > today) {
-                    return acc; // Día futuro
-                } else {
-                    if (index < currentIdx) {
-                        return acc + metaTotalTurnoBD; // Turno de hoy que ya pasó
-                    } else if (index === currentIdx) {
-                        // TURNO EN CURSO
-                        // Si estamos visualizando el turno actual en la UI, usamos la métrica exacta y perfecta de arriba
-                        if (selectedShift === actualShift) {
-                            return acc + metaTurnoProgresiva;
-                        } else {
-                            // Si estamos visualizando un turno pasado pero queremos ver el Delta global avanzando,
-                            // sacamos una proporción exacta en base a cuartos de hora totales del turno en curso
-                            let elapsedQuarters = 0;
-                            let totalQuarters = 1;
-                            if (shiftId === '1') {
-                                totalQuarters = 8 * 4; // 8 horas x 4 cuartos = 32
-                                elapsedQuarters = (currentHour - 6) * 4 + cuartosActuales;
-                            } else if (shiftId === '2') {
-                                totalQuarters = 9 * 4;
-                                elapsedQuarters = (currentHour - 14) * 4 + cuartosActuales;
-                            } else if (shiftId === '3') {
-                                totalQuarters = 7 * 4;
-                                const hrs = currentHour === 23 ? 0 : (currentHour + 1);
-                                elapsedQuarters = hrs * 4 + cuartosActuales;
-                            }
-                            elapsedQuarters = Math.max(0, Math.min(elapsedQuarters, totalQuarters));
-                            return acc + (metaTotalTurnoBD * (elapsedQuarters / totalQuarters));
-                        }
-                    }
+                if(selectedDate < today || index < currentIdx){
+                    return acc + metaTotalTurnoBD;
+                } else if (selectedDate === today && index === currentIdx){
+                    let totalCuartos = shiftId === '1' ? 32 : (shiftId === '2' ? 36 : 28);
+                    let hrsPasadas = shiftId === '1' ? (currentHour - 6) 
+                    : (shiftId === '2' ? (currentHour - 14) 
+                        : (current === 23 ? 0 : currentHour + 1));
+                    let cuartosTranscurridos = Math.max(0, Math.min((hrsPasadas * 4) + cuartosActuales, totalCuartos));
+                    return acc + (metaTotalTurnoBD * (cuartosTranscurridos / totalCuartos));
                 }
                 return acc;
             }, 0);
