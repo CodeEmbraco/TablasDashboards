@@ -46,7 +46,7 @@ export const useProductionMetrics = (
                 } else if (selectedDate === today) {
                     // Si hoy estamos viendo un turno distinto al actual
                     if (selectedShift !== actualShift) {
-                        const SHIFT_ORDER = ['3', '1', '2'];
+                        const SHIFT_ORDER = ['1', '2', '3'];
                         if (SHIFT_ORDER.indexOf(selectedShift) < SHIFT_ORDER.indexOf(actualShift)) {
                             metaTurnoProgresiva += metaHora; // Turno de hoy que ya pasó
                         }
@@ -73,7 +73,7 @@ export const useProductionMetrics = (
         let metaDiaProgresiva = 0;
 
         if (totalDelta && totalDelta.length > 0) {
-            const SHIFT_ORDER = ['3', '1', '2'];
+            const SHIFT_ORDER = ['1', '2', '3'];
             const currentIdx = selectedDate === today ? SHIFT_ORDER.indexOf(actualShift) : (selectedDate < today ? 3 : -1);
 
             metaDiaProgresiva = SHIFT_ORDER.reduce((acc, shiftId, index) => {
