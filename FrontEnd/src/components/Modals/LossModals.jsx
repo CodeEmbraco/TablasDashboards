@@ -2,7 +2,17 @@
 import React, { useState, useEffect } from 'react';
 import './LossModals.css';
 
-const LossModal = ({ isOpen, onClose, onSave, onDeleteDetail, currentSlot, initialData = [], perdidaCalculada = 0 }) => {
+const LossModal = ({ 
+        isOpen,
+        onClose, 
+        onSave, 
+        onDeleteDetail, 
+        currentSlot, 
+        initialData = [], 
+        perdidaCalculada = 0,
+        supervisor,
+        lider
+    }) => {
     const [tempLossList, setTempLossList] = useState([]);
     const [newLossMinutos, setNewLossMinutos] = useState('');
     const [newLossMotivo, setNewLossMotivo] = useState('');
@@ -66,7 +76,8 @@ const LossModal = ({ isOpen, onClose, onSave, onDeleteDetail, currentSlot, initi
         const nuevosDetalles = tempLossList.filter(item => !item.IdDetalle);
         const totalMinutes = tempLossList.reduce((sum, item) => sum + (item.minutos || 0), 0);
 
-        onSave(totalMinutes, nuevosDetalles);
+        //console.log("debug",totalMinutes," | ", nuevosDetalles," | ", supervisor," | ", lider)
+        onSave(totalMinutes, nuevosDetalles, supervisor, lider);
         onClose();
     };
 
