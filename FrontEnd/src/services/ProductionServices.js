@@ -14,12 +14,15 @@ const productionService = {
     },
 
     //PERDIDAS
-    syncParentLoss: async (linea, fecha, hora, minutosCalculados) => {
+    syncParentLoss: async (linea, fecha, hora, minutosCalculados, idSup, idLider) => {
+        //console.log("debug: ",linea," | ", fecha," | ", hora," | ", minutosCalculados," | ", idSup," | ", idLider);
         const response = await api.post(`api/losses/sync-parent`, {
             linea,
             fecha,
             hora,
-            minutosCalculados
+            minutosCalculados,
+            idSupervisor: idSup,
+            idLider: idLider
         });
         return response.data;
     },

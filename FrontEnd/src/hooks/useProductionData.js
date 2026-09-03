@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { horaSlotFormatter, getFormattedDate } from '@utils/dateUtils';
 import { construirEsqueletoTabla } from '@utils/dataUtils';
 
-export const useProductionData = (linea, fecha, turno, metaPorHora, apiFunctions, lineNo = null) => {
+export const useProductionData = (linea, fecha, turno, metaPorHora, apiFunctions) => {
     const [data, setData] = useState({
         tableItems: [],
         totalDia: 0,
@@ -15,10 +15,10 @@ export const useProductionData = (linea, fecha, turno, metaPorHora, apiFunctions
     });
     const [isSaving, setIsSaving] = useState(false);
 
-    const saveLossRealTime = async (hora, minutosCalculados, detallesNuevos) => {
+    const saveLossRealTime = async (hora, minutosCalculados, detallesNuevos, idSupervisor, idLider) => {
         setIsSaving(true);
         try{
-            const padre = await apiFunctions.syncParentLoss( fecha, hora, lineNo, minutosCalculados );
+            const padre = await apiFunctions.syncParentLoss( fecha, hora, minutosCalculados, idSupervisor, idLider);
             for(const detalle of detallesNuevos){
                 await apiFunctions.addLossDetail(padre.data.IdPerdida, detalle);
             }
@@ -28,24 +28,23 @@ export const useProductionData = (linea, fecha, turno, metaPorHora, apiFunctions
 
             const queueKey = `offline_queue_${linea}`;
             const queue = JSON.parse(localStorage.getItem(queueKey)) || [];
-            queue.push({ hora, minutosCalculados, detallesNuevos, fecha, turno, lineNo});
+            queue.push({ hora, minutosCalculados, detallesNuevos, fecha, turno, idSupervisor, idLider});
             localStorage.setItem(queueKey, JSON.stringify(queue));
         } finally {
             setIsSaving(false);
         }
-    };
+    }
 
     const syncOfflineQueue = async () => {
         const queueKey = `offline_queue_${linea}`;
         const queue = JSON.parse(localStorage.getItem(queueKey)) || [];
-
         if(queue.length === 0) return;
 
         setIsSaving(true);
         try {
             console.log(`Sincronizando ${queue.length} registros pendientes...`);
             for (const item of queue){
-                const padre = await apiFunctions.syncParentLoss( item.fecha, item.hora, item.lineNo, item.minutosCalculados );
+                const padre = await apiFunctions.syncParentLoss( item.fecha, item.hora, item.minutosCalculados, item.idSupervisor, item.idLider );
                 for (const detalle of item.detallesNuevos){
                     await apiFunctions.addLossDetail(padre.data.IdPerdida, detalle);
                 }
@@ -85,7 +84,7 @@ export const useProductionData = (linea, fecha, turno, metaPorHora, apiFunctions
             const { totalDia, turnos, porHora } = megaData.produccion;
             const currentShiftData = turnos[`T${turno}`] || { produccion: 0, meta: 0, eficiencia: 0};
 
-            const tableItems = construirEsqueletoTabla(fecha, turno, porHora, metaPorHora);
+            const tableItems = construirEsqueletoTabla(fecha, turno, porHora);
 
             const totalDelta = [
                 {turno: 1, contador: turnos.T1.produccion, MetaEfectivaTurno: turnos.T1.meta},
@@ -103,13 +102,14 @@ export const useProductionData = (linea, fecha, turno, metaPorHora, apiFunctions
                 shiftsStatus: shiftsStatus || [],
                 loading: false
             }));
+            //console.log("tableItems",tableItems);
             await syncOfflineQueue();
-            console.log(data);
+
         } catch (error) {
             console.error("Error fetching data:", error);
             setData(prev => ({ ...prev, error, loading: false }));
         }
-    }, [linea, fecha, turno, metaPorHora, apiFunctions, lineNo]);
+    }, [linea, fecha, turno, metaPorHora, apiFunctions]);
 
     // Función para cambiar el estado del turno
     const toggleShiftDB = useCallback(async (turnoId, estadoActual) => {
@@ -117,14 +117,14 @@ export const useProductionData = (linea, fecha, turno, metaPorHora, apiFunctions
             const nuevoEstado = !estadoActual; // Invertimos el estado actual (de 1 a 0 / de 0 a 1)
 
             // Enviamos los parámetros dinámicos correctos
-            await apiFunctions.postShiftToggle(fecha, turnoId, nuevoEstado, lineNo);
+            await apiFunctions.postShiftToggle(fecha, turnoId, nuevoEstado);
 
             // Refrescamos la data de inmediato (esto actualizará las metas y estados en todo el front)
             fetchAll(true);
         } catch (err) {
             console.error("Error al cambiar el estado del turno en el Hook:", err);
         }
-    }, [apiFunctions, fecha, lineNo, fetchAll]);
+    }, [apiFunctions, fecha, fetchAll]);
 
     useEffect(() => {
         const isToday = fecha === getFormattedDate();
@@ -135,7 +135,7 @@ export const useProductionData = (linea, fecha, turno, metaPorHora, apiFunctions
         }
     }, [fetchAll, fecha, turno]);
 
-    return { ...data, toggleShiftDB, fetchAll };
+    return { ...data, toggleShiftDB, fetchAll, saveLossRealTime, deleteLossRealTime };
 };
 
 export const useProductionDataLite = (fecha, apiFunctions, lineNo = null, liteMode = 'full') => {
@@ -216,5 +216,5 @@ export const useProductionDataLite = (fecha, apiFunctions, lineNo = null, liteMo
         }
     }, [fetchAll, fecha]);
 
-    return { ...data, isSaving, toggleShiftDB, fetchAll, saveLossRealTime, deleteLossDetail };
+    return { ...data, isSaving, toggleShiftDB, fetchAll };
 };

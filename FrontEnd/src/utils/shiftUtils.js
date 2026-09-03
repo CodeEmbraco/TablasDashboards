@@ -6,7 +6,7 @@ import {
     horaSlotFormatter 
 } from '@utils/dateUtils';
 
-const SHIFT_ORDER = ['3', '1', '2'];
+const SHIFT_ORDER = ['1', '2', '3'];
 
 const SHIFT_START_TIMES = {
     '1': 6,  // 06:00
