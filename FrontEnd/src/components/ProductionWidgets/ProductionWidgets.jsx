@@ -49,14 +49,14 @@ const ProductionWidgets = ({ percent, statusClass, real, goal, losses, enableAni
             </div>
 
             {/* Dona de Pérdidas (en minutos) */}
-            <div className='donut-wrapper'>
+            {/* <div className='donut-wrapper'>
                 <span style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>PÉRDIDAS</span>
                 <CircularProgressbar
                     value={lossesCircleValue}
                     text={`${losses}m`}
                     styles={buildStyles({ pathColor: '#ff9800', textColor: '#333' })}
                 />
-            </div>
+            </div> */}
 
             <div style={{ textAlign: 'center' }}>
                 {/* {console.log("statusClass ==> ", statusClass)} */}

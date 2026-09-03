@@ -14,8 +14,8 @@ const ProductionTable = ({ items, onOpenModal, caption, localConfig, onSetMeal }
                         <th>Plan</th>
                         <th>Real</th>
                         <th>Modelo</th>
-                        <th>Pérdidas No Justificadas</th>
-                        <th>Pérdidas Justificadas</th>
+                        <th>Pérdidas <br />No Justificadas</th>
+                        <th>Pérdidas <br /> Justificadas</th>
                         <th>Observaciones</th>
                         <th>Acciones</th>
                     </tr>

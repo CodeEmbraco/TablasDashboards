@@ -1,27 +1,10 @@
 import React, { useState } from 'react';
 import { Utensils } from 'lucide-react';
 
-const ProductionRow = ({ row, onOpenModal, isMealHour, customMeta, onUpdateMeta, onSetMeal }) => {
-    const [isUnlocked, setIsUnlocked] = useState(false);
-    const SUPERVISOR_PASS = "embraco";
+import LossDonut from './LossDonut';
 
-    const handleMetaAccess = () => {
-        if (!isUnlocked) {
-            const input = window.prompt("Ingrese la contraseña del Supervisor:");
-            if (input === SUPERVISOR_PASS) {
-                setIsUnlocked(true);
-            } else if(input !== null) {
-                alert("Contraseña incorrecta.");
-            }
-        }
-    };
-    // Formateo de la hora (de entero a rango 00:00)
-    const formatHourRange = (hour) => {
-        const start = String(hour).padStart(2, '0');
-        const end = String((hour + 1) % 24).padStart(2, '0');
-        return `${start}:00 - ${end}:00`;
-    };
 
+const ProductionRow = ({ row, onOpenModal, isMealHour, customMeta, onSetMeal }) => {
     // Lógica de color para la producción Real vs Meta
     const getRealColor = () => {
         // Usamos customMeta si existe, si no, la meta por defecto de la fila
@@ -81,15 +64,17 @@ const ProductionRow = ({ row, onOpenModal, isMealHour, customMeta, onUpdateMeta,
             </td>
 
             {/* COLUMNA 4: MODELO */}
-            <td style={{ fontSize: '0.85rem' }}>{row.modelos || '---'}</td>
+            <td style={{ fontSize: '0.85rem' }}>{row.modelos}</td>
 
             {/* COLUMNA 5: PÉRDIDAS NO JUSTIFICADAS*/}
-            <td style={{ 
-                fontWeight: row.perdidaNoJustificada > 0 ? 'bold' : 'normal',
-                color: row.perdidaNoJustificada > 0 ? '#d32f2f' : '#777' 
-            }}>
-                {row.perdidaNoJustificada} min
+            <td style={{ fontSize: '0.85rem' }}>
+                <LossDonut
+                justificada={row.perdidaJustificada ? row.perdidaJustificada : 0}
+                noJustificada={row.perdidaNoJustificada ?  row.perdidaNoJustificada : row.perdidaCalculada}
+                finalizada={row.finalizada}
+                />
             </td>
+        
 
             {/* COLUMNA 6: PÉRDIDAS JUSTIFICADAS*/}
             <td style={{ 
